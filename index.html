@@ -491,9 +491,36 @@ function appsAsk(t){
 function clarify(t){const s=t.trim().slice(0,120);return `Heard you: “${esc(s)}${t.trim().length>120?'…':''}.” Try hire, payroll, <b>open Apps</b>, <b>open Finance</b>, or <b>Yorri approve</b>.`}
 
 const FIN={cash:184200,inMTD:38400,outMTD:21700,ap:6420,payroll:71880,burnMo:13000,runway:14.2};
-function finSummary(){const f=FIN,net=f.inMTD-f.outMTD,k=n=>'$'+(n/1000).toFixed(1)+'k';
-return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}Cash vs burn: cash on hand <b>${k(f.cash)}</b>; avg net burn ~<b>${k(f.burnMo)}/mo</b> → runway <b>${f.runway} mo</b>. MTD in ${k(f.inMTD)} vs out ${k(f.outMTD)} = net <b>${net>=0?'+':''}${k(net)}</b> (cash-positive this month). Upcoming: payroll Friday ${k(f.payroll)} and open AP ${k(f.ap)} — after both, cash ≈ ${k(f.cash-f.payroll-f.ap)}. Watch: payroll is ~5.5× monthly net burn, so a soft revenue month shortens runway fast.`}
-function finCtx(){const f=FIN;return mockOn?` Finance data (MOCK demo): cash $${f.cash}; MTD inflow $${f.inMTD}; MTD outflow $${f.outMTD}; avg monthly net burn $${f.burnMo}; runway ${f.runway} months; open AP $${f.ap}; Friday payroll $${f.payroll}. When asked about finance/cash/burn, analyze with these numbers (label MOCK).`:''}
+const k$=n=>'$'+(n/1000).toFixed(1)+'k';
+const LANES={
+ Finance:{re:/\b(cash|runway|burn|finance|financial|spend|revenue|quickbooks|mtd|anomal\w*)\b/i,
+  ctx:()=>`Finance: cash $${FIN.cash}; MTD inflow $${FIN.inMTD}; MTD outflow $${FIN.outMTD}; avg monthly net burn $${FIN.burnMo}; runway ${FIN.runway} mo; open AP $${FIN.ap}; Friday payroll $${FIN.payroll}; 1 anomaly flagged (duplicate $412 SaaS charge).`,
+  sum:()=>{const f=FIN,net=f.inMTD-f.outMTD;return `Cash vs burn: cash on hand <b>${k$(f.cash)}</b>; avg net burn ~<b>${k$(f.burnMo)}/mo</b> → runway <b>${f.runway} mo</b>. MTD in ${k$(f.inMTD)} vs out ${k$(f.outMTD)} = net <b>${net>=0?'+':''}${k$(net)}</b>. Upcoming: payroll Friday ${k$(f.payroll)} + open AP ${k$(f.ap)} → cash ≈ ${k$(f.cash-f.payroll-f.ap)} after. 1 anomaly: duplicate $412 SaaS charge. Watch: payroll is ~5.5× monthly net burn.`}},
+ Payroll:{re:/\b(payroll|pay\s*run|gusto|paycheck\w*|wages?)\b/i,
+  ctx:()=>'Payroll: Friday run $71,880 gross for 42 employees via Gusto; taxes/withholding $18,240 included; 2 new hires prorated; 1 bonus $2,500 pending approval; funding from operating account (cash $184.2k); needs T3 biometric + 10-min delay.',
+  sum:()=>`Payroll: Friday run <b>$71,880</b> gross · 42 employees (Gusto). Includes $18,240 taxes/withholding, 2 prorated new hires, and 1 <b>$2,500 bonus</b> awaiting your OK. Funded from operating ($184.2k → ~$112k after). Needs T3 biometric + 10-min delay — say <b>run payroll</b> to queue it.`},
+ HR:{re:/\b(hr|human\s+resources|people\s+ops|hire|hiring|recruit\w*|headcount|pipeline|candidates?|onboard\w*|pto|time\s*off|reviews?\s+due|roster|open\s+roles?)\b/i,
+  ctx:()=>'HR: 42 on roster; 2 open roles (Remote Ops Lead: 14 applicants, 3 phone screens, 1 final round; Senior Accountant: 9 applicants, 2 screens); J. Ruiz onboarding 68%; 3 PTO requests pending; 5 performance reviews due this month; 1 offer draft pending (Ops Lead, $92k).',
+  sum:()=>`HR: <b>42</b> on roster. Hire pipeline — <b>Remote Ops Lead</b>: 14 applicants → 3 screens → 1 final round (offer draft $92k, needs your OK, T3); <b>Senior Accountant</b>: 9 applicants → 2 screens. J. Ruiz onboarding 68%. 3 PTO pending, 5 reviews due this month.`},
+ Legal:{re:/\b(legal|nda|contracts?|msa|docusign|trademark|risk|compliance|lawsuit|liabilit\w*)\b/i,
+  ctx:()=>'Legal: NDA with Acme auto-renews in 9 days; MSA Northwind summarized (uncapped indemnity clause flagged); 1 DocuSign pending (Contoso SOW, 4 days); trademark filing YW class 9 in review; no active litigation.',
+  sum:()=>`Legal: <b>Risk 1</b> — Northwind MSA has an <b>uncapped indemnity</b> clause (recommend cap at 12-mo fees). <b>Risk 2</b> — Acme NDA auto-renews in <b>9 days</b>. 1 DocuSign pending (Contoso SOW, 4 days old). Trademark (class 9) in review. No active litigation.`},
+ Support:{re:/\b(support|tickets?|helpdesk|triage|customer\s+asks?|sla)\b/i,
+  ctx:()=>'Support: 7 open internal tickets (2 high: VPN access for new hire, payroll portal login; 3 medium; 2 low); median first reply 4m; 1 ticket breaching 24h SLA; 31 closed this week.',
+  sum:()=>`Support: <b>7 open</b> — 2 high (VPN access for new hire, payroll portal login), 3 medium, 2 low. Median first reply <b>4m</b>; <b>1 ticket past 24h SLA</b>. 31 closed this week. Fix VPN before Friday so the new hire is paid & productive.`},
+ Vault:{re:/\b(vault|documents?|docs?|w-?9s?|encrypt\w*|index\w*|files?)\b/i,
+  ctx:()=>'Vault: 1,284 docs AES-256; 87 contracts; 12 W-9s (2 missing for active vendors); 3 docs expiring this quarter (insurance COI, Acme NDA, lease addendum); last index 2h ago.',
+  sum:()=>`Vault: <b>1,284</b> docs (AES-256) · 87 contracts · 12 W-9s — <b>2 vendors missing W-9</b> (block before paying AP). 3 docs expiring this quarter: insurance COI, Acme NDA, lease addendum. Indexed 2h ago.`},
+ Briefing:{re:/\b(briefing|brief|overview|command\s*board|dashboard|how\s+are\s+we|what'?s\s+up|sitrep|everything|all\s+lanes)\b/i,
+  ctx:()=>'',
+  sum:()=>`Briefing: cash <b>$184.2k</b> · runway 14.2 mo · payroll <b>$71.9k Fri</b> ready · HR 2 open roles (1 final round) · Legal: Acme NDA renews in 9d, Northwind indemnity flag · Support 7 open (1 SLA breach) · Vault: 2 missing W-9s · <b>${queue.length}</b> decision${queue.length===1?'':'s'} in queue.`}
+};
+LANES['Command Board']=LANES.Briefing;
+const ASKY=/\b(summar\w*|analy\w*|what\w*|how|any|status|break\s*down|tell|due|risk\w*|overview|explain|review|vs|versus|compare|look\w*|check|update|report|show\s+me|where|which|who|pipeline|this\s+friday|\?)/i;
+function laneFor(t){for(const n of ['Payroll','Support','Legal','Vault','HR','Finance','Briefing'])if(LANES[n].re.test(t))return n;return null}
+function laneReply(n){return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}`+LANES[n].sum()}
+function finSummary(){return laneReply('Finance')}
+function finCtx(){return mockOn?' MOCK demo lane data (use these numbers, label MOCK): '+['Finance','Payroll','HR','Legal','Support','Vault'].map(n=>LANES[n].ctx()).join(' ')+' Briefing = rollup of all lanes.':''}
 /* ---- Grok LLM (xAI OpenAI-compatible) ---- */
 const LS_LLM='ywLlm',LLM_DEF={key:'',base:'https://api.x.ai/v1',model:'grok-4'};
 function llmCfg(){try{return Object.assign({},LLM_DEF,JSON.parse(localStorage.getItem(LS_LLM)||'{}'))}catch(e){return Object.assign({},LLM_DEF)}}
@@ -529,7 +556,8 @@ function ask(t){
   setTimeout(async()=>{
     if(llmCfg().key&&await llmAsk(t))return;
     if(pageView==='apps'){appsAsk(t);return}
-    if(/\b(cash|runway|burn|finance|financial|spend|revenue)\b/i.test(t)&&pageView!=='apps'){say('Yorri',finSummary());return}
+    if(pageView!=='apps'){let ln=laneFor(t);if(vc==='cont'&&LANES[roomView]&&(!ln||ln==='Briefing'))ln=roomView==='Command Board'?'Briefing':roomView;
+      if(ln&&(vc==='cont'||ASKY.test(t)||ln==='Briefing'||(ln==='Finance'))){say('Yorri',laneReply(ln));return}}
     const m=P.find(p=>p[0].test(t));
     if(!m){say('Yorri',clarify(t));return}
     if(m[2]==='__hire__'){const h=hirePlan(t);say('Yorri',`Plan ready → <span class="tier ${h.t[0]}">${h.t[1]}</span>${h.title}. Waiting on your decision.`);queue.push(h);draw();return}
