@@ -550,6 +550,7 @@ try{const o=await llmCall([{role:'user',content:'Reply with: OK'}],c);$('#llmSta
 function ask(t){
   if(!t||!String(t).trim())return;
   t=String(t).trim();
+  const qEl=$('#q');if(qEl)qEl.value='';
   const vc=tryVoiceCommand(t);
   if(vc===true){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
   if(vc!=='cont')say('You',t);
@@ -599,8 +600,8 @@ if($('#mic'))$('#mic').onclick=()=>{
     rec.onresult=e=>{
       let raw=(e.results[0]&&e.results[0][0]&&e.results[0][0].transcript)||'';
       raw=raw.replace(/^\s*(hey\s+yorri|hi\s+yorri|ok\s+yorri|ask\s+yorri)[,.\s]*/i,'').trim();
-      if(raw)$('#q').value=raw;
-      if(raw)ask(raw);else say('Yorri','Didn\'t catch that — try again or type it.');
+      if(raw){const el=$('#q');if(el)el.value=raw;submitQ()}
+      else say('Yorri','Didn\'t catch that — try again or type it.');
       setVmsg('');
     };
     rec.onerror=e=>{
