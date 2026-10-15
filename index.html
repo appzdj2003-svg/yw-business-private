@@ -103,7 +103,7 @@ body.sat .car-ctl{display:none}
 #ywGate button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:10px;background:#1fd3c6;color:#022;font-weight:700;cursor:pointer}
 #ywGate .e{color:#ff6b6b;font-size:12px;min-height:16px;margin-top:10px}html.ywLocked body>*:not(#ywGate){visibility:hidden}</style>
 <script>(function(){try{if(sessionStorage.getItem('ywUnlock')==='1'||localStorage.getItem('ywUnlock')==='1'){sessionStorage.setItem('ywUnlock','1');return}var q=new URLSearchParams(location.search);if(q.get('u')==='1'&&localStorage.getItem('ywUnlock')==='1'){sessionStorage.setItem('ywUnlock','1');return}}catch(e){}document.documentElement.classList.add('ywLocked')})()</script></head><body>
-<div id="ywGate"><form class="b" onsubmit="return ywTry(event)"><h1>YORRI · COMMAND CENTER</h1><p>Owner access only. Enter access code.</p><input id="ywCode" type="password" autocomplete="current-password" autofocus placeholder="Access code"><button>Unlock</button><div class="e" id="ywErr"></div></form></div>
+<div id="ywGate"><form class="b" onsubmit="return ywTry(event)"><h1>COMMAND CENTER</h1><p>Owner access only. Enter access code.</p><input id="ywCode" type="password" autocomplete="current-password" autofocus placeholder="Access code"><button>Unlock</button><div class="e" id="ywErr"></div></form></div>
 <script>(function(){var H="2fd598637039b71c0b74cbe78942bbdc2074f22d0f8d3dee0d8fd04c02530e82",g=document.getElementById('ywGate');
 function ywClearGate(){try{sessionStorage.setItem('ywUnlock','1');localStorage.setItem('ywUnlock','1')}catch(e){}document.documentElement.classList.remove('ywLocked');if(g)g.remove()}
 if(sessionStorage.getItem('ywUnlock')==='1'||localStorage.getItem('ywUnlock')==='1'){ywClearGate();return}
