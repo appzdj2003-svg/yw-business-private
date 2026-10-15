@@ -160,7 +160,8 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <aside class="side">
 <div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div>
 <p class="tip">Voice test: say <b>Yorri approve</b> or <b>Yorri decline</b> for the top item. Nav: <b>open Apps</b> · <b>open Command Center</b> · <b>open Finance</b>.</p></div>
-<div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span><span class="biz-tag" id="yorriBizTag"></span><button type="button" id="spkT" class="spk-t" title="Yorri voice replies on/off">🔊 Voice on</button></h3>
+<div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span><span class="biz-tag" id="yorriBizTag"></span><button type="button" id="spkT" class="spk-t" title="Yorri voice replies on/off">🔊 Voice on</button><button type="button" id="llmBtn" class="spk-t" title="AI settings">⚙ AI</button></h3>
+<div id="llmPanel" style="display:none;padding:8px 0;font-size:13px"><label>xAI API key <input id="llmKey" type="password" autocomplete="off" style="width:100%"></label><label>Base URL <input id="llmBase" style="width:100%"></label><label>Model <input id="llmModel" style="width:100%"></label><div style="margin-top:6px"><button type="button" id="llmSave">Save</button> <button type="button" id="llmTest">Test</button> <button type="button" id="llmClear">Clear key</button> <span id="llmStat" class="mono"></span></div><p class="tip">Key stays in this browser only (localStorage). If Test fails with a network/CORS error, put a CORS proxy URL in Base URL (see README).</p></div>
 <p class="vmsg" id="ttsNote" style="display:none"></p>
 <div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report. Say <b>open Apps</b>, <b>Yorri approve</b>, or a room name anytime.</p></div>
 <div class="ask"><button class="mic" id="mic" type="button" title="Hey Yorri / voice">🎙</button><input id="q" placeholder="e.g. hire 5 engineers, open Apps, Yorri approve…" autocomplete="off"><button class="send" id="send" type="button">Send</button></div>
@@ -486,12 +487,40 @@ function appsAsk(t){
   say('Yorri',`You're in <b>${esc(b.name)}</b>. Rooms: ${esc(rooms)}. Mock data is <b>${mockOn?'ON':'OFF'}</b>. Say <b>open Command Center</b> anytime.`);
 }
 function clarify(t){const s=t.trim().slice(0,120);return `Heard you: “${esc(s)}${t.trim().length>120?'…':''}.” Try hire, payroll, <b>open Apps</b>, <b>open Finance</b>, or <b>Yorri approve</b>.`}
+
+/* ---- Grok LLM (xAI OpenAI-compatible) ---- */
+const LS_LLM='ywLlm',LLM_DEF={key:'',base:'https://api.x.ai/v1',model:'grok-4'};
+function llmCfg(){try{return Object.assign({},LLM_DEF,JSON.parse(localStorage.getItem(LS_LLM)||'{}'))}catch(e){return Object.assign({},LLM_DEF)}}
+function llmSaveCfg(c){try{localStorage.setItem(LS_LLM,JSON.stringify(c))}catch(e){}}
+let llmHist=[];
+function llmSys(){const b=(typeof activeBiz==='function')?activeBiz():{};const q=queue.map(a=>a.t[1]+' '+a.title).join('; ')||'none';
+return `You are Yorri, chief of staff AI for CEO Aaron Burgan in the Your World Business Suite command center. Operating model: PROPOSE -> Aaron APPROVES -> you REPORT. Never claim to have executed anything without approval. Risk tiers: T0 info/read-only, T1 low-risk routine, T2 money/people/external commitments, T3 irreversible or high-stakes (needs biometric confirm). Context: view=${typeof pageView!=='undefined'?pageView:'?'}; business=${b&&b.name||'?'}; rooms=${(b&&b.rooms||[]).map(r=>r.label).join(', ')||'n/a'}; pending decisions: ${q}; MOCK data is ${mockOn?'ON (numbers are demo data; say so)':'OFF (no live data connected; don\'t invent figures)'}. Be concise (1-4 sentences, may be read aloud in a car). If you propose an action requiring approval, end your reply with a line exactly: ACTION: <T0|T1|T2|T3> | <short title> | <one-line why>. At most 2 ACTION lines.`}
+async function llmCall(msgs,c){const r=await fetch(c.base.replace(/\/+$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify({model:c.model,messages:msgs,temperature:0.4,max_tokens:500})});
+if(!r.ok){let m='HTTP '+r.status;try{const j=await r.json();m+=': '+((j.error&&(j.error.message||j.error))||j.message||'')}catch(e){}throw new Error(m)}const j=await r.json();return (j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||''}
+const TIERS={T0:['t0','T0'],T1:['t1','T1'],T2:['t2','T2'],T3:['t3','T3']};
+async function llmAsk(t){const c=llmCfg();if(!c.key)return false;
+try{const out=await llmCall([{role:'system',content:llmSys()}].concat(llmHist.slice(-10),[{role:'user',content:t}]),c);
+llmHist.push({role:'user',content:t},{role:'assistant',content:out});
+const acts=[];const body=out.split('\n').filter(l=>{const m=l.match(/^\s*ACTION:\s*(T[0-3])\s*\|\s*([^|]+)\|?\s*(.*)$/i);if(m){acts.push({t:TIERS[m[1].toUpperCase()],title:m[2].trim(),why:m[3].trim()});return false}return true}).join('\n').trim();
+let h=esc(body).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+acts.forEach(a=>{h+=`<br>Plan ready → <span class="tier ${a.t[0]}">${a.t[1]}</span>${esc(a.title)}. Waiting on your decision.`;queue.push(a)});
+say('Yorri',h||'(no reply)');if(acts.length){draw();broadcast(snapshot())}return true}
+catch(e){const net=e instanceof TypeError;say('Yorri',`<span class="mono">AI offline (${esc(net?'network/CORS blocked — set a proxy Base URL':e.message).slice(0,140)}) — using built-in.</span>`);return false}}
+function llmUI(){const c=llmCfg();if(!$('#llmKey'))return;$('#llmKey').value=c.key;$('#llmBase').value=c.base;$('#llmModel').value=c.model;$('#llmStat').textContent=c.key?'Grok on':'No key — built-in mode'}
+function llmRead(){return{key:$('#llmKey').value.trim(),base:$('#llmBase').value.trim()||LLM_DEF.base,model:$('#llmModel').value.trim()||LLM_DEF.model}}
+document.addEventListener('click',async e=>{const id=e.target.id;
+if(id==='llmBtn'){const p=$('#llmPanel');p.style.display=p.style.display==='none'?'block':'none';llmUI()}
+else if(id==='llmSave'){llmSaveCfg(llmRead());llmUI();$('#llmStat').textContent='Saved'}
+else if(id==='llmClear'){const c=llmRead();c.key='';llmSaveCfg(c);llmUI()}
+else if(id==='llmTest'){const c=llmRead();if(!c.key){$('#llmStat').textContent='Enter key';return}$('#llmStat').textContent='Testing…';
+try{const o=await llmCall([{role:'user',content:'Reply with: OK'}],c);$('#llmStat').textContent='✅ '+o.slice(0,40)}catch(x){$('#llmStat').textContent='❌ '+(x instanceof TypeError?'Network/CORS blocked — use proxy URL':x.message).slice(0,120)}}});
 function ask(t){
   if(!t||!String(t).trim())return;
   t=String(t).trim();
   if(tryVoiceCommand(t)){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
   say('You',t);
-  setTimeout(()=>{
+  setTimeout(async()=>{
+    if(llmCfg().key&&await llmAsk(t))return;
     if(pageView==='apps'){appsAsk(t);return}
     const m=P.find(p=>p[0].test(t));
     if(!m){say('Yorri',clarify(t));return}
