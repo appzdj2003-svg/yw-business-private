@@ -76,6 +76,24 @@ body.sat .satbar{display:flex}body.multi .board{grid-template-columns:repeat(aut
 .mapbox{height:120px;border-radius:8px;border:1px dashed var(--line);background:radial-gradient(circle at 40% 50%,#1a3a44,#081018);display:flex;align-items:center;justify-content:center;color:var(--mut);letter-spacing:.12em;font-size:11px}
 body.view-apps #dq,body.view-apps .risk-hide{display:none}
 .tip{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.4}.tip b{color:var(--teal)}
+
+/* Car layout: Ask Yorri top, decisions under it, board below (Tesla or toggle) */
+body.car-layout main{grid-template-columns:1fr;display:flex;flex-direction:column;gap:12px}
+body.car-layout .side{order:-1;display:flex;flex-direction:column;gap:12px}
+body.car-layout #askCard{order:1}
+body.car-layout #dq{order:2}
+body.car-layout .risk-hide{order:3}
+body.car-layout .board{order:4}
+body.car-layout #log{height:140px;max-height:22vh}
+body.car-layout .ask input{min-height:48px;font-size:16px;padding:12px 14px}
+body.car-layout .ask .send{min-height:48px;padding:12px 22px;font-size:16px}
+body.car-layout .mic{width:48px;min-width:48px;height:48px;font-size:20px}
+body.car-layout #dq .btn{min-height:44px;padding:10px 16px;font-size:15px}
+.car-ctl{display:inline-flex;align-items:center;gap:8px;margin-left:auto}
+.car-ctl label{cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:5px 12px;user-select:none}
+.car-ctl label:hover{border-color:var(--teal2);color:var(--teal)}
+.car-ctl input{accent-color:var(--teal);width:16px;height:16px}
+body.sat .car-ctl{display:none}
 </style>
 <style>#ywGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#0e2a33,#05080c 70%);font-family:system-ui,sans-serif;color:#cfe}
 #ywGate .b{width:min(92vw,380px);padding:32px;border:1px solid #1fd3c655;border-radius:16px;background:#0a1218cc;box-shadow:0 0 40px #1fd3c633;text-align:center}
@@ -136,6 +154,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <p style="color:var(--mut);font-size:12px;margin:10px 0 0">Layout types: <b>metrics</b>, <b>tickets</b>, <b>pipeline</b>, <b>map</b>, <b>custom</b>. Changing type switches the room layout on save.</p>
 </div>
 <nav class="rooms" id="nav"></nav>
+<div class="car-ctl" id="carCtl"><label title="Ask Yorri on top + decisions under it. Auto-on in Tesla; use this to test on phone/laptop."><input type="checkbox" id="carT"> Car layout</label></div>
 <main><section class="board" id="board"></section>
 <aside class="side">
 <div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div>
@@ -157,13 +176,18 @@ const $=s=>document.querySelector(s);
 const params=new URLSearchParams(location.search);
 const screenId=Math.max(1,Math.min(6,parseInt(params.get('screen')||'1',10)||1));
 const isSat=screenId>1;
-const LS_SCREEN='ywMultiScreen',LS_BIZ='ywBusinesses',LS_MOCK='ywMockData',LS_VOICE='ywVoiceCodes';
+const LS_SCREEN='ywMultiScreen',LS_BIZ='ywBusinesses',LS_MOCK='ywMockData',LS_VOICE='ywVoiceCodes',LS_CAR='ywCarLayout';
 const LAYOUT_TYPES=['metrics','tickets','pipeline','map','custom'];
 const NAV=typeof navigator!=='undefined'?navigator:{};
 const UAD=NAV.userAgentData?JSON.stringify(NAV.userAgentData.brands||[])+(NAV.userAgentData.platform||''):'';
 const IS_TESLA=/Tesla|QtCarBrowser/i.test((NAV.userAgent||'')+UAD);
 let mockOn=true;
 let voiceCodes={approve:'yorri approve',decline:'yorri decline'};
+let carLayout=false;
+function loadCar(){try{const v=localStorage.getItem(LS_CAR);if(v==='1')carLayout=true;else if(v==='0')carLayout=false;else carLayout=!!IS_TESLA}catch(e){carLayout=!!IS_TESLA}}
+function saveCar(){try{localStorage.setItem(LS_CAR,carLayout?'1':'0')}catch(e){}}
+function applyCarLayout(){document.body.classList.toggle('car-layout',!!carLayout&&!isSat);const t=$('#carT');if(t)t.checked=!!carLayout}
+
 function loadMock(){try{const v=localStorage.getItem(LS_MOCK);if(v==='0')mockOn=false;else if(v==='1')mockOn=true}catch(e){}}
 function saveMock(){try{localStorage.setItem(LS_MOCK,mockOn?'1':'0')}catch(e){}}
 function loadVoiceCodes(){try{const raw=localStorage.getItem(LS_VOICE);if(!raw)return;const o=JSON.parse(raw);if(o&&o.approve)voiceCodes.approve=String(o.approve).toLowerCase();if(o&&o.decline)voiceCodes.decline=String(o.decline).toLowerCase()}catch(e){}}
@@ -569,6 +593,10 @@ if($('#mockT'))$('#mockT').onchange=()=>{
   mockOn=$('#mockT').checked;saveMock();draw();broadcast({type:'mock',mock:mockOn});broadcast(snapshot());
   say('Yorri',mockOn?'Mock data <b>ON</b> — demo KPIs and MOCK labels restored.':'Mock data <b>OFF</b> — all boards show Connect live empty states.');
 };
+if($('#carT'))$('#carT').onchange=()=>{
+  carLayout=$('#carT').checked;saveCar();applyCarLayout();
+  say('Yorri',carLayout?'<b>Car layout</b> on — Ask Yorri on top, decisions under it, board below.':'<b>Car layout</b> off — side-panel desktop layout.');
+};
 if($('#screenN'))$('#screenN').onchange=()=>setScreenCount($('#screenN').value);
 if($('#reopenScreens'))$('#reopenScreens').onclick=()=>reopenScreens();
 if($('#satRoom'))$('#satRoom').onchange=()=>{
@@ -578,9 +606,11 @@ if($('#satRoom'))$('#satRoom').onchange=()=>{
 };
 if($('#satSync'))$('#satSync').onclick=()=>broadcast({type:'hello'});
 
-loadMock();loadVoiceCodes();loadBiz();loadLayout();
+loadMock();loadVoiceCodes();loadBiz();loadLayout();loadCar();
 if($('#mockT'))$('#mockT').checked=mockOn;
-if(IS_TESLA){setVmsg('Tesla detected — tap the ask box, use the steering-wheel mic, then Send.');if($('#mic'))$('#mic').title='Tesla: focus box + yoke mic'}
+applyCarLayout();
+if(IS_TESLA){setVmsg('Tesla detected — tap the ask box, use the steering-wheel mic, then Send. Car layout on (toggle under rooms if you want side panel).');if($('#mic'))$('#mic').title='Tesla: focus box + yoke mic'}
+else if(carLayout){setVmsg('Car layout on (testing) — Ask Yorri top, decisions under it.');}
 if(isSat){const r=params.get('room');if(r)roomView=r;screenCount=Math.max(screenCount,screenId);if(params.get('view')==='apps')pageView='apps'}
 ensureAssignments();
 if($('#screenN'))$('#screenN').value=String(screenCount);
