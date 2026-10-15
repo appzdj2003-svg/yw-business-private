@@ -439,7 +439,9 @@ function tryVoiceCommand(raw){
   const cmdMap={briefing:'Briefing',finance:'Finance',hr:'HR','human resources':'HR',payroll:'Payroll',legal:'Legal',support:'Support',vault:'Vault','command board':'Command Board'};
   for(const [k,v] of Object.entries(cmdMap)){
     if(new RegExp('\\bopen\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)||new RegExp('\\bgo\\s+to\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)||new RegExp('\\bshow\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)){
-      say('You',raw);setPageView('command');roomView=v;draw();broadcast(snapshot());say('Yorri','Opened <b>'+v+'</b>.');return true;
+      say('You',raw);setPageView('command');roomView=v;draw();broadcast(snapshot());say('Yorri','Opened <b>'+v+'</b>.');
+      if(/\b(and|then|summar\w*|analy\w*|compare|vs|versus|burn|cash|runway|how|what|explain|break\s*down|tell)\b/.test(t.replace(new RegExp('\\b(open|go\\s+to|show)\\s+'+k.replace(/ /g,'\\s+')+'\\b'),'')))return 'cont';
+      return true;
     }
   }
   // open business by name on Apps
@@ -488,13 +490,17 @@ function appsAsk(t){
 }
 function clarify(t){const s=t.trim().slice(0,120);return `Heard you: “${esc(s)}${t.trim().length>120?'…':''}.” Try hire, payroll, <b>open Apps</b>, <b>open Finance</b>, or <b>Yorri approve</b>.`}
 
+const FIN={cash:184200,inMTD:38400,outMTD:21700,ap:6420,payroll:71880,burnMo:13000,runway:14.2};
+function finSummary(){const f=FIN,net=f.inMTD-f.outMTD,k=n=>'$'+(n/1000).toFixed(1)+'k';
+return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}Cash vs burn: cash on hand <b>${k(f.cash)}</b>; avg net burn ~<b>${k(f.burnMo)}/mo</b> → runway <b>${f.runway} mo</b>. MTD in ${k(f.inMTD)} vs out ${k(f.outMTD)} = net <b>${net>=0?'+':''}${k(net)}</b> (cash-positive this month). Upcoming: payroll Friday ${k(f.payroll)} and open AP ${k(f.ap)} — after both, cash ≈ ${k(f.cash-f.payroll-f.ap)}. Watch: payroll is ~5.5× monthly net burn, so a soft revenue month shortens runway fast.`}
+function finCtx(){const f=FIN;return mockOn?` Finance data (MOCK demo): cash $${f.cash}; MTD inflow $${f.inMTD}; MTD outflow $${f.outMTD}; avg monthly net burn $${f.burnMo}; runway ${f.runway} months; open AP $${f.ap}; Friday payroll $${f.payroll}. When asked about finance/cash/burn, analyze with these numbers (label MOCK).`:''}
 /* ---- Grok LLM (xAI OpenAI-compatible) ---- */
 const LS_LLM='ywLlm',LLM_DEF={key:'',base:'https://api.x.ai/v1',model:'grok-4'};
 function llmCfg(){try{return Object.assign({},LLM_DEF,JSON.parse(localStorage.getItem(LS_LLM)||'{}'))}catch(e){return Object.assign({},LLM_DEF)}}
 function llmSaveCfg(c){try{localStorage.setItem(LS_LLM,JSON.stringify(c))}catch(e){}}
 let llmHist=[];
 function llmSys(){const b=(typeof activeBiz==='function')?activeBiz():{};const q=queue.map(a=>a.t[1]+' '+a.title).join('; ')||'none';
-return `You are Yorri, chief of staff AI for CEO Aaron Burgan in the Your World Business Suite command center. Operating model: PROPOSE -> Aaron APPROVES -> you REPORT. Never claim to have executed anything without approval. Risk tiers: T0 info/read-only, T1 low-risk routine, T2 money/people/external commitments, T3 irreversible or high-stakes (needs biometric confirm). Context: view=${typeof pageView!=='undefined'?pageView:'?'}; business=${b&&b.name||'?'}; rooms=${(b&&b.rooms||[]).map(r=>r.label).join(', ')||'n/a'}; pending decisions: ${q}; MOCK data is ${mockOn?'ON (numbers are demo data; say so)':'OFF (no live data connected; don\'t invent figures)'}. Be concise (1-4 sentences, may be read aloud in a car). If you propose an action requiring approval, end your reply with a line exactly: ACTION: <T0|T1|T2|T3> | <short title> | <one-line why>. At most 2 ACTION lines.`}
+return `You are Yorri, chief of staff AI for CEO Aaron Burgan in the Your World Business Suite command center. Operating model: PROPOSE -> Aaron APPROVES -> you REPORT. Never claim to have executed anything without approval. Risk tiers: T0 info/read-only, T1 low-risk routine, T2 money/people/external commitments, T3 irreversible or high-stakes (needs biometric confirm). Context: view=${typeof pageView!=='undefined'?pageView:'?'}; business=${b&&b.name||'?'}; rooms=${(b&&b.rooms||[]).map(r=>r.label).join(', ')||'n/a'}; pending decisions: ${q}; MOCK data is ${mockOn?'ON (numbers are demo data; say so)':'OFF (no live data connected; don\'t invent figures)'}. Be concise (1-4 sentences, may be read aloud in a car). If you propose an action requiring approval, end your reply with a line exactly: ACTION: <T0|T1|T2|T3> | <short title> | <one-line why>. At most 2 ACTION lines.`+finCtx()}
 async function llmCall(msgs,c){const r=await fetch(c.base.replace(/\/+$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify({model:c.model,messages:msgs,temperature:0.4,max_tokens:500})});
 if(!r.ok){let m='HTTP '+r.status;try{const j=await r.json();m+=': '+((j.error&&(j.error.message||j.error))||j.message||'')}catch(e){}throw new Error(m)}const j=await r.json();return (j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||''}
 const TIERS={T0:['t0','T0'],T1:['t1','T1'],T2:['t2','T2'],T3:['t3','T3']};
@@ -517,11 +523,13 @@ try{const o=await llmCall([{role:'user',content:'Reply with: OK'}],c);$('#llmSta
 function ask(t){
   if(!t||!String(t).trim())return;
   t=String(t).trim();
-  if(tryVoiceCommand(t)){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
-  say('You',t);
+  const vc=tryVoiceCommand(t);
+  if(vc===true){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
+  if(vc!=='cont')say('You',t);
   setTimeout(async()=>{
     if(llmCfg().key&&await llmAsk(t))return;
     if(pageView==='apps'){appsAsk(t);return}
+    if(/\b(cash|runway|burn|finance|financial|spend|revenue)\b/i.test(t)&&pageView!=='apps'){say('Yorri',finSummary());return}
     const m=P.find(p=>p[0].test(t));
     if(!m){say('Yorri',clarify(t));return}
     if(m[2]==='__hire__'){const h=hirePlan(t);say('Yorri',`Plan ready → <span class="tier ${h.t[0]}">${h.t[1]}</span>${h.title}. Waiting on your decision.`);queue.push(h);draw();return}
