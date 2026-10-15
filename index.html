@@ -44,7 +44,15 @@ nav button,.btn{transition:all .2s}nav button:hover{color:var(--teal);box-shadow
 .decide{animation:amb 2s infinite}@keyframes amb{50%{box-shadow:0 0 30px #ffb54733}}
 .ask input:focus{outline:0;border-color:var(--teal);box-shadow:0 0 12px #2de1c244}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style></head><body>
+</style><style>#ywGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#0e2a33,#05080c 70%);font-family:system-ui,sans-serif;color:#cfe}
+#ywGate .b{width:min(92vw,380px);padding:32px;border:1px solid #1fd3c655;border-radius:16px;background:#0a1218cc;box-shadow:0 0 40px #1fd3c633;text-align:center}
+#ywGate h1{font-size:14px;letter-spacing:.3em;color:#1fd3c6;margin:0 0 6px}#ywGate p{font-size:13px;opacity:.7;margin:0 0 20px}
+#ywGate input{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #1fd3c666;background:#03070a;color:#eff;font-size:16px;text-align:center;letter-spacing:.1em}
+#ywGate button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:10px;background:#1fd3c6;color:#022;font-weight:700;cursor:pointer}
+#ywGate .e{color:#ff6b6b;font-size:12px;min-height:16px;margin-top:10px}html.ywLocked body>*:not(#ywGate){visibility:hidden}</style>
+<script>if(sessionStorage.getItem('ywUnlock')!=='1')document.documentElement.classList.add('ywLocked')</script></head><body><div id="ywGate"><form class="b" onsubmit="return ywTry(event)"><h1>YORRI · COMMAND CENTER</h1><p>Owner access only. Enter access code.</p><input id="ywCode" type="password" autocomplete="current-password" autofocus placeholder="Access code"><button>Unlock</button><div class="e" id="ywErr"></div></form></div>
+<script>(function(){var H="2fd598637039b71c0b74cbe78942bbdc2074f22d0f8d3dee0d8fd04c02530e82",g=document.getElementById('ywGate');if(sessionStorage.getItem('ywUnlock')==='1'){g.remove();return}
+window.ywTry=function(e){e.preventDefault();var v=document.getElementById('ywCode').value.trim();crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)).then(function(b){var x=Array.from(new Uint8Array(b)).map(function(n){return n.toString(16).padStart(2,'0')}).join('');if(x===H){sessionStorage.setItem('ywUnlock','1');document.documentElement.classList.remove('ywLocked');g.remove()}else{document.getElementById('ywErr').textContent='Access denied.'}});return false}})()</script>
 <header><div class="logo">YOUR WORLD <b>BUSINESS</b></div><span class="chip on"><span class="pulse"></span> YORRI ONLINE</span><span class="chip mono" id="clock"></span>
 <div class="owner"><span class="chip on">OWNER · CEO</span><span class="chip warn" id="pend">0 AWAITING YOUR DECISION</span><label class="chip"><input type="checkbox" id="demoT"> YW Apps support demo</label></div></header>
 <nav id="nav"></nav>
