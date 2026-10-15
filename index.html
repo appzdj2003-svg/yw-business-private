@@ -549,7 +549,7 @@ else if(id==='llmTest'){const c=llmRead();if(!c.key){$('#llmStat').textContent='
 try{const o=await llmCall([{role:'user',content:'Reply with: OK'}],c);$('#llmStat').textContent='✅ '+o.slice(0,40)}catch(x){$('#llmStat').textContent='❌ '+(x instanceof TypeError?'Network/CORS blocked — use proxy URL':x.message).slice(0,120)}}});
 function ask(t){
   if(!t||!String(t).trim())return;
-  t=String(t).trim();
+  t=stripHint(t);if(!t)return;
   const qEl=$('#q');if(qEl)qEl.value='';
   const vc=tryVoiceCommand(t);
   if(vc===true){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
@@ -573,7 +573,8 @@ function decide(i,ok){
   say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
   draw();broadcast(snapshot());
 }
-function submitQ(){const el=$('#q');if(!el)return;const v=el.value;el.value='';ask(v)}
+function stripHint(v){return String(v||'').replace(/^\s*(listening(\s*(…|\.\.\.))?[\s,.:;-]*)+/i,'').trim()}
+function submitQ(){const el=$('#q');if(!el)return;const v=stripHint(el.value);el.value='';ask(v)}
 if($('#q'))$('#q').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();submitQ()}};
 if($('#send'))$('#send').onclick=()=>submitQ();
 
@@ -596,10 +597,11 @@ if($('#mic'))$('#mic').onclick=()=>{
   if(rec){try{rec.stop()}catch(e){}rec=null;btn.classList.remove('listen');btn.title='Hey Yorri / voice';setVmsg('');return}
   try{
     rec=new S();rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=1;
-    btn.classList.add('listen');btn.title='Listening… tap to stop';setVmsg('Listening…');say('Yorri','Listening…');
+    btn.classList.add('listen');btn.title='Listening… tap to stop';setVmsg('Listening…');
     rec.onresult=e=>{
       let raw=(e.results[0]&&e.results[0][0]&&e.results[0][0].transcript)||'';
       raw=raw.replace(/^\s*(hey\s+yorri|hi\s+yorri|ok\s+yorri|ask\s+yorri)[,.\s]*/i,'').trim();
+      raw=stripHint(raw);
       if(raw){const el=$('#q');if(el)el.value=raw;submitQ()}
       else say('Yorri','Didn\'t catch that — try again or type it.');
       setVmsg('');
