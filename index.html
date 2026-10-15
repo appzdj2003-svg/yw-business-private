@@ -390,8 +390,8 @@ function draw(){
     $('#dq').classList.toggle('decide',queue.length>0);
     if(pageView==='command'){
       $('#queue').innerHTML=queue.length?queue.map((a,i)=>`<div class="row" style="display:block"><p><span class="tier ${a.t[0]}">${a.t[1]}</span><b>${esc(a.title)}</b><br><small style="color:var(--mut)">${esc(a.why)}</small></p><button class="btn ok" data-i="${i}">Approve${a.t[1]=='T3'?' (biometric)':''}</button> <button class="btn no" data-x="${i}">Decline</button></div>`).join(''):'<p style="color:var(--mut)">Nothing pending. Yorri is watching.</p>';
-      document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>decide(+b.dataset.i,1));
-      document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>decide(+b.dataset.x,0));
+      $('#queue').querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>decide(+b.dataset.i,1));
+      $('#queue').querySelectorAll('button[data-x]').forEach(b=>b.onclick=()=>decide(+b.dataset.x,0));
     }
   }
   if(!applying)broadcast({type:'queue',queue});
@@ -414,6 +414,16 @@ function tryVoiceCommand(raw){
   const t=normVoice(raw);
   if(!t)return false;
   const ap=normVoice(voiceCodes.approve),de=normVoice(voiceCodes.decline);
+  // "approve T2", "approved T2", "approve the T2", "decline T3", "yorri approve t2"
+  const dm=t.match(/^(?:hey\s+)?(?:yorri\s+)?(approve|approved|approving|ok|okay|yes|decline|declined|deny|denied|reject|rejected)\s+(?:the\s+|item\s+|tier\s+)?(t[0-3])\b/);
+  if(dm){
+    const ok=!/^(decline|declined|deny|denied|reject|rejected)$/.test(dm[1]);const tier=dm[2].toUpperCase();
+    if(pageView!=='command'){setPageView('command');}
+    say('You',raw);
+    const i=queue.findIndex(a=>a&&a.t&&String(a.t[1]).toUpperCase()===tier);
+    if(i<0){say('Yorri',queue.length?`No ${tier} item pending. Queue has: ${queue.map(a=>a.t[1]+' '+esc(a.title)).join(' · ')}.`:'Nothing pending.');return true}
+    decide(i,ok?1:0);return true;
+  }
   if(t===ap||t.endsWith(' '+ap)||t.includes(ap)){
     if(pageView!=='command'){setPageView('command');}
     if(!queue.length){say('Yorri','Nothing pending to approve.');return true}
