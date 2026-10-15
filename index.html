@@ -5,74 +5,86 @@
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#0b2a2a55,transparent),var(--ink);color:var(--txt);font:14px/1.45 Inter,system-ui,sans-serif}
 .mono{font-family:ui-monospace,Menlo,monospace}
 header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#070b10ee;backdrop-filter:blur(8px);z-index:5;flex-wrap:wrap}
-.logo{font-weight:800;letter-spacing:.5px}.logo b{color:var(--teal)}
-.owner{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:12px}
+.logo{font-weight:800;letter-spacing:.5px}.logo b{color:var(--teal);text-shadow:0 0 12px var(--teal)}
+.owner{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:12px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:11px;color:var(--mut)}.chip.on{color:var(--teal);border-color:var(--teal2)}.chip.warn{color:var(--amber);border-color:#7a5a20}
-nav{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;border-bottom:1px solid var(--line)}
-nav button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap}
-nav button.act{color:var(--ink);background:var(--teal);border-color:var(--teal)}
+.chip label{cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.topnav{display:flex;gap:6px}
+.topnav button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;font:inherit;transition:all .2s}
+.topnav button.act{color:var(--ink);background:var(--teal);border-color:var(--teal);font-weight:700}
+.topnav button:hover{color:var(--teal);box-shadow:0 0 12px #2de1c233}
+nav.rooms{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+nav.rooms button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:all .2s}
+nav.rooms button.act{color:var(--ink);background:var(--teal);border-color:var(--teal)}
+nav.rooms button:hover{color:var(--teal);box-shadow:0 0 12px #2de1c233}
+.appsbar{display:none;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap;background:#0a1218}
+body.view-apps .appsbar{display:flex}
+.biz-tag{display:none;font-size:10px;color:var(--amber);margin-left:8px;letter-spacing:.08em}
+body.view-apps #askCard .biz-tag{display:inline}
 main{display:grid;grid-template-columns:1fr 360px;gap:14px;padding:14px 18px}
 @media(max-width:1000px){main{grid-template-columns:1fr}}
 .board{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.card{background:linear-gradient(180deg,#0f1922,var(--panel));border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
+.card{background:linear-gradient(180deg,#0f1922,var(--panel));border:1px solid var(--line);border-radius:12px;padding:14px;position:relative;transition:transform .25s,border-color .25s,box-shadow .25s;animation:in .5s both;overflow:hidden}
+.card:hover{transform:translateY(-3px);border-color:var(--teal2);box-shadow:0 0 22px #2de1c225}
+.card:after{content:"";position:absolute;left:-40%;top:0;width:40%;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:scan 4s infinite}
 .card h3{margin:0 0 8px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}
-.card h3 span{float:right;color:var(--mut);letter-spacing:0}
-.kpi{display:flex;gap:16px;flex-wrap:wrap}.kpi div{min-width:80px}.kpi b{display:block;font-size:20px}.kpi small{color:var(--mut)}
+.card h3 span{float:right;color:var(--mut);letter-spacing:0;text-transform:none;font-size:11px}
+.kpi{display:flex;gap:16px;flex-wrap:wrap}.kpi div{min-width:80px}.kpi b{display:block;font-size:20px;text-shadow:0 0 10px #2de1c233}.kpi small{color:var(--mut)}
 .row{display:flex;justify-content:space-between;border-top:1px dashed var(--line);padding:6px 0;font-size:13px}.row:first-of-type{border:0}
 .up{color:var(--teal)}.dn{color:var(--red)}.am{color:var(--amber)}
 .side{display:flex;flex-direction:column;gap:12px}
-.decide{border-color:#7a5a20;box-shadow:0 0 0 1px #ffb54722,0 0 24px #ffb54714}
+.decide{border-color:#7a5a20;box-shadow:0 0 0 1px #ffb54722,0 0 24px #ffb54714;animation:amb 2s infinite}
 .tier{font-size:10px;padding:2px 7px;border-radius:5px;margin-right:6px}
 .t0{background:#12352f;color:var(--teal)}.t1{background:#132a45;color:var(--blue)}.t2{background:#3d2d12;color:var(--amber)}.t3{background:#3d151b;color:var(--red)}
-.btn{border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600}.ok{background:var(--teal);color:var(--ink)}.no{background:#1b2a36;color:var(--txt)}
-#log{height:300px;overflow:auto;font-size:13px}#log p{margin:6px 0}#log .y{color:var(--teal)}
-.ask{display:flex;gap:6px}.ask input{flex:1;background:#081018;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px}
+.btn{border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;transition:all .2s}.ok{background:var(--teal);color:var(--ink);box-shadow:0 0 14px #2de1c255}.no{background:#1b2a36;color:var(--txt)}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+#log{height:260px;overflow:auto;font-size:13px}#log p{margin:6px 0;animation:in .35s both}#log .y{color:var(--teal)}
+.ask{display:flex;gap:6px;flex-wrap:wrap}.ask input{flex:1;min-width:140px;background:#081018;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px}
+.ask input:focus,select:focus,input:focus{outline:0;border-color:var(--teal);box-shadow:0 0 12px #2de1c244}
 .mic{width:38px;min-width:38px;border-radius:50%;background:var(--teal);border:0;cursor:pointer;font-size:16px;transition:background .2s,box-shadow .2s}
 .mic.listen{background:var(--red);animation:listenPulse .9s infinite;box-shadow:0 0 18px #ff5c6c88}
-@keyframes listenPulse{50%{box-shadow:0 0 26px #ff5c6ccc;transform:scale(1.06)}}
-.ask .send{background:var(--teal);color:var(--ink);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;white-space:nowrap}
-.ask .send:hover{filter:brightness(1.12)}
-.pulse{width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;box-shadow:0 0 10px var(--teal);animation:p 1.6s infinite}@keyframes p{50%{opacity:.3}}
-.demo{border-style:dashed}.hide{display:none}
+.mic:not(.listen){animation:glow 2.5s infinite}
+.ask .send{background:var(--teal);color:var(--ink);border:0;border-radius:8px;padding:10px 18px;cursor:pointer;font-weight:700;white-space:nowrap;font-size:15px;min-height:42px}
+.ask .send:hover{filter:brightness(1.12)}.vmsg{color:var(--amber);font-size:12px;margin:8px 0 0;min-height:16px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;box-shadow:0 0 10px var(--teal);animation:p 1.6s infinite}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(#2de1c20a 1px,transparent 1px),linear-gradient(90deg,#2de1c20a 1px,transparent 1px);background-size:40px 40px;animation:grid 30s linear infinite;z-index:0}
-@keyframes grid{to{background-position:40px 40px}}main,nav,header{position:relative;z-index:1}
-.card{transition:transform .25s,border-color .25s,box-shadow .25s;animation:in .5s both;overflow:hidden}
-.card:hover{transform:translateY(-3px);border-color:var(--teal2);box-shadow:0 0 22px #2de1c225}
-.card:after{content:"";position:absolute;left:-40%;top:0;width:40%;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:scan 4s infinite}
-@keyframes scan{to{left:110%}}@keyframes in{from{opacity:0;transform:translateY(12px) scale(.98)}}
-.board .card:nth-child(2){animation-delay:.05s}.board .card:nth-child(3){animation-delay:.1s}.board .card:nth-child(4){animation-delay:.15s}.board .card:nth-child(5){animation-delay:.2s}.board .card:nth-child(6){animation-delay:.25s}.board .card:nth-child(7){animation-delay:.3s}
-nav button,.btn{transition:all .2s}nav button:hover{color:var(--teal);box-shadow:0 0 12px #2de1c233}nav button.act{box-shadow:0 0 16px #2de1c277}
-.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}.ok{box-shadow:0 0 14px #2de1c255}
-.logo b{text-shadow:0 0 12px var(--teal)}.kpi b{text-shadow:0 0 10px #2de1c233}
-#log p{animation:in .35s both}.mic:not(.listen){animation:glow 2.5s infinite}@keyframes glow{50%{box-shadow:0 0 18px var(--teal)}}
-.decide{animation:amb 2s infinite}@keyframes amb{50%{box-shadow:0 0 30px #ffb54733}}
-.ask input:focus{outline:0;border-color:var(--teal);box-shadow:0 0 12px #2de1c244}
+main,nav,header,.appsbar,.satbar,#popupWarn,#editor{position:relative;z-index:1}
+@keyframes listenPulse{50%{box-shadow:0 0 26px #ff5c6ccc;transform:scale(1.06)}}
+@keyframes glow{50%{box-shadow:0 0 18px var(--teal)}}@keyframes p{50%{opacity:.3}}@keyframes grid{to{background-position:40px 40px}}
+@keyframes scan{to{left:110%}}@keyframes in{from{opacity:0;transform:translateY(12px) scale(.98)}}@keyframes amb{50%{box-shadow:0 0 30px #ffb54733}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .screens{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.screens label{font-size:11px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
-.screens select,.satbar select{background:#081018;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:5px 8px;font-size:12px}
-.screens .sbtn,.satbar .sbtn{background:var(--panel);border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:600}
-.screens .sbtn:hover,.satbar .sbtn:hover{color:var(--teal);border-color:var(--teal2)}
-.screens .sbtn.act{background:var(--teal);color:var(--ink);border-color:var(--teal)}
+.screens label,.appsbar label{font-size:11px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
+.screens select,.appsbar select,.satbar select,#editor select,#editor input{background:#081018;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:5px 8px;font-size:12px}
+.screens .sbtn,.appsbar .sbtn,.satbar .sbtn,#editor .sbtn{background:var(--panel);border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:600}
+.screens .sbtn:hover,.appsbar .sbtn:hover,.satbar .sbtn:hover{color:var(--teal);border-color:var(--teal2)}
 #popupWarn{display:none;margin:8px 18px;padding:10px 14px;border:1px solid #7a5a20;border-radius:10px;background:#3d2d1222;color:var(--amber);font-size:13px}
 #popupWarn.show{display:block}
-body.sat main{grid-template-columns:1fr}
-body.sat .side .risk-hide,body.sat #askCard{display:none}
-body.sat .board{grid-template-columns:1fr;min-height:55vh}
-body.sat .board .card{min-height:50vh;font-size:15px}
-body.sat .board .kpi b{font-size:28px}
+body.sat main{grid-template-columns:1fr}body.sat .side .risk-hide,body.sat #askCard{display:none}
+body.sat .board{grid-template-columns:1fr;min-height:55vh}body.sat .board .card{min-height:50vh;font-size:15px}body.sat .board .kpi b{font-size:28px}
 body.sat .logo b::after{content:attr(data-screen);font-size:11px;margin-left:8px;color:var(--mut);letter-spacing:.12em}
 .satbar{display:none;align-items:center;gap:10px;padding:8px 18px;border-bottom:1px solid var(--line);background:#0a1218;flex-wrap:wrap}
-body.sat .satbar{display:flex}
-body.multi .board{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
-body.multi.primary-slim #board .card:not(.keep){opacity:.95}
-</style><style>#ywGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#0e2a33,#05080c 70%);font-family:system-ui,sans-serif;color:#cfe}
+body.sat .satbar{display:flex}body.multi .board{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.mock-badge{font-size:9px;letter-spacing:.14em;color:var(--amber);border:1px solid #7a5a20;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle}
+.empty{padding:18px 8px;text-align:center;color:var(--mut)}.empty b{display:block;color:var(--teal);margin-bottom:6px;font-size:13px;letter-spacing:.08em}
+#editor{display:none;margin:0 18px 12px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0a1218}
+#editor.show{display:block}#editor h3{margin:0 0 10px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}
+#editor .erow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+#editor .erow input{flex:1;min-width:120px}#editor .erow .sbtn.danger{color:var(--red);border-color:#5a2030}
+.pipe{display:flex;gap:8px;flex-wrap:wrap}.pipe .stage{flex:1;min-width:90px;background:#081018;border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center}
+.pipe .stage b{display:block;font-size:18px;color:var(--teal)}
+.mapbox{height:120px;border-radius:8px;border:1px dashed var(--line);background:radial-gradient(circle at 40% 50%,#1a3a44,#081018);display:flex;align-items:center;justify-content:center;color:var(--mut);letter-spacing:.12em;font-size:11px}
+body.view-apps #dq,body.view-apps .risk-hide{display:none}
+.tip{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.4}.tip b{color:var(--teal)}
+</style>
+<style>#ywGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#0e2a33,#05080c 70%);font-family:system-ui,sans-serif;color:#cfe}
 #ywGate .b{width:min(92vw,380px);padding:32px;border:1px solid #1fd3c655;border-radius:16px;background:#0a1218cc;box-shadow:0 0 40px #1fd3c633;text-align:center}
 #ywGate h1{font-size:14px;letter-spacing:.3em;color:#1fd3c6;margin:0 0 6px}#ywGate p{font-size:13px;opacity:.7;margin:0 0 20px}
 #ywGate input{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #1fd3c666;background:#03070a;color:#eff;font-size:16px;text-align:center;letter-spacing:.1em}
 #ywGate button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:10px;background:#1fd3c6;color:#022;font-weight:700;cursor:pointer}
 #ywGate .e{color:#ff6b6b;font-size:12px;min-height:16px;margin-top:10px}html.ywLocked body>*:not(#ywGate){visibility:hidden}</style>
-<script>(function(){try{if(sessionStorage.getItem('ywUnlock')==='1'||localStorage.getItem('ywUnlock')==='1'){sessionStorage.setItem('ywUnlock','1');return}var q=new URLSearchParams(location.search);if(q.get('u')==='1'&&localStorage.getItem('ywUnlock')==='1'){sessionStorage.setItem('ywUnlock','1');return}}catch(e){}document.documentElement.classList.add('ywLocked')})()</script></head><body><div id="ywGate"><form class="b" onsubmit="return ywTry(event)"><h1>YORRI · COMMAND CENTER</h1><p>Owner access only. Enter access code.</p><input id="ywCode" type="password" autocomplete="current-password" autofocus placeholder="Access code"><button>Unlock</button><div class="e" id="ywErr"></div></form></div>
+<script>(function(){try{if(sessionStorage.getItem('ywUnlock')==='1'||localStorage.getItem('ywUnlock')==='1'){sessionStorage.setItem('ywUnlock','1');return}var q=new URLSearchParams(location.search);if(q.get('u')==='1'&&localStorage.getItem('ywUnlock')==='1'){sessionStorage.setItem('ywUnlock','1');return}}catch(e){}document.documentElement.classList.add('ywLocked')})()</script></head><body>
+<div id="ywGate"><form class="b" onsubmit="return ywTry(event)"><h1>YORRI · COMMAND CENTER</h1><p>Owner access only. Enter access code.</p><input id="ywCode" type="password" autocomplete="current-password" autofocus placeholder="Access code"><button>Unlock</button><div class="e" id="ywErr"></div></form></div>
 <script>(function(){var H="2fd598637039b71c0b74cbe78942bbdc2074f22d0f8d3dee0d8fd04c02530e82",g=document.getElementById('ywGate');
 function ywClearGate(){try{sessionStorage.setItem('ywUnlock','1');localStorage.setItem('ywUnlock','1')}catch(e){}document.documentElement.classList.remove('ywLocked');if(g)g.remove()}
 if(sessionStorage.getItem('ywUnlock')==='1'||localStorage.getItem('ywUnlock')==='1'){ywClearGate();return}
@@ -81,402 +93,508 @@ function hex(b){return Array.from(new Uint8Array(b)).map(function(n){return n.to
 function sha256sync(s){function rr(n,x){return(x>>>n)|(x<<(32-n))}var K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2],H0=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];var u=unescape(encodeURIComponent(s)),b=[];for(var i=0;i<u.length;i++)b.push(u.charCodeAt(i));var l=b.length*8;b.push(0x80);while((b.length%64)!==56)b.push(0);for(var i=24;i>=0;i-=8)b.push((Math.floor(l/Math.pow(2,32))>>>i)&255);for(var i=24;i>=0;i-=8)b.push((l>>>i)&255);for(var off=0;off<b.length;off+=64){var w=new Array(64);for(var i=0;i<16;i++)w[i]=(b[off+i*4]<<24)|(b[off+i*4+1]<<16)|(b[off+i*4+2]<<8)|b[off+i*4+3];for(var i=16;i<64;i++){var s0=rr(7,w[i-15])^rr(18,w[i-15])^(w[i-15]>>>3),s1=rr(17,w[i-2])^rr(19,w[i-2])^(w[i-2]>>>10);w[i]=(w[i-16]+s0+w[i-7]+s1)|0}var a=H0[0],bb=H0[1],c=H0[2],d=H0[3],e=H0[4],f=H0[5],gg=H0[6],hh=H0[7];for(var i=0;i<64;i++){var S1=rr(6,e)^rr(11,e)^rr(25,e),ch=(e&f)^((~e)&gg),t1=(hh+S1+ch+K[i]+w[i])|0,S0=rr(2,a)^rr(13,a)^rr(22,a),maj=(a&bb)^(a&c)^(bb&c),t2=(S0+maj)|0;hh=gg;gg=f;f=e;e=(d+t1)|0;d=c;c=bb;bb=a;a=(t1+t2)|0}H0[0]=(H0[0]+a)|0;H0[1]=(H0[1]+bb)|0;H0[2]=(H0[2]+c)|0;H0[3]=(H0[3]+d)|0;H0[4]=(H0[4]+e)|0;H0[5]=(H0[5]+f)|0;H0[6]=(H0[6]+gg)|0;H0[7]=(H0[7]+hh)|0}return H0.map(function(x){return('00000000'+(x>>>0).toString(16)).slice(-8)}).join('')}
 function digest(v){if(window.crypto&&crypto.subtle){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)).then(hex)}return Promise.resolve(sha256sync(v))}
 window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywErr'),v=document.getElementById('ywCode').value.trim();err.textContent='';if(!v){err.textContent='Enter access code.';return false}digest(v).then(function(x){if(x===H){sessionStorage.setItem('ywUnlock','1');try{localStorage.setItem('ywUnlock','1')}catch(e){}document.documentElement.classList.remove('ywLocked');g.remove();try{if(window.ywBC)ywBC.postMessage({type:'unlock'})}catch(e){}}else{err.textContent='Access denied.'}}).catch(function(){err.textContent='Unlock failed — try again.'});return false}})()</script>
-<header><div class="logo">YOUR WORLD <b id="logoMark" data-screen="">BUSINESS</b></div><span class="chip on"><span class="pulse"></span> YORRI ONLINE</span><span class="chip mono" id="clock"></span>
+<header>
+<div class="logo">YOUR WORLD <b id="logoMark" data-screen="">BUSINESS</b></div>
+<span class="chip on"><span class="pulse"></span> YORRI ONLINE</span>
+<span class="chip mono" id="clock"></span>
+<div class="topnav" id="topNav">
+<button type="button" data-view="command" id="navCommand" class="act">Command Center</button>
+<button type="button" data-view="apps" id="navApps">Your World Apps</button>
+</div>
 <div class="screens" id="screenCtl">
 <label>Screens</label>
-<select id="screenN" title="Monitors 1–6">
-<option value="1">1</option><option value="2">2</option><option value="3">3</option>
-<option value="4">4</option><option value="5">5</option><option value="6">6</option>
-</select>
-<button type="button" class="sbtn" id="reopenScreens" title="Re-open saved pop-outs">Re-open</button>
+<select id="screenN" title="Monitors 1–6"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option></select>
+<button type="button" class="sbtn" id="reopenScreens">Re-open</button>
 </div>
-<div class="owner"><span class="chip on">OWNER · CEO</span><span class="chip warn" id="pend">0 AWAITING YOUR DECISION</span><label class="chip"><input type="checkbox" id="demoT"> YW Apps support demo</label></div></header>
-<div id="popupWarn">Pop-ups were blocked. Allow pop-ups for <b>business.yourworldapps.si</b> (or this host), then click <b>Re-open</b>.</div>
+<div class="owner">
+<span class="chip on">OWNER · CEO</span>
+<span class="chip warn" id="pend">0 AWAITING YOUR DECISION</span>
+<label class="chip" id="mockChip" title="Master switch for all demo KPIs"><input type="checkbox" id="mockT" checked> Mock data</label>
+</div>
+</header>
+<div id="popupWarn">Pop-ups were blocked. Allow pop-ups for <b>business.yourworldapps.si</b>, then click <b>Re-open</b>.</div>
 <div class="satbar" id="satbar"><span class="chip on" id="satLabel">SCREEN 2</span>
-<label style="color:var(--mut);font-size:12px">Room</label>
-<select id="satRoom"></select>
+<label style="color:var(--mut);font-size:12px">Room</label><select id="satRoom"></select>
 <button type="button" class="sbtn" id="satSync">Request sync</button>
 <span class="chip mono" id="satHint">Synced via BroadcastChannel</span>
 </div>
-<nav id="nav"></nav>
+<div class="appsbar" id="appsBar">
+<label>Business</label>
+<select id="bizSelect"></select>
+<button type="button" class="sbtn" id="addBiz">+ Add business</button>
+<button type="button" class="sbtn" id="editRooms">Edit rooms</button>
+<span class="chip" id="bizHint">Per-business layouts · not mixed with Command Center</span>
+</div>
+<div id="editor">
+<h3>Room editor · <span id="edBizName"></span></h3>
+<div id="edList"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+<button type="button" class="sbtn" id="edAdd">+ Add room</button>
+<button type="button" class="btn ok" id="edSave">Save layout</button>
+<button type="button" class="sbtn" id="edCancel">Close</button>
+</div>
+<p style="color:var(--mut);font-size:12px;margin:10px 0 0">Layout types: <b>metrics</b>, <b>tickets</b>, <b>pipeline</b>, <b>map</b>, <b>custom</b>. Changing type switches the room layout on save.</p>
+</div>
+<nav class="rooms" id="nav"></nav>
 <main><section class="board" id="board"></section>
-<aside class="side"><div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div></div>
-<div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span></h3><div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report.</p></div>
-<div class="ask"><button class="mic" id="mic" type="button" title="Hey Yorri / voice">🎙</button><input id="q" placeholder="e.g. hire 5 engineers, pay invoices, runway, NDA…" autocomplete="off"><button class="send" id="send" type="button">Send</button></div></div>
+<aside class="side">
+<div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div>
+<p class="tip">Voice test: say <b>Yorri approve</b> or <b>Yorri decline</b> for the top item. Nav: <b>open Apps</b> · <b>open Command Center</b> · <b>open Finance</b>.</p></div>
+<div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span><span class="biz-tag" id="yorriBizTag"></span></h3>
+<div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report. Say <b>open Apps</b>, <b>Yorri approve</b>, or a room name anytime.</p></div>
+<div class="ask"><button class="mic" id="mic" type="button" title="Hey Yorri / voice">🎙</button><input id="q" placeholder="e.g. hire 5 engineers, open Apps, Yorri approve…" autocomplete="off"><button class="send" id="send" type="button">Send</button></div>
+<p class="vmsg" id="vmsg" role="status"></p>
+</div>
 <div class="card risk-hide"><h3>Risk tiers</h3>
 <div class="row"><span><span class="tier t0">T0</span>Read / insight</span><span class="mono">auto</span></div>
 <div class="row"><span><span class="tier t1">T1</span>Reversible draft</span><span class="mono">auto + report</span></div>
 <div class="row"><span><span class="tier t2">T2</span>Outbound message</span><span class="mono">confirm</span></div>
 <div class="row"><span><span class="tier t3">T3</span>Money · signature · offer</span><span class="mono">biometric + delay</span></div>
-<div class="row"><span><span class="tier t3">T4</span>Tax filing · termination</span><span class="mono">human / partner</span></div></div></aside></main>
+<div class="row"><span><span class="tier t3">T4</span>Tax filing · termination</span><span class="mono">human / partner</span></div></div>
+</aside></main>
 <script>
-const R={
+const $=s=>document.querySelector(s);
+const params=new URLSearchParams(location.search);
+const screenId=Math.max(1,Math.min(6,parseInt(params.get('screen')||'1',10)||1));
+const isSat=screenId>1;
+const LS_SCREEN='ywMultiScreen',LS_BIZ='ywBusinesses',LS_MOCK='ywMockData',LS_VOICE='ywVoiceCodes';
+const LAYOUT_TYPES=['metrics','tickets','pipeline','map','custom'];
+const NAV=typeof navigator!=='undefined'?navigator:{};
+const UAD=NAV.userAgentData?JSON.stringify(NAV.userAgentData.brands||[])+(NAV.userAgentData.platform||''):'';
+const IS_TESLA=/Tesla|QtCarBrowser/i.test((NAV.userAgent||'')+UAD);
+let mockOn=true;
+let voiceCodes={approve:'yorri approve',decline:'yorri decline'};
+function loadMock(){try{const v=localStorage.getItem(LS_MOCK);if(v==='0')mockOn=false;else if(v==='1')mockOn=true}catch(e){}}
+function saveMock(){try{localStorage.setItem(LS_MOCK,mockOn?'1':'0')}catch(e){}}
+function loadVoiceCodes(){try{const raw=localStorage.getItem(LS_VOICE);if(!raw)return;const o=JSON.parse(raw);if(o&&o.approve)voiceCodes.approve=String(o.approve).toLowerCase();if(o&&o.decline)voiceCodes.decline=String(o.decline).toLowerCase()}catch(e){}}
+function mockBadge(){return mockOn?'<span class="mock-badge">MOCK</span>':''}
+function mockBadgeWrap(){return mockOn?`<div style="margin-top:8px">${mockBadge()}</div>`:''}
+function emptyState(label){return `<div class="empty"><b>CONNECT LIVE</b>No live ${label||'data'} yet. Turn on Mock data in the header to preview, or wire this room later.</div>`}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function uid(){return 'r'+Math.random().toString(36).slice(2,9)}
+function setVmsg(t){const el=$('#vmsg');if(el)el.textContent=t||''}
+
+const CMD_MOCK={
 Briefing:`<div class="kpi"><div><b class="up">$184.2k</b><small>cash</small></div><div><b>42</b><small>team</small></div><div><b class="am">2</b><small>decisions</small></div></div><div class="row"><span>Payroll run</span><span class="am">Fri · ready</span></div><div class="row"><span>NDA (Acme) renewal</span><span class="am">9 days</span></div><div class="row"><span>Runway</span><span class="up">14.2 mo</span></div>`,
 Finance:`<div class="kpi"><div><b class="up">+$38.4k</b><small>MTD revenue</small></div><div><b class="dn">-$21.7k</b><small>MTD spend</small></div></div><div class="row"><span>QuickBooks sync</span><span class="up">live · 2m</span></div><div class="row"><span>Open AP</span><span>$6,420 · 4 bills</span></div><div class="row"><span>Anomaly</span><span class="am">SaaS +31% MoM</span></div>`,
 HR:`<div class="kpi"><div><b>42</b><small>employees</small></div><div><b class="am">3</b><small>PTO requests</small></div><div><b>2</b><small>open roles</small></div></div><div class="row"><span>Onboarding · J. Ruiz</span><span>68%</span></div><div class="row"><span>Reviews due</span><span>5 this month</span></div>`,
 Payroll:`<div class="kpi"><div><b>$71,880</b><small>next run</small></div><div><b>Fri</b><small>pay date</small></div></div><div class="row"><span>Provider</span><span>Gusto Embedded</span></div><div class="row"><span>Status</span><span class="am">needs CEO approval</span></div><div class="row"><span>Tax filing</span><span>partner-handled</span></div>`,
 Legal:`<div class="row"><span>NDA · Acme Corp</span><span class="am">renews 9d</span></div><div class="row"><span>MSA · Northwind</span><span>summarized</span></div><div class="row"><span>DocuSign pending</span><span>1 envelope</span></div><div class="row"><span>Trademark watch · Yorri</span><span class="up">clear</span></div>`,
 Support:`<div class="kpi"><div><b>7</b><small>open internal</small></div><div><b class="up">4m</b><small>median reply</small></div></div><div class="row"><span>"How do I file PTO?"</span><span class="up">auto-answered</span></div><div class="row"><span>Expense policy Q</span><span>drafted</span></div>`,
-Vault:`<div class="kpi"><div><b>1,284</b><small>docs</small></div><div><b class="up">AES-256</b><small>encrypted</small></div></div><div class="row"><span>W-9s</span><span>12</span></div><div class="row"><span>Contracts</span><span>87</span></div><div class="row"><span>Last indexed</span><span>6m ago</span></div>`,
-"YW Apps Support (demo)":`<div class="row"><span>Weather Radar tickets</span><span>3</span></div><div class="row"><span>Hunt AI tickets</span><span>1</span></div><div class="row"><span class="am">DEMO MODULE · detachable</span><span></span></div>`};
-let view='Command Board',queue=[];const $=s=>document.querySelector(s);
-const LS_KEY='ywMultiScreen';
-const DEFAULT_ROOMS=['Finance','HR','Payroll','Legal','Support','Vault'];
-const params=new URLSearchParams(location.search);
-const screenId=Math.max(1,Math.min(6,parseInt(params.get('screen')||'1',10)||1));
-const isSat=screenId>1;
-let screenCount=1;
-let assignments={}; // {"2":"Finance",...}
-let pops={};
-let applying=false;
-let bc=null;
+Vault:`<div class="kpi"><div><b>1,284</b><small>docs</small></div><div><b class="up">AES-256</b><small>encrypted</small></div></div><div class="row"><span>W-9s</span><span>12</span></div><div class="row"><span>Contracts</span><span>87</span></div><div class="row"><span>Last indexed</span><span>6m ago</span></div>`
+};
+const CMD_ROOMS=['Briefing','Finance','HR','Payroll','Legal','Support','Vault'];
+const CMD_DEFAULT_MULTI=['Finance','HR','Payroll','Legal','Support','Vault'];
+function cmdBody(name){if(!mockOn)return emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
+
+function layoutHTML(room,bizName){
+  const t=room.type||'custom',label=room.label||'Room';
+  if(!mockOn)return emptyState(label);
+  if(t==='metrics')return `<div class="kpi"><div><b class="up">${esc(room.kpiA||'—')}</b><small>${esc(room.kpiALabel||'metric A')}</small></div><div><b>${esc(room.kpiB||'—')}</b><small>${esc(room.kpiBLabel||'metric B')}</small></div><div><b class="am">${esc(room.kpiC||'—')}</b><small>${esc(room.kpiCLabel||'metric C')}</small></div></div><div class="row"><span>${esc(bizName)}</span><span class="up">layout · metrics</span></div>`+mockBadgeWrap();
+  if(t==='tickets'){const rows=(room.tickets||['Open ticket A','Open ticket B']).map(x=>`<div class="row"><span>${esc(x)}</span><span class="am">open</span></div>`).join('');return `<div class="kpi"><div><b>${(room.tickets||[]).length||2}</b><small>open</small></div></div>${rows}`+mockBadgeWrap()}
+  if(t==='pipeline'){const stages=room.stages||[{n:'Lead',v:'12'},{n:'Qualified',v:'5'},{n:'Won',v:'2'}];return `<div class="pipe">${stages.map(s=>`<div class="stage"><b>${esc(s.v)}</b><small>${esc(s.n)}</small></div>`).join('')}</div>`+mockBadgeWrap()}
+  if(t==='map')return `<div class="mapbox">MAP · ${esc(label)}</div><div class="row"><span>Coverage</span><span class="am">${esc(room.mapNote||'preview')}</span></div>`+mockBadgeWrap();
+  const rows=(room.rows||[{l:'Custom field',v:'Set in editor'}]).map(r=>`<div class="row"><span>${esc(r.l)}</span><span>${esc(r.v)}</span></div>`).join('');
+  return rows+mockBadgeWrap();
+}
+
+function seedBusinesses(){return{activeId:'yw-apps',businesses:[
+{id:'yw-apps',name:'Your World Apps',rooms:[
+{id:uid(),label:'Overview',type:'metrics',kpiA:'4',kpiALabel:'products',kpiB:'12k',kpiBLabel:'MAU',kpiC:'2',kpiCLabel:'incidents'},
+{id:uid(),label:'Support',type:'tickets',tickets:['Login loop · iOS','Radar refresh lag','Hunt sync delay']},
+{id:uid(),label:'Roadmap',type:'pipeline',stages:[{n:'Ideas',v:'9'},{n:'Build',v:'4'},{n:'Ship',v:'1'}]},
+{id:uid(),label:'Releases',type:'custom',rows:[{l:'Weather Radar',v:'1.4.2'},{l:'Hunt',v:'0.9.1'},{l:'Next cut',v:'Fri'}]}
+]},
+{id:'weather',name:'Weather Radar',rooms:[
+{id:uid(),label:'Storm board',type:'map',mapNote:'NEXRAD overlay preview'},
+{id:uid(),label:'Alerts',type:'tickets',tickets:['Severe watch · TX','Flash flood · OH']},
+{id:uid(),label:'Usage',type:'metrics',kpiA:'8.2k',kpiALabel:'sessions',kpiB:'94%',kpiBLabel:'uptime',kpiC:'1.2s',kpiCLabel:'p95'}
+]},
+{id:'hunt',name:'Hunt',rooms:[
+{id:uid(),label:'Seasons',type:'pipeline',stages:[{n:'Scout',v:'18'},{n:'Booked',v:'7'},{n:'Done',v:'3'}]},
+{id:uid(),label:'Tickets',type:'tickets',tickets:['GPS drift report','Offline pack fail']},
+{id:uid(),label:'KPIs',type:'metrics',kpiA:'1.1k',kpiALabel:'hunters',kpiB:'22',kpiBLabel:'guides',kpiC:'4.8',kpiCLabel:'rating'}
+]}
+]}}
+let bizStore=seedBusinesses();
+function loadBiz(){try{const raw=localStorage.getItem(LS_BIZ);if(!raw){saveBiz();return}const o=JSON.parse(raw);if(o&&Array.isArray(o.businesses)&&o.businesses.length){bizStore.businesses=o.businesses;bizStore.activeId=o.activeId||o.businesses[0].id}}catch(e){}}
+function saveBiz(){try{localStorage.setItem(LS_BIZ,JSON.stringify(bizStore))}catch(e){}}
+function activeBiz(){return bizStore.businesses.find(b=>b.id===bizStore.activeId)||bizStore.businesses[0]}
+
+let pageView=(params.get('view')==='apps')?'apps':'command';
+let roomView='Command Board';
+let queue=[],screenCount=1,assignments={},pops={},applying=false,bc=null;
 try{bc=window.ywBC||new BroadcastChannel('yw-yorri');window.ywBC=bc}catch(e){bc=null}
 
-function loadLayout(){
-  try{
-    const raw=localStorage.getItem(LS_KEY);
-    if(!raw)return;
-    const o=JSON.parse(raw);
-    if(o&&o.screenCount>=1&&o.screenCount<=6)screenCount=o.screenCount;
-    if(o&&o.assignments&&typeof o.assignments==='object')assignments=o.assignments;
-  }catch(e){}
+function loadLayout(){try{const raw=localStorage.getItem(LS_SCREEN);if(!raw)return;const o=JSON.parse(raw);if(o&&o.screenCount>=1&&o.screenCount<=6)screenCount=o.screenCount;if(o&&o.assignments)assignments=o.assignments}catch(e){}}
+function saveLayout(){try{localStorage.setItem(LS_SCREEN,JSON.stringify({screenCount,assignments,savedAt:Date.now()}))}catch(e){}}
+function setPageView(v,push){
+  pageView=v==='apps'?'apps':'command';
+  document.body.classList.toggle('view-apps',pageView==='apps');
+  document.body.classList.toggle('view-command',pageView!=='apps');
+  if($('#navCommand'))$('#navCommand').classList.toggle('act',pageView==='command');
+  if($('#navApps'))$('#navApps').classList.toggle('act',pageView==='apps');
+  if(pageView==='command'){if(!CMD_ROOMS.includes(roomView)&&roomView!=='Command Board')roomView='Command Board'}
+  else{const b=activeBiz();if(!b.rooms.find(r=>r.label===roomView)&&roomView!=='Business Board')roomView='Business Board'}
+  if(push!==false){const u=new URL(location.href);u.searchParams.set('view',pageView);history.replaceState(null,'',u)}
+  refreshBizSelect();yorriContext();draw();
 }
-function saveLayout(){
-  try{localStorage.setItem(LS_KEY,JSON.stringify({screenCount,assignments,savedAt:Date.now()}))}catch(e){}
+function yorriContext(){
+  const tag=$('#yorriBizTag');
+  if(pageView==='apps'){const b=activeBiz();if(tag)tag.textContent='· '+b.name;if($('#q'))$('#q').placeholder='Ask about '+b.name+' · open Finance · Yorri approve…'}
+  else{if(tag)tag.textContent='';if($('#q'))$('#q').placeholder='e.g. hire 5, open Apps, Yorri approve…'}
 }
+function refreshBizSelect(){const sel=$('#bizSelect');if(!sel)return;sel.innerHTML=bizStore.businesses.map(b=>`<option value="${b.id}" ${b.id===bizStore.activeId?'selected':''}>${esc(b.name)}</option>`).join('')}
 function ensureAssignments(){
-  const pool=DEFAULT_ROOMS.slice();
-  if($('#demoT')&&$('#demoT').checked)pool.push('YW Apps Support (demo)');
-  for(let i=2;i<=screenCount;i++){
-    const k=String(i);
-    if(!assignments[k]||!pool.includes(assignments[k])&&!Object.keys(R).includes(assignments[k])){
-      assignments[k]=pool[(i-2)%pool.length];
-    }
-  }
-  // drop stale
+  const pool=currentRoomPool();
+  for(let i=2;i<=screenCount;i++){const k=String(i);if(!assignments[k]||!pool.includes(assignments[k]))assignments[k]=pool[(i-2)%Math.max(pool.length,1)]||pool[0]||'Finance'}
   Object.keys(assignments).forEach(k=>{if(+k>screenCount)delete assignments[k]});
 }
-function rooms(){return Object.keys(R).filter(k=>!k.includes('demo')||($('#demoT')&&$('#demoT').checked))}
-function roomPool(){return rooms().filter(k=>k!=='Briefing')}
+function currentRoomPool(){if(pageView==='apps')return (activeBiz().rooms||[]).map(r=>r.label);return CMD_DEFAULT_MULTI.slice()}
+function cmdNavRooms(){return ['Command Board',...CMD_ROOMS.filter(r=>r!=='Briefing')]}
+function appsNavRooms(){return ['Business Board',...(activeBiz().rooms||[]).map(r=>r.label)]}
 
-function broadcast(msg){
-  if(applying)return;
-  msg=Object.assign({from:screenId,ts:Date.now()},msg);
-  try{if(bc)bc.postMessage(msg)}catch(e){}
-  try{localStorage.setItem('ywSync',JSON.stringify(msg));localStorage.removeItem('ywSync')}catch(e){}
-}
-function snapshot(){
-  return {
-    type:'state',
-    queue:JSON.parse(JSON.stringify(queue)),
-    log:($('#log')&&$('#log').innerHTML)||'',
-    demo:!($('#demoT')&&!$('#demoT').checked),
-    view,screenCount,assignments,
-    unlock:sessionStorage.getItem('ywUnlock')==='1'
-  };
-}
+function broadcast(msg){if(applying)return;msg=Object.assign({from:screenId,ts:Date.now()},msg);try{if(bc)bc.postMessage(msg)}catch(e){}try{localStorage.setItem('ywSync',JSON.stringify(msg));localStorage.removeItem('ywSync')}catch(e){}}
+function snapshot(){return{type:'state',queue:JSON.parse(JSON.stringify(queue)),log:($('#log')&&$('#log').innerHTML)||'',mock:mockOn,pageView,roomView,screenCount,assignments,bizStore:JSON.parse(JSON.stringify(bizStore)),unlock:sessionStorage.getItem('ywUnlock')==='1'}}
 function applyState(s){
-  if(!s||applying)return;
-  applying=true;
+  if(!s||applying)return;applying=true;
   try{
     if(Array.isArray(s.queue))queue=s.queue;
     if(typeof s.log==='string'&&$('#log')){$('#log').innerHTML=s.log;$('#log').scrollTop=1e9}
-    if(typeof s.demo==='boolean'&&$('#demoT'))$('#demoT').checked=s.demo;
+    if(typeof s.mock==='boolean'){mockOn=s.mock;if($('#mockT'))$('#mockT').checked=mockOn;saveMock()}
+    if(s.bizStore){bizStore=s.bizStore;saveBiz();refreshBizSelect()}
     if(s.screenCount>=1&&s.screenCount<=6){screenCount=s.screenCount;if($('#screenN'))$('#screenN').value=String(screenCount)}
     if(s.assignments)assignments=s.assignments;
-    if(s.unlock){try{sessionStorage.setItem('ywUnlock','1');localStorage.setItem('ywUnlock','1')}catch(e){}
-      document.documentElement.classList.remove('ywLocked');const g=document.getElementById('ywGate');if(g)g.remove()}
-    if(!isSat&&s.view)view=s.view;
-    draw();
+    if(s.unlock){try{sessionStorage.setItem('ywUnlock','1');localStorage.setItem('ywUnlock','1')}catch(e){}document.documentElement.classList.remove('ywLocked');const g=document.getElementById('ywGate');if(g)g.remove()}
+    if(!isSat){if(s.pageView)pageView=s.pageView;if(s.roomView)roomView=s.roomView}
+    setPageView(pageView,false);
   }finally{applying=false}
 }
 function onSync(ev){
   const d=ev&&ev.data;if(!d||d.from===screenId)return;
-  if(d.type==='unlock'){
-    try{sessionStorage.setItem('ywUnlock','1');localStorage.setItem('ywUnlock','1')}catch(e){}
-    document.documentElement.classList.remove('ywLocked');const g=document.getElementById('ywGate');if(g)g.remove();
-    return;
-  }
+  if(d.type==='unlock'){try{sessionStorage.setItem('ywUnlock','1');localStorage.setItem('ywUnlock','1')}catch(e){}document.documentElement.classList.remove('ywLocked');const g=document.getElementById('ywGate');if(g)g.remove();return}
   if(d.type==='hello'&&!isSat){broadcast(snapshot());return}
   if(d.type==='state'){applyState(d);return}
   if(d.type==='queue'){queue=d.queue||[];draw();return}
   if(d.type==='log'&&$('#log')){$('#log').innerHTML=d.log;$('#log').scrollTop=1e9;return}
-  if(d.type==='demo'&&$('#demoT')){$('#demoT').checked=!!d.demo;draw();return}
+  if(d.type==='mock'){mockOn=!!d.mock;if($('#mockT'))$('#mockT').checked=mockOn;saveMock();draw();return}
   if(d.type==='assign'){assignments=d.assignments||assignments;saveLayout();draw();return}
+  if(d.type==='biz'){bizStore=d.bizStore||bizStore;saveBiz();refreshBizSelect();draw();return}
 }
 if(bc)bc.onmessage=onSync;
 window.addEventListener('storage',e=>{
   if(e.key==='ywSync'&&e.newValue){try{onSync({data:JSON.parse(e.newValue)})}catch(err){}}
   if(e.key==='ywUnlock'&&e.newValue==='1'){sessionStorage.setItem('ywUnlock','1');document.documentElement.classList.remove('ywLocked');const g=document.getElementById('ywGate');if(g)g.remove()}
+  if(e.key===LS_MOCK){loadMock();if($('#mockT'))$('#mockT').checked=mockOn;draw()}
+  if(e.key===LS_BIZ){loadBiz();refreshBizSelect();draw()}
 });
 
-function popUrl(n,room){
-  const u=new URL(location.href);
-  u.searchParams.set('screen',String(n));
-  u.searchParams.set('room',room||assignments[String(n)]||'Finance');
-  u.searchParams.set('u','1');
-  return u.toString();
-}
+function popUrl(n,room){const u=new URL(location.href);u.searchParams.set('screen',String(n));u.searchParams.set('room',room||assignments[String(n)]||'Finance');u.searchParams.set('view',pageView);u.searchParams.set('u','1');return u.toString()}
 function openPop(n){
-  ensureAssignments();
-  const room=assignments[String(n)]||DEFAULT_ROOMS[(n-2)%DEFAULT_ROOMS.length];
+  ensureAssignments();const pool=currentRoomPool();
+  const room=assignments[String(n)]||pool[(n-2)%Math.max(pool.length,1)]||pool[0];
   assignments[String(n)]=room;
   const w=window.open(popUrl(n,room),'yw_screen_'+n,'noopener,noreferrer');
   if(!w){const warn=$('#popupWarn');if(warn)warn.classList.add('show');return null}
-  const warn=$('#popupWarn');if(warn)warn.classList.remove('show');
-  pops[n]=w;
-  return w;
+  const warn=$('#popupWarn');if(warn)warn.classList.remove('show');pops[n]=w;return w;
 }
 function reopenScreens(){
-  if(isSat)return;
-  ensureAssignments();saveLayout();
-  let blocked=false;
-  for(let i=2;i<=screenCount;i++){
-    const w=openPop(i);
-    if(!w)blocked=true;
-  }
-  if(blocked){$('#popupWarn').classList.add('show')}
+  if(isSat)return;ensureAssignments();saveLayout();let blocked=false;
+  for(let i=2;i<=screenCount;i++){if(!openPop(i))blocked=true}
+  if(blocked)$('#popupWarn').classList.add('show');
   else{$('#popupWarn').classList.remove('show');say('Yorri',`Multi-screen: opened ${screenCount-1} room window${screenCount>2?'s':''}. Drag each to a monitor.`)}
   broadcast(snapshot());
 }
 function setScreenCount(n){
-  n=Math.max(1,Math.min(6,+n||1));
-  screenCount=n;
-  ensureAssignments();
-  saveLayout();
+  n=Math.max(1,Math.min(6,+n||1));screenCount=n;ensureAssignments();saveLayout();
   document.body.classList.toggle('multi',screenCount>1);
-  if(!isSat){
-    if(screenCount===1){
-      Object.keys(pops).forEach(k=>{try{pops[k]&&pops[k].close()}catch(e){}});pops={};
-      $('#popupWarn').classList.remove('show');
-    }else{
-      reopenScreens();
-    }
-  }
-  draw();
-  broadcast(Object.assign(snapshot(),{type:'state'}));
+  if(!isSat){if(screenCount===1){Object.keys(pops).forEach(k=>{try{pops[k]&&pops[k].close()}catch(e){}});pops={};$('#popupWarn').classList.remove('show')}else reopenScreens()}
+  draw();broadcast(Object.assign(snapshot(),{type:'state'}));
 }
-
+function cardHTML(title,body,keep){const live=mockOn?'● mock':'○ live pending';return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} <span class="mono">${live}</span></h3>${body}</div>`}
 function draw(){
   ensureAssignments();
+  document.body.classList.toggle('view-apps',pageView==='apps');
+  document.body.classList.toggle('view-command',pageView!=='apps');
   if($('#screenN')&&!isSat)$('#screenN').value=String(screenCount);
   document.body.classList.toggle('multi',screenCount>1);
   document.body.classList.toggle('sat',isSat);
+  if($('#mockChip')){$('#mockChip').classList.toggle('on',mockOn);$('#mockChip').classList.toggle('warn',!mockOn)}
   if(isSat){
-    const room=params.get('room')||assignments[String(screenId)]||'Finance';
-    if(!view||view==='Command Board')view=room;
+    const room=params.get('room')||assignments[String(screenId)]||currentRoomPool()[0];
+    roomView=room;
     $('#logoMark')&&$('#logoMark').setAttribute('data-screen','· SCR '+screenId);
     if($('#satLabel'))$('#satLabel').textContent='SCREEN '+screenId;
     if($('#screenCtl'))$('#screenCtl').style.display='none';
-    if($('#satRoom')){
-      const pool=roomPool();
-      $('#satRoom').innerHTML=pool.map(r=>`<option value="${r}" ${r===view?'selected':''}>${r}</option>`).join('');
-    }
-  }else{
-    $('#logoMark')&&$('#logoMark').setAttribute('data-screen',screenCount>1?'· PRIMARY':'');
-  }
-
-  const navRooms=isSat?roomPool():['Command Board',...rooms()];
-  if(isSat&&!navRooms.includes(view))view=navRooms[0]||'Finance';
-  $('#nav').innerHTML=navRooms.map(r=>`<button class="${r==view?'act':''}">${r}</button>`).join('');
+    if($('#topNav'))$('#topNav').style.display='none';
+    if($('#satRoom')){const pool=currentRoomPool();$('#satRoom').innerHTML=pool.map(r=>`<option value="${esc(r)}" ${r===roomView?'selected':''}>${esc(r)}</option>`).join('')}
+  }else{$('#logoMark')&&$('#logoMark').setAttribute('data-screen',screenCount>1?'· PRIMARY':'')}
+  const navRooms=isSat?currentRoomPool():(pageView==='apps'?appsNavRooms():cmdNavRooms());
+  if(isSat&&!navRooms.includes(roomView))roomView=navRooms[0]||'Finance';
+  $('#nav').innerHTML=navRooms.map(r=>`<button type="button" class="${r===roomView?'act':''}">${esc(r)}</button>`).join('');
   [...$('#nav').children].forEach(b=>b.onclick=()=>{
-    view=b.textContent;
-    if(isSat){
-      assignments[String(screenId)]=view;
-      saveLayout();
-      broadcast({type:'assign',assignments});
-      const u=new URL(location.href);u.searchParams.set('room',view);history.replaceState(null,'',u);
-    }else if(!applying){broadcast(Object.assign(snapshot(),{type:'state'}))}
+    roomView=b.textContent;
+    if(isSat){assignments[String(screenId)]=roomView;saveLayout();broadcast({type:'assign',assignments});const u=new URL(location.href);u.searchParams.set('room',roomView);history.replaceState(null,'',u)}
+    else if(!applying)broadcast(Object.assign(snapshot(),{type:'state'}));
     draw();
   });
-
-  let list;
-  if(isSat){
-    list=[view];
-  }else if(view==='Command Board'){
-    // multi: primary shows Briefing + rooms not on other screens; single: all rooms
-    if(screenCount>1){
-      const taken=new Set(Object.values(assignments));
-      list=['Briefing',...rooms().filter(r=>r!=='Briefing'&&!taken.has(r))];
-      if(list.length===1)list=['Briefing',...rooms().filter(r=>r!=='Briefing').slice(0,2)];
-    }else list=rooms();
-  }else list=[view];
-
-  $('#board').innerHTML=list.map(r=>`<div class="card ${(r==='Briefing'||isSat)?'keep':''} ${r.includes('demo')?'demo':''}"><h3>${r} <span class="mono">● live</span></h3>${R[r]||''}</div>`).join('');
-  $('#pend').textContent=queue.length+' AWAITING YOUR DECISION';
-  $('#dq').classList.toggle('decide',queue.length>0);
-  $('#queue').innerHTML=queue.length?queue.map((a,i)=>`<div class="row" style="display:block"><p><span class="tier ${a.t[0]}">${a.t[1]}</span><b>${a.title}</b><br><small style="color:var(--mut)">${a.why}</small></p><button class="btn ok" data-i="${i}">Approve${a.t[1]=='T3'?' (biometric)':''}</button> <button class="btn no" data-x="${i}">Decline</button></div>`).join(''):'<p style="color:var(--mut)">Nothing pending. Yorri is watching.</p>';
-  document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>decide(+b.dataset.i,1));
-  document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>decide(+b.dataset.x,0));
+  let html='';
+  if(pageView==='command'){
+    let list;
+    if(isSat)list=[roomView];
+    else if(roomView==='Command Board'){
+      if(screenCount>1){const taken=new Set(Object.values(assignments));list=['Briefing',...CMD_ROOMS.filter(r=>r!=='Briefing'&&!taken.has(r))];if(list.length===1)list=['Briefing',...CMD_DEFAULT_MULTI.slice(0,2)]}
+      else list=CMD_ROOMS.slice();
+    }else list=[roomView];
+    html=list.map(r=>cardHTML(r,cmdBody(r),r==='Briefing'||isSat)).join('');
+  }else{
+    const b=activeBiz();let list;
+    if(isSat)list=[{label:roomView,room:(b.rooms||[]).find(x=>x.label===roomView)}];
+    else if(roomView==='Business Board'){
+      if(screenCount>1){const taken=new Set(Object.values(assignments));list=(b.rooms||[]).filter(r=>!taken.has(r.label)).map(r=>({label:r.label,room:r}));if(!list.length)list=(b.rooms||[]).slice(0,2).map(r=>({label:r.label,room:r}))}
+      else list=(b.rooms||[]).map(r=>({label:r.label,room:r}));
+    }else{const room=(b.rooms||[]).find(x=>x.label===roomView);list=[{label:roomView,room}]}
+    if(!list.length)html=cardHTML(b.name,`<div class="empty"><b>NO ROOMS YET</b>Click <b>Edit rooms</b> to build this business’s board.</div>`,true);
+    else html=list.map(({label,room})=>cardHTML(label+' · '+b.name,room?layoutHTML(room,b.name):emptyState(label),isSat)).join('');
+  }
+  $('#board').innerHTML=html;
+  if($('#pend'))$('#pend').textContent=queue.length+' AWAITING YOUR DECISION';
+  if($('#dq')){
+    $('#dq').classList.toggle('decide',queue.length>0);
+    if(pageView==='command'){
+      $('#queue').innerHTML=queue.length?queue.map((a,i)=>`<div class="row" style="display:block"><p><span class="tier ${a.t[0]}">${a.t[1]}</span><b>${esc(a.title)}</b><br><small style="color:var(--mut)">${esc(a.why)}</small></p><button class="btn ok" data-i="${i}">Approve${a.t[1]=='T3'?' (biometric)':''}</button> <button class="btn no" data-x="${i}">Decline</button></div>`).join(''):'<p style="color:var(--mut)">Nothing pending. Yorri is watching.</p>';
+      document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>decide(+b.dataset.i,1));
+      document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>decide(+b.dataset.x,0));
+    }
+  }
   if(!applying)broadcast({type:'queue',queue});
 }
+function say(w,t){if(!$('#log'))return;$('#log').innerHTML+=`<p class="${w=='Yorri'?'y':''}"><b>${w}:</b> ${t}</p>`;$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML})}
 
-function say(w,t){
-  if(!$('#log'))return;
-  $('#log').innerHTML+=`<p class="${w=='Yorri'?'y':''}"><b>${w}:</b> ${t}</p>`;
-  $('#log').scrollTop=1e9;
-  if(!applying)broadcast({type:'log',log:$('#log').innerHTML});
+/* —— Voice: approve / decline / open navigation —— */
+function normVoice(t){return String(t||'').toLowerCase().replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim()}
+function tryVoiceCommand(raw){
+  const t=normVoice(raw);
+  if(!t)return false;
+  const ap=normVoice(voiceCodes.approve),de=normVoice(voiceCodes.decline);
+  if(t===ap||t.endsWith(' '+ap)||t.includes(ap)){
+    if(pageView!=='command'){setPageView('command');}
+    if(!queue.length){say('Yorri','Nothing pending to approve.');return true}
+    say('You',raw);decide(0,1);return true;
+  }
+  if(t===de||t.endsWith(' '+de)||t.includes(de)){
+    if(pageView!=='command'){setPageView('command');}
+    if(!queue.length){say('Yorri','Nothing pending to decline.');return true}
+    say('You',raw);decide(0,0);return true;
+  }
+  // open Apps aliases (Your World Apps / YourWorldApps / Apps)
+  if(/\b(open|go\s+to|show)\b/.test(t)&&(
+      /\byour\s*world\s*apps\b/.test(t)||
+      /\byourworldapps\b/.test(t)||
+      /\b(open|go\s+to|show)\s+apps?\b/.test(t)
+    )&&!/\bcommand\b/.test(t)){
+    say('You',raw);setPageView('apps');say('Yorri','Opened <b>Your World Apps</b>. Pick a business from the dropdown or Edit rooms.');return true;
+  }
+  if(/\bopen\b/.test(t)&&(/\bcommand\s*center\b/.test(t)||/\bcommand\s*board\b/.test(t)||/\bmain\s*board\b/.test(t))){
+    say('You',raw);setPageView('command');roomView='Command Board';draw();say('Yorri','Opened <b>Command Center</b>.');return true;
+  }
+  // open <room> on command center
+  const cmdMap={briefing:'Briefing',finance:'Finance',hr:'HR','human resources':'HR',payroll:'Payroll',legal:'Legal',support:'Support',vault:'Vault','command board':'Command Board'};
+  for(const [k,v] of Object.entries(cmdMap)){
+    if(new RegExp('\\bopen\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)||new RegExp('\\bgo\\s+to\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)||new RegExp('\\bshow\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)){
+      say('You',raw);setPageView('command');roomView=v;draw();broadcast(snapshot());say('Yorri','Opened <b>'+v+'</b>.');return true;
+    }
+  }
+  // open business by name on Apps
+  for(const b of bizStore.businesses){
+    const bn=normVoice(b.name);
+    if(bn&&(t.includes('open '+bn)||t.includes('go to '+bn)||t.includes('show '+bn))){
+      say('You',raw);bizStore.activeId=b.id;saveBiz();setPageView('apps');roomView='Business Board';yorriContext();draw();
+      say('Yorri','Opened business <b>'+esc(b.name)+'</b>.');return true;
+    }
+  }
+  // open a room on current apps business
+  if(pageView==='apps'){
+    const b=activeBiz();
+    for(const r of (b.rooms||[])){
+      const rn=normVoice(r.label);
+      if(rn&&(new RegExp('\\bopen\\s+'+rn.replace(/ /g,'\\s+')+'\\b').test(t)||new RegExp('\\bgo\\s+to\\s+'+rn.replace(/ /g,'\\s+')+'\\b').test(t))){
+        say('You',raw);roomView=r.label;draw();say('Yorri','Opened room <b>'+esc(r.label)+'</b> · '+esc(b.name)+'.');return true;
+      }
+    }
+  }
+  return false;
 }
-/* Intent patterns: more specific first. Entry: [regex, [css,tier], title|null|'__hire__', why] */
 const P=[
 [/\b(payroll|pay\s*run|gusto)\b/i,['t3','T3'],'Run Friday payroll · $71,880','Gusto Embedded, 42 employees. Biometric + 10-min delay.'],
-[/\b(taxes?|irs|filings?|terminat\w*|fire\s+(him|her|them|an?\s+)?employees?|layoffs?|lay\s*off)\b/i,['t3','T4'],null,'That stays human/partner (T4). I\'ve prepared the brief and routed it to your CPA/counsel lane — nothing auto-executes.'],
+[/\b(taxes?|irs|filings?|terminat\w*|fire\s+(him|her|them|an?\s+)?employees?|layoffs?|lay\s*off)\b/i,['t3','T4'],null,'That stays human/partner (T4). I\'ve prepared the brief — nothing auto-executes.'],
 [/\b(onboard|onboarding|start\s+date)\b/i,['t1','T1'],'Continue onboarding · J. Ruiz (68%)','Checklist, accounts, and day-1 packet — reversible drafts.'],
 [/\b(hire|hiring|recruit|headcount|open\s+roles?|job\s+posts?|staff\s+up|need\s+to\s+hire|bring\s+on|new\s+hires?)\b/i,['t2','T2'],'__hire__',''],
 [/\b(pto|time\s*off|leave\s+request|vacation)\b/i,['t1','T1'],'Approve 3 PTO requests','Calendar drafts created; reversible.'],
-[/\b(hr|human\s+resources|people\s+ops|reviews?\s+due)\b/i,['t0','T0'],null,'HR: 42 on roster, 3 PTO pending, 2 open roles, J. Ruiz onboarding at 68%, 5 reviews due this month. Want hire pipeline, PTO, or onboarding?'],
+[/\b(hr|human\s+resources|people\s+ops|reviews?\s+due)\b/i,['t0','T0'],null,'HR: 42 on roster, 3 PTO pending, 2 open roles, J. Ruiz onboarding at 68%, 5 reviews due this month.'],
 [/\b(invoice|vendor\s*bills?|accounts?\s*payable|\bAP\b|pay\s+(the\s+)?(bills?|vendors?|invoices?))\b/i,['t3','T3'],'Pay 4 vendor bills · $6,420','From operating account via QuickBooks. Biometric + delay.'],
-[/\b(cash|runway|burn|revenue|spend|finance|quickbooks|anomaly|mtd)\b/i,['t0','T0'],null,'Finance: cash $184.2k · runway 14.2 mo · MTD +$38.4k / -$21.7k · open AP $6,420 (4 bills) · SaaS spend +31% MoM. Want me to queue bill pay or dig into the anomaly?'],
-[/\b(nda|contract|msa|docusign|legal|trademark|summar)\b/i,['t0','T0'],null,'Legal: NDA Acme — mutual, 2-yr, auto-renews in 9 days, 30-day notice (flag: non-solicit). MSA Northwind summarized. 1 DocuSign pending. Trademark watch clear. Want a renewal reminder queued?'],
+[/\b(cash|runway|burn|revenue|spend|finance|quickbooks|anomaly|mtd)\b/i,['t0','T0'],null,'Finance: cash $184.2k · runway 14.2 mo · MTD +$38.4k / -$21.7k · open AP $6,420.'],
+[/\b(nda|contract|msa|docusign|legal|trademark|summar)\b/i,['t0','T0'],null,'Legal: NDA Acme renews in 9 days. MSA Northwind summarized. 1 DocuSign pending.'],
 [/\b(email|send|message|remind|notify|outreach)\b/i,['t2','T2'],'Send renewal reminder to Acme legal','Draft ready; outbound needs your confirm.'],
-[/\b(weather\s*radar|hunt\s*ai|yw\s*apps|product\s+tickets?)\b/i,['t1','T1'],'Triage YW Apps support demo queue','Weather Radar 3 · Hunt AI 1 — detachable demo module. Drafts only until you confirm outbound.'],
-[/\b(tickets?|support|helpdesk|customer\s+asks?|internal\s+q)\b/i,['t0','T0'],null,'Support: 7 open internal · median reply 4m. PTO how-to auto-answered; expense-policy draft ready. Flip the YW Apps demo chip for product tickets.'],
-[/\b(vault|documents?|docs?|w-?9s?|encrypted|indexed?)\b/i,['t0','T0'],null,'Vault: 1,284 docs · AES-256 · 12 W-9s · 87 contracts · last indexed 6m ago. What should I pull or file?'],
-[/\b(briefing|brief|status|overview|command\s*board|dashboard|how\s+are\s+we|what'?s\s+up|sitrep)\b/i,['t0','T0'],null,'Briefing: cash $184.2k · team 42 · runway 14.2 mo · payroll Friday ready · Acme NDA renews in 9 days · 2 decisions in queue. Board is otherwise green.']
+[/\b(tickets?|support|helpdesk|customer\s+asks?|internal\s+q)\b/i,['t0','T0'],null,'Support: 7 open internal · median reply 4m. Product apps live under Your World Apps.'],
+[/\b(vault|documents?|docs?|w-?9s?|encrypted|indexed?)\b/i,['t0','T0'],null,'Vault: 1,284 docs · AES-256 · 12 W-9s · 87 contracts.'],
+[/\b(briefing|brief|status|overview|command\s*board|dashboard|how\s+are\s+we|what'?s\s+up|sitrep)\b/i,['t0','T0'],null,'Briefing: cash $184.2k · team 42 · runway 14.2 mo · payroll Friday ready · 2 decisions in queue.']
 ];
-function hirePlan(t){
-  const m=t.match(/\b(\d{1,3})\b/);
-  const n=m?Math.min(50,parseInt(m[1],10)):5;
-  return {
-    t:['t2','T2'],
-    title:`Open ${n} role${n===1?'':'s'} · start hiring pipeline`,
-    why:`HR lane: draft ${n} job posting${n===1?'':'s'} + intake forms (outbound = T2). Offers stay T3. Reversible until you approve.`
-  };
+function hirePlan(t){const m=t.match(/\b(\d{1,3})\b/);const n=m?Math.min(50,parseInt(m[1],10)):5;return{t:['t2','T2'],title:`Open ${n} role${n===1?'':'s'} · start hiring pipeline`,why:`HR lane: draft ${n} job posting${n===1?'':'s'} + intake forms (outbound = T2). Offers stay T3.`}}
+function appsAsk(t){
+  const b=activeBiz();const rooms=(b.rooms||[]).map(r=>r.label+' ('+r.type+')').join(', ')||'none yet';
+  if(/\b(ticket|support|triage)\b/i.test(t)){say('Yorri',`<span class="tier t1">T1</span>${esc(b.name)} support — use a tickets room. Current: ${esc(rooms)}.`);return}
+  if(/\b(roadmap|pipeline|funnel)\b/i.test(t)){say('Yorri',`<span class="tier t0">T0</span>Set a room type to <b>pipeline</b> in Edit rooms. Rooms: ${esc(rooms)}.`);return}
+  if(/\b(kpi|metric|usage|mau)\b/i.test(t)){say('Yorri',`<span class="tier t0">T0</span>${esc(b.name)} metrics${mockOn?' (MOCK on)':' (MOCK off)'}.`);return}
+  if(/\b(add\s+room|edit\s+room|layout)\b/i.test(t)){say('Yorri','Open <b>Edit rooms</b>. Change type and Save — layout switches immediately.');return}
+  say('Yorri',`You're in <b>${esc(b.name)}</b>. Rooms: ${esc(rooms)}. Mock data is <b>${mockOn?'ON':'OFF'}</b>. Say <b>open Command Center</b> anytime.`);
 }
-function clarify(t){
-  const raw=t.trim();
-  const s=raw.slice(0,120);
-  const hints=[];
-  if(/money|budget|cost|spend|pay/i.test(t))hints.push('cash/runway or bill pay');
-  if(/people|team|staff|role|employee/i.test(t))hints.push('hiring or PTO');
-  if(/doc|file|paper|contract/i.test(t))hints.push('Vault or Legal');
-  if(/customer|user|app|ticket/i.test(t))hints.push('Support or YW Apps demo');
-  const tip=hints.length?` Closest lanes: ${hints.join(', ')}.`:' Try hire, payroll, invoices, runway, NDA, PTO, tickets, vault, or briefing.';
-  return `Heard you: “${s}${raw.length>120?'…':''}.” I don't have a locked playbook for that yet.${tip} What should I propose?`;
-}
+function clarify(t){const s=t.trim().slice(0,120);return `Heard you: “${esc(s)}${t.trim().length>120?'…':''}.” Try hire, payroll, <b>open Apps</b>, <b>open Finance</b>, or <b>Yorri approve</b>.`}
 function ask(t){
   if(!t||!String(t).trim())return;
   t=String(t).trim();
+  if(tryVoiceCommand(t)){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
   say('You',t);
   setTimeout(()=>{
+    if(pageView==='apps'){appsAsk(t);return}
     const m=P.find(p=>p[0].test(t));
     if(!m){say('Yorri',clarify(t));return}
-    if(m[2]==='__hire__'){
-      const h=hirePlan(t);
-      say('Yorri',`Plan ready → <span class="tier ${h.t[0]}">${h.t[1]}</span>${h.title}. Waiting on your decision.`);
-      queue.push(h);draw();
-      return;
-    }
+    if(m[2]==='__hire__'){const h=hirePlan(t);say('Yorri',`Plan ready → <span class="tier ${h.t[0]}">${h.t[1]}</span>${h.title}. Waiting on your decision.`);queue.push(h);draw();return}
     if(!m[2]){say('Yorri','<span class="tier '+m[1][0]+'">'+m[1][1]+'</span>'+m[3]);return}
     say('Yorri',`Plan ready → <span class="tier ${m[1][0]}">${m[1][1]}</span>${m[2]}. Waiting on your decision.`);
     queue.push({t:m[1],title:m[2],why:m[3]});draw();
   },420);
 }
 function decide(i,ok){
-  const a=queue.splice(i,1)[0];
-  if(!a)return;
+  const a=queue.splice(i,1)[0];if(!a)return;
   if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.')){queue.splice(i,0,a);draw();return}
-  say('Yorri',ok?`Done: ${a.title}. Report filed to Vault.`:`Declined: ${a.title}. Nothing executed.`);
-  draw();
-  broadcast(snapshot());
+  say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
+  draw();broadcast(snapshot());
 }
 function submitQ(){const el=$('#q');if(!el)return;const v=el.value;el.value='';ask(v)}
 if($('#q'))$('#q').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();submitQ()}};
 if($('#send'))$('#send').onclick=()=>submitQ();
+
 let rec=null;
 if($('#mic'))$('#mic').onclick=()=>{
   const btn=$('#mic');
-  const S=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!S){
-    say('Yorri','Voice needs Chrome or Edge on HTTPS. Type your ask and hit Send — I\'m listening that way.');
+  if(IS_TESLA){
+    setVmsg('In a Tesla, tap the box, then press the steering-wheel mic and speak.');
+    try{$('#q').focus()}catch(e){}
+    say('Yorri','Tesla mode: focus the ask box, use the yoke mic, then hit <b>Send</b>. Try <b>open Apps</b> or <b>Yorri approve</b>.');
     return;
   }
-  if(rec){try{rec.stop()}catch(e){}rec=null;btn.classList.remove('listen');btn.title='Hey Yorri / voice';return}
+  const S=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!S){
+    setVmsg('Voice input isn\'t supported here. In a Tesla, tap the box, then press the steering-wheel mic and speak; otherwise type and Send.');
+    try{$('#q').focus()}catch(e){}
+    say('Yorri','No SpeechRecognition API — type your ask (or use Tesla yoke mic + Send).');
+    return;
+  }
+  if(rec){try{rec.stop()}catch(e){}rec=null;btn.classList.remove('listen');btn.title='Hey Yorri / voice';setVmsg('');return}
   try{
-    rec=new S();
-    rec.lang='en-US';
-    rec.interimResults=false;
-    rec.maxAlternatives=1;
-    btn.classList.add('listen');
-    btn.title='Listening… tap to stop';
-    say('Yorri','Listening…');
+    rec=new S();rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=1;
+    btn.classList.add('listen');btn.title='Listening… tap to stop';setVmsg('Listening…');say('Yorri','Listening…');
     rec.onresult=e=>{
       let raw=(e.results[0]&&e.results[0][0]&&e.results[0][0].transcript)||'';
       raw=raw.replace(/^\s*(hey\s+yorri|hi\s+yorri|ok\s+yorri|ask\s+yorri)[,.\s]*/i,'').trim();
       if(raw)$('#q').value=raw;
       if(raw)ask(raw);else say('Yorri','Didn\'t catch that — try again or type it.');
+      setVmsg('');
     };
     rec.onerror=e=>{
-      btn.classList.remove('listen');
-      rec=null;
+      btn.classList.remove('listen');rec=null;setVmsg('');
       const err=e&&e.error;
-      if(err==='not-allowed'||err==='service-not-allowed')
-        say('Yorri','Mic blocked. Allow microphone for this site, or type and hit Send.');
-      else if(err==='no-speech')
-        say('Yorri','No speech heard. Tap the mic and try again, or type.');
-      else if(err==='network')
-        say('Yorri','Speech service network error. Type your ask instead.');
-      else
-        say('Yorri','Mic error'+(err?` (${err})`:'')+'. Type and Send works anytime.');
+      if(err==='not-allowed'||err==='service-not-allowed')say('Yorri','Mic blocked. Allow microphone, or type and Send.');
+      else if(err==='no-speech')say('Yorri','No speech heard. Tap mic again, or type.');
+      else if(err==='network')say('Yorri','Speech network error. Type instead.');
+      else say('Yorri','Mic error'+(err?` (${err})`:'')+'. Type and Send works anytime.');
     };
-    rec.onend=()=>{btn.classList.remove('listen');btn.title='Hey Yorri / voice';rec=null};
+    rec.onend=()=>{btn.classList.remove('listen');btn.title='Hey Yorri / voice';rec=null;setVmsg('')};
     rec.start();
-  }catch(err){
-    btn.classList.remove('listen');
-    rec=null;
-    say('Yorri','Couldn\'t start the mic. Type your ask and hit Send.');
-  }
+  }catch(err){btn.classList.remove('listen');rec=null;setVmsg('');say('Yorri','Couldn\'t start the mic. Type and Send.');}
 };
+const _ask=ask;ask=function(t){_ask(t);setTimeout(()=>{if(!applying)broadcast(snapshot())},500)};
+let edDraft=null;
+function openEditor(){const b=activeBiz();edDraft=JSON.parse(JSON.stringify(b.rooms||[]));$('#edBizName').textContent=b.name;renderEditor();$('#editor').classList.add('show')}
+function seedTypeDefaults(r){
+  if(r.type==='metrics'&&!r.kpiA){r.kpiA='—';r.kpiALabel='metric A';r.kpiB='—';r.kpiBLabel='metric B';r.kpiC='—';r.kpiCLabel='metric C'}
+  if(r.type==='tickets'&&!r.tickets)r.tickets=['New ticket'];
+  if(r.type==='pipeline'&&!r.stages)r.stages=[{n:'Stage 1',v:'0'},{n:'Stage 2',v:'0'},{n:'Stage 3',v:'0'}];
+  if(r.type==='map'&&!r.mapNote)r.mapNote='preview';
+  if(r.type==='custom'&&!r.rows)r.rows=[{l:'Field',v:'Value'}];
+}
+function renderEditor(){
+  const list=$('#edList');
+  list.innerHTML=edDraft.map((r,i)=>{
+    const opts=LAYOUT_TYPES.map(t=>`<option value="${t}" ${r.type===t?'selected':''}>${t}</option>`).join('');
+    return `<div class="erow" data-i="${i}"><input value="${esc(r.label)}" data-f="label" placeholder="Room name"><select data-f="type">${opts}</select><button type="button" class="sbtn" data-up="${i}">↑</button><button type="button" class="sbtn" data-dn="${i}">↓</button><button type="button" class="sbtn danger" data-del="${i}">Remove</button></div>`;
+  }).join('')||'<p style="color:var(--mut)">No rooms — add one.</p>';
+  list.querySelectorAll('input[data-f],select[data-f]').forEach(el=>{
+    el.onchange=el.oninput=()=>{const i=+el.closest('.erow').dataset.i;const f=el.dataset.f;edDraft[i][f]=el.value;if(f==='type')seedTypeDefaults(edDraft[i])};
+  });
+  list.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up;if(i>0){[edDraft[i-1],edDraft[i]]=[edDraft[i],edDraft[i-1]];renderEditor()}});
+  list.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dn;if(i<edDraft.length-1){[edDraft[i+1],edDraft[i]]=[edDraft[i],edDraft[i+1]];renderEditor()}});
+  list.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{edDraft.splice(+b.dataset.del,1);renderEditor()});
+}
+function saveEditor(){
+  const b=activeBiz();
+  b.rooms=edDraft.map(r=>{if(!r.id)r.id=uid();r.label=(r.label||'Room').trim()||'Room';r.type=LAYOUT_TYPES.includes(r.type)?r.type:'custom';seedTypeDefaults(r);return r});
+  saveBiz();roomView='Business Board';$('#editor').classList.remove('show');ensureAssignments();saveLayout();draw();
+  broadcast({type:'biz',bizStore});broadcast(snapshot());
+  say('Yorri',`Saved <b>${esc(b.name)}</b> — ${b.rooms.length} room${b.rooms.length===1?'':'s'}. Layouts match each room type.`);
+}
 
-// Wrap ask to sync queue after proposals
-const _ask=ask;
-ask=function(t){
-  _ask(t);
-  setTimeout(()=>{if(!applying)broadcast(snapshot())},500);
+if($('#navCommand'))$('#navCommand').onclick=()=>setPageView('command');
+if($('#navApps'))$('#navApps').onclick=()=>setPageView('apps');
+if($('#bizSelect'))$('#bizSelect').onchange=()=>{
+  bizStore.activeId=$('#bizSelect').value;saveBiz();roomView='Business Board';yorriContext();ensureAssignments();draw();
+  broadcast({type:'biz',bizStore});broadcast(snapshot());say('Yorri',`Switched to <b>${esc(activeBiz().name)}</b>.`);
 };
-
-if($('#demoT'))$('#demoT').onchange=()=>{
-  if(view.includes&&view.includes('demo'))view='Command Board';
-  draw();
-  broadcast({type:'demo',demo:$('#demoT').checked});
-  broadcast(snapshot());
+if($('#addBiz'))$('#addBiz').onclick=()=>{
+  const name=prompt('New business name','New Business');if(!name||!name.trim())return;
+  const id='biz-'+Date.now().toString(36);
+  bizStore.businesses.push({id,name:name.trim(),rooms:[
+    {id:uid(),label:'Overview',type:'metrics',kpiA:'—',kpiALabel:'KPI 1',kpiB:'—',kpiBLabel:'KPI 2',kpiC:'—',kpiCLabel:'KPI 3'},
+    {id:uid(),label:'Inbox',type:'tickets',tickets:['First ticket']}
+  ]});
+  bizStore.activeId=id;saveBiz();refreshBizSelect();roomView='Business Board';yorriContext();draw();
+  broadcast({type:'biz',bizStore});say('Yorri',`Created <b>${esc(name.trim())}</b>. Hit Edit rooms to reshape it.`);
+};
+if($('#editRooms'))$('#editRooms').onclick=()=>openEditor();
+if($('#edAdd'))$('#edAdd').onclick=()=>{edDraft.push({id:uid(),label:'New room',type:'custom',rows:[{l:'Field',v:'Value'}]});renderEditor()};
+if($('#edSave'))$('#edSave').onclick=()=>saveEditor();
+if($('#edCancel'))$('#edCancel').onclick=()=>$('#editor').classList.remove('show');
+if($('#mockT'))$('#mockT').onchange=()=>{
+  mockOn=$('#mockT').checked;saveMock();draw();broadcast({type:'mock',mock:mockOn});broadcast(snapshot());
+  say('Yorri',mockOn?'Mock data <b>ON</b> — demo KPIs and MOCK labels restored.':'Mock data <b>OFF</b> — all boards show Connect live empty states.');
 };
 if($('#screenN'))$('#screenN').onchange=()=>setScreenCount($('#screenN').value);
 if($('#reopenScreens'))$('#reopenScreens').onclick=()=>reopenScreens();
 if($('#satRoom'))$('#satRoom').onchange=()=>{
-  view=$('#satRoom').value;
-  assignments[String(screenId)]=view;
-  saveLayout();
-  const u=new URL(location.href);u.searchParams.set('room',view);history.replaceState(null,'',u);
-  broadcast({type:'assign',assignments});
-  draw();
+  roomView=$('#satRoom').value;assignments[String(screenId)]=roomView;saveLayout();
+  const u=new URL(location.href);u.searchParams.set('room',roomView);history.replaceState(null,'',u);
+  broadcast({type:'assign',assignments});draw();
 };
 if($('#satSync'))$('#satSync').onclick=()=>broadcast({type:'hello'});
 
-loadLayout();
-if(isSat){
-  const r=params.get('room');
-  if(r)view=r;
-  screenCount=Math.max(screenCount,screenId);
-}
+loadMock();loadVoiceCodes();loadBiz();loadLayout();
+if($('#mockT'))$('#mockT').checked=mockOn;
+if(IS_TESLA){setVmsg('Tesla detected — tap the ask box, use the steering-wheel mic, then Send.');if($('#mic'))$('#mic').title='Tesla: focus box + yoke mic'}
+if(isSat){const r=params.get('room');if(r)roomView=r;screenCount=Math.max(screenCount,screenId);if(params.get('view')==='apps')pageView='apps'}
 ensureAssignments();
 if($('#screenN'))$('#screenN').value=String(screenCount);
 setInterval(()=>{if($('#clock'))$('#clock').textContent=new Date().toLocaleTimeString()},1000);
-draw();
-if(isSat){
-  broadcast({type:'hello'});
-  setTimeout(()=>broadcast({type:'hello'}),600);
-}else{
+setPageView(pageView,false);
+if(isSat){broadcast({type:'hello'});setTimeout(()=>broadcast({type:'hello'}),600)}
+else{
   setTimeout(()=>{
-    if(!queue.length){
+    if(pageView==='command'&&!queue.length){
       queue.push({t:['t3','T3'],title:'Run Friday payroll · $71,880',why:'Gusto Embedded, 42 employees.'},{t:['t2','T2'],title:'Send Acme NDA renewal notice',why:'Draft in Legal.'});
       draw();
     }
     broadcast(snapshot());
-    // auto re-open if saved multi-screen
-    if(screenCount>1){
-      say('Yorri','Restored '+screenCount+'-screen layout. Click <b>Re-open</b> to pop room windows (browser may require a click).');
-    }
+    if(screenCount>1)say('Yorri','Restored '+screenCount+'-screen layout. Click <b>Re-open</b> to pop room windows.');
   },800);
 }
 </script></body></html>
