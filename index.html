@@ -27,7 +27,11 @@ main{display:grid;grid-template-columns:1fr 360px;gap:14px;padding:14px 18px}
 .btn{border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600}.ok{background:var(--teal);color:var(--ink)}.no{background:#1b2a36;color:var(--txt)}
 #log{height:300px;overflow:auto;font-size:13px}#log p{margin:6px 0}#log .y{color:var(--teal)}
 .ask{display:flex;gap:6px}.ask input{flex:1;background:#081018;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px}
-.mic{width:38px;border-radius:50%;background:var(--teal);border:0;cursor:pointer;font-size:16px}
+.mic{width:38px;min-width:38px;border-radius:50%;background:var(--teal);border:0;cursor:pointer;font-size:16px;transition:background .2s,box-shadow .2s}
+.mic.listen{background:var(--red);animation:listenPulse .9s infinite;box-shadow:0 0 18px #ff5c6c88}
+@keyframes listenPulse{50%{box-shadow:0 0 26px #ff5c6ccc;transform:scale(1.06)}}
+.ask .send{background:var(--teal);color:var(--ink);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;white-space:nowrap}
+.ask .send:hover{filter:brightness(1.12)}
 .pulse{width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;box-shadow:0 0 10px var(--teal);animation:p 1.6s infinite}@keyframes p{50%{opacity:.3}}
 .demo{border-style:dashed}.hide{display:none}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(#2de1c20a 1px,transparent 1px),linear-gradient(90deg,#2de1c20a 1px,transparent 1px);background-size:40px 40px;animation:grid 30s linear infinite;z-index:0}
@@ -40,7 +44,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;background-ima
 nav button,.btn{transition:all .2s}nav button:hover{color:var(--teal);box-shadow:0 0 12px #2de1c233}nav button.act{box-shadow:0 0 16px #2de1c277}
 .btn:hover{filter:brightness(1.15);transform:translateY(-1px)}.ok{box-shadow:0 0 14px #2de1c255}
 .logo b{text-shadow:0 0 12px var(--teal)}.kpi b{text-shadow:0 0 10px #2de1c233}
-#log p{animation:in .35s both}.mic{animation:glow 2.5s infinite}@keyframes glow{50%{box-shadow:0 0 18px var(--teal)}}
+#log p{animation:in .35s both}.mic:not(.listen){animation:glow 2.5s infinite}@keyframes glow{50%{box-shadow:0 0 18px var(--teal)}}
 .decide{animation:amb 2s infinite}@keyframes amb{50%{box-shadow:0 0 30px #ffb54733}}
 .ask input:focus{outline:0;border-color:var(--teal);box-shadow:0 0 12px #2de1c244}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -62,7 +66,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <main><section class="board" id="board"></section>
 <aside class="side"><div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div></div>
 <div class="card"><h3>Ask Yorri <span class="mono">chief of staff</span></h3><div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report.</p></div>
-<div class="ask"><button class="mic" id="mic" title="Hey Yorri">🎙</button><input id="q" placeholder="e.g. pay vendor invoices, run payroll, summarize the NDA"></div></div>
+<div class="ask"><button class="mic" id="mic" type="button" title="Hey Yorri / voice">🎙</button><input id="q" placeholder="e.g. hire 5 engineers, pay invoices, runway, NDA…" autocomplete="off"><button class="send" id="send" type="button">Send</button></div></div>
 <div class="card"><h3>Risk tiers</h3>
 <div class="row"><span><span class="tier t0">T0</span>Read / insight</span><span class="mono">auto</span></div>
 <div class="row"><span><span class="tier t1">T1</span>Reversible draft</span><span class="mono">auto + report</span></div>
@@ -88,20 +92,110 @@ $('#pend').textContent=queue.length+' AWAITING YOUR DECISION';$('#dq').classList
 $('#queue').innerHTML=queue.length?queue.map((a,i)=>`<div class="row" style="display:block"><p><span class="tier ${a.t[0]}">${a.t[1]}</span><b>${a.title}</b><br><small style="color:var(--mut)">${a.why}</small></p><button class="btn ok" data-i="${i}">Approve${a.t[1]=='T3'?' (biometric)':''}</button> <button class="btn no" data-x="${i}">Decline</button></div>`).join(''):'<p style="color:var(--mut)">Nothing pending. Yorri is watching.</p>';
 document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>decide(+b.dataset.i,1));document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>decide(+b.dataset.x,0))}
 function say(w,t){$('#log').innerHTML+=`<p class="${w=='Yorri'?'y':''}"><b>${w}:</b> ${t}</p>`;$('#log').scrollTop=1e9}
-const P=[[/payroll/i,['t3','T3'],'Run Friday payroll · $71,880','Gusto Embedded, 42 employees. Biometric + 10-min delay.'],
-[/pay|invoice|bill/i,['t3','T3'],'Pay 4 vendor bills · $6,420','From operating account via QuickBooks.'],
-[/email|send|message|remind/i,['t2','T2'],'Send renewal reminder to Acme legal','Draft ready; outbound needs your confirm.'],
-[/nda|contract|legal|summar/i,['t0','T0'],null,'NDA Acme: mutual, 2-yr, auto-renews in 9 days, 30-day notice. Flag: non-solicit clause.'],
-[/pto|leave|hr/i,['t1','T1'],'Approve 3 PTO requests','Calendar drafts created; reversible.'],
-[/tax|fire|terminat/i,['t3','T4'],null,'That stays human/partner. I\'ve prepared the brief and routed it to your CPA/counsel lane.']];
-function ask(t){if(!t)return;say('You',t);setTimeout(()=>{const m=P.find(p=>p[0].test(t));
-if(!m)return say('Yorri','Cash $184.2k, runway 14.2 mo, payroll Friday, Acme NDA renews in 9 days. Want me to queue any of it?');
-if(!m[2])return say('Yorri','<span class="tier '+m[1][0]+'">'+m[1][1]+'</span>'+m[3]);
-say('Yorri',`Plan ready → <span class="tier ${m[1][0]}">${m[1][1]}</span>${m[2]}. Waiting on your decision.`);queue.push({t:m[1],title:m[2],why:m[3]});draw()},500)}
+/* Intent patterns: more specific first. Entry: [regex, [css,tier], title|null|'__hire__', why] */
+const P=[
+[/\b(payroll|pay\s*run|gusto)\b/i,['t3','T3'],'Run Friday payroll · $71,880','Gusto Embedded, 42 employees. Biometric + 10-min delay.'],
+[/\b(taxes?|irs|filings?|terminat\w*|fire\s+(him|her|them|an?\s+)?employees?|layoffs?|lay\s*off)\b/i,['t3','T4'],null,'That stays human/partner (T4). I\'ve prepared the brief and routed it to your CPA/counsel lane — nothing auto-executes.'],
+[/\b(onboard|onboarding|start\s+date)\b/i,['t1','T1'],'Continue onboarding · J. Ruiz (68%)','Checklist, accounts, and day-1 packet — reversible drafts.'],
+[/\b(hire|hiring|recruit|headcount|open\s+roles?|job\s+posts?|staff\s+up|need\s+to\s+hire|bring\s+on|new\s+hires?)\b/i,['t2','T2'],'__hire__',''],
+[/\b(pto|time\s*off|leave\s+request|vacation)\b/i,['t1','T1'],'Approve 3 PTO requests','Calendar drafts created; reversible.'],
+[/\b(hr|human\s+resources|people\s+ops|reviews?\s+due)\b/i,['t0','T0'],null,'HR: 42 on roster, 3 PTO pending, 2 open roles, J. Ruiz onboarding at 68%, 5 reviews due this month. Want hire pipeline, PTO, or onboarding?'],
+[/\b(invoice|vendor\s*bills?|accounts?\s*payable|\bAP\b|pay\s+(the\s+)?(bills?|vendors?|invoices?))\b/i,['t3','T3'],'Pay 4 vendor bills · $6,420','From operating account via QuickBooks. Biometric + delay.'],
+[/\b(cash|runway|burn|revenue|spend|finance|quickbooks|anomaly|mtd)\b/i,['t0','T0'],null,'Finance: cash $184.2k · runway 14.2 mo · MTD +$38.4k / -$21.7k · open AP $6,420 (4 bills) · SaaS spend +31% MoM. Want me to queue bill pay or dig into the anomaly?'],
+[/\b(nda|contract|msa|docusign|legal|trademark|summar)\b/i,['t0','T0'],null,'Legal: NDA Acme — mutual, 2-yr, auto-renews in 9 days, 30-day notice (flag: non-solicit). MSA Northwind summarized. 1 DocuSign pending. Trademark watch clear. Want a renewal reminder queued?'],
+[/\b(email|send|message|remind|notify|outreach)\b/i,['t2','T2'],'Send renewal reminder to Acme legal','Draft ready; outbound needs your confirm.'],
+[/\b(weather\s*radar|hunt\s*ai|yw\s*apps|product\s+tickets?)\b/i,['t1','T1'],'Triage YW Apps support demo queue','Weather Radar 3 · Hunt AI 1 — detachable demo module. Drafts only until you confirm outbound.'],
+[/\b(tickets?|support|helpdesk|customer\s+asks?|internal\s+q)\b/i,['t0','T0'],null,'Support: 7 open internal · median reply 4m. PTO how-to auto-answered; expense-policy draft ready. Flip the YW Apps demo chip for product tickets.'],
+[/\b(vault|documents?|docs?|w-?9s?|encrypted|indexed?)\b/i,['t0','T0'],null,'Vault: 1,284 docs · AES-256 · 12 W-9s · 87 contracts · last indexed 6m ago. What should I pull or file?'],
+[/\b(briefing|brief|status|overview|command\s*board|dashboard|how\s+are\s+we|what'?s\s+up|sitrep)\b/i,['t0','T0'],null,'Briefing: cash $184.2k · team 42 · runway 14.2 mo · payroll Friday ready · Acme NDA renews in 9 days · 2 decisions in queue. Board is otherwise green.']
+];
+function hirePlan(t){
+  const m=t.match(/\b(\d{1,3})\b/);
+  const n=m?Math.min(50,parseInt(m[1],10)):5;
+  return {
+    t:['t2','T2'],
+    title:`Open ${n} role${n===1?'':'s'} · start hiring pipeline`,
+    why:`HR lane: draft ${n} job posting${n===1?'':'s'} + intake forms (outbound = T2). Offers stay T3. Reversible until you approve.`
+  };
+}
+function clarify(t){
+  const raw=t.trim();
+  const s=raw.slice(0,120);
+  const hints=[];
+  if(/money|budget|cost|spend|pay/i.test(t))hints.push('cash/runway or bill pay');
+  if(/people|team|staff|role|employee/i.test(t))hints.push('hiring or PTO');
+  if(/doc|file|paper|contract/i.test(t))hints.push('Vault or Legal');
+  if(/customer|user|app|ticket/i.test(t))hints.push('Support or YW Apps demo');
+  const tip=hints.length?` Closest lanes: ${hints.join(', ')}.`:' Try hire, payroll, invoices, runway, NDA, PTO, tickets, vault, or briefing.';
+  return `Heard you: “${s}${raw.length>120?'…':''}.” I don't have a locked playbook for that yet.${tip} What should I propose?`;
+}
+function ask(t){
+  if(!t||!String(t).trim())return;
+  t=String(t).trim();
+  say('You',t);
+  setTimeout(()=>{
+    const m=P.find(p=>p[0].test(t));
+    if(!m){say('Yorri',clarify(t));return}
+    if(m[2]==='__hire__'){
+      const h=hirePlan(t);
+      say('Yorri',`Plan ready → <span class="tier ${h.t[0]}">${h.t[1]}</span>${h.title}. Waiting on your decision.`);
+      queue.push(h);draw();
+      return;
+    }
+    if(!m[2]){say('Yorri','<span class="tier '+m[1][0]+'">'+m[1][1]+'</span>'+m[3]);return}
+    say('Yorri',`Plan ready → <span class="tier ${m[1][0]}">${m[1][1]}</span>${m[2]}. Waiting on your decision.`);
+    queue.push({t:m[1],title:m[2],why:m[3]});draw();
+  },420);
+}
 function decide(i,ok){const a=queue.splice(i,1)[0];if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.'))return queue.splice(i,0,a);
 say('Yorri',ok?`Done: ${a.title}. Report filed to Vault.`:`Declined: ${a.title}. Nothing executed.`);draw()}
-$('#q').onkeydown=e=>{if(e.key=='Enter'){ask(e.target.value);e.target.value=''}};
-$('#mic').onclick=()=>{const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S)return ask('Give me the briefing');const r=new S();r.onresult=e=>ask(e.results[0][0].transcript);r.start()};
+function submitQ(){const el=$('#q');const v=el.value;el.value='';ask(v)}
+$('#q').onkeydown=e=>{if(e.key=='Enter'){e.preventDefault();submitQ()}};
+$('#send').onclick=()=>submitQ();
+let rec=null;
+$('#mic').onclick=()=>{
+  const btn=$('#mic');
+  const S=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!S){
+    say('Yorri','Voice needs Chrome or Edge on HTTPS. Type your ask and hit Send — I\'m listening that way.');
+    return;
+  }
+  if(rec){try{rec.stop()}catch(e){}rec=null;btn.classList.remove('listen');btn.title='Hey Yorri / voice';return}
+  try{
+    rec=new S();
+    rec.lang='en-US';
+    rec.interimResults=false;
+    rec.maxAlternatives=1;
+    btn.classList.add('listen');
+    btn.title='Listening… tap to stop';
+    say('Yorri','Listening…');
+    rec.onresult=e=>{
+      let raw=(e.results[0]&&e.results[0][0]&&e.results[0][0].transcript)||'';
+      raw=raw.replace(/^\s*(hey\s+yorri|hi\s+yorri|ok\s+yorri|ask\s+yorri)[,.\s]*/i,'').trim();
+      if(raw)$('#q').value=raw;
+      if(raw)ask(raw);else say('Yorri','Didn\'t catch that — try again or type it.');
+    };
+    rec.onerror=e=>{
+      btn.classList.remove('listen');
+      rec=null;
+      const err=e&&e.error;
+      if(err==='not-allowed'||err==='service-not-allowed')
+        say('Yorri','Mic blocked. Allow microphone for this site, or type and hit Send.');
+      else if(err==='no-speech')
+        say('Yorri','No speech heard. Tap the mic and try again, or type.');
+      else if(err==='network')
+        say('Yorri','Speech service network error. Type your ask instead.');
+      else
+        say('Yorri','Mic error'+(err?` (${err})`:'')+'. Type and Send works anytime.');
+    };
+    rec.onend=()=>{btn.classList.remove('listen');btn.title='Hey Yorri / voice';rec=null};
+    rec.start();
+  }catch(err){
+    btn.classList.remove('listen');
+    rec=null;
+    say('Yorri','Couldn\'t start the mic. Type your ask and hit Send.');
+  }
+};
 $('#demoT').onchange=()=>{if(view.includes('demo'))view='Command Board';draw()};
 setInterval(()=>$('#clock').textContent=new Date().toLocaleTimeString(),1000);draw();
 setTimeout(()=>{queue.push({t:['t3','T3'],title:'Run Friday payroll · $71,880',why:'Gusto Embedded, 42 employees.'},{t:['t2','T2'],title:'Send Acme NDA renewal notice',why:'Draft in Legal.'});draw()},800);
