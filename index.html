@@ -1,0 +1,97 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Your World Business · Yorri</title>
+<style>
+:root{--ink:#070b10;--panel:#0d141c;--line:#1b2a36;--teal:#2de1c2;--teal2:#0fb5a0;--txt:#d8e6ee;--mut:#7f97a6;--amber:#ffb547;--red:#ff5c6c;--blue:#5aa9ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#0b2a2a55,transparent),var(--ink);color:var(--txt);font:14px/1.45 Inter,system-ui,sans-serif}
+.mono{font-family:ui-monospace,Menlo,monospace}
+header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#070b10ee;backdrop-filter:blur(8px);z-index:5;flex-wrap:wrap}
+.logo{font-weight:800;letter-spacing:.5px}.logo b{color:var(--teal)}
+.owner{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:12px}
+.chip{border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:11px;color:var(--mut)}.chip.on{color:var(--teal);border-color:var(--teal2)}.chip.warn{color:var(--amber);border-color:#7a5a20}
+nav{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;border-bottom:1px solid var(--line)}
+nav button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+nav button.act{color:var(--ink);background:var(--teal);border-color:var(--teal)}
+main{display:grid;grid-template-columns:1fr 360px;gap:14px;padding:14px 18px}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+.board{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.card{background:linear-gradient(180deg,#0f1922,var(--panel));border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
+.card h3{margin:0 0 8px;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}
+.card h3 span{float:right;color:var(--mut);letter-spacing:0}
+.kpi{display:flex;gap:16px;flex-wrap:wrap}.kpi div{min-width:80px}.kpi b{display:block;font-size:20px}.kpi small{color:var(--mut)}
+.row{display:flex;justify-content:space-between;border-top:1px dashed var(--line);padding:6px 0;font-size:13px}.row:first-of-type{border:0}
+.up{color:var(--teal)}.dn{color:var(--red)}.am{color:var(--amber)}
+.side{display:flex;flex-direction:column;gap:12px}
+.decide{border-color:#7a5a20;box-shadow:0 0 0 1px #ffb54722,0 0 24px #ffb54714}
+.tier{font-size:10px;padding:2px 7px;border-radius:5px;margin-right:6px}
+.t0{background:#12352f;color:var(--teal)}.t1{background:#132a45;color:var(--blue)}.t2{background:#3d2d12;color:var(--amber)}.t3{background:#3d151b;color:var(--red)}
+.btn{border:0;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600}.ok{background:var(--teal);color:var(--ink)}.no{background:#1b2a36;color:var(--txt)}
+#log{height:300px;overflow:auto;font-size:13px}#log p{margin:6px 0}#log .y{color:var(--teal)}
+.ask{display:flex;gap:6px}.ask input{flex:1;background:#081018;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px}
+.mic{width:38px;border-radius:50%;background:var(--teal);border:0;cursor:pointer;font-size:16px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--teal);display:inline-block;box-shadow:0 0 10px var(--teal);animation:p 1.6s infinite}@keyframes p{50%{opacity:.3}}
+.demo{border-style:dashed}.hide{display:none}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(#2de1c20a 1px,transparent 1px),linear-gradient(90deg,#2de1c20a 1px,transparent 1px);background-size:40px 40px;animation:grid 30s linear infinite;z-index:0}
+@keyframes grid{to{background-position:40px 40px}}main,nav,header{position:relative;z-index:1}
+.card{transition:transform .25s,border-color .25s,box-shadow .25s;animation:in .5s both;overflow:hidden}
+.card:hover{transform:translateY(-3px);border-color:var(--teal2);box-shadow:0 0 22px #2de1c225}
+.card:after{content:"";position:absolute;left:-40%;top:0;width:40%;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:scan 4s infinite}
+@keyframes scan{to{left:110%}}@keyframes in{from{opacity:0;transform:translateY(12px) scale(.98)}}
+.board .card:nth-child(2){animation-delay:.05s}.board .card:nth-child(3){animation-delay:.1s}.board .card:nth-child(4){animation-delay:.15s}.board .card:nth-child(5){animation-delay:.2s}.board .card:nth-child(6){animation-delay:.25s}.board .card:nth-child(7){animation-delay:.3s}
+nav button,.btn{transition:all .2s}nav button:hover{color:var(--teal);box-shadow:0 0 12px #2de1c233}nav button.act{box-shadow:0 0 16px #2de1c277}
+.btn:hover{filter:brightness(1.15);transform:translateY(-1px)}.ok{box-shadow:0 0 14px #2de1c255}
+.logo b{text-shadow:0 0 12px var(--teal)}.kpi b{text-shadow:0 0 10px #2de1c233}
+#log p{animation:in .35s both}.mic{animation:glow 2.5s infinite}@keyframes glow{50%{box-shadow:0 0 18px var(--teal)}}
+.decide{animation:amb 2s infinite}@keyframes amb{50%{box-shadow:0 0 30px #ffb54733}}
+.ask input:focus{outline:0;border-color:var(--teal);box-shadow:0 0 12px #2de1c244}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<header><div class="logo">YOUR WORLD <b>BUSINESS</b></div><span class="chip on"><span class="pulse"></span> YORRI ONLINE</span><span class="chip mono" id="clock"></span>
+<div class="owner"><span class="chip on">OWNER · CEO</span><span class="chip warn" id="pend">0 AWAITING YOUR DECISION</span><label class="chip"><input type="checkbox" id="demoT"> YW Apps support demo</label></div></header>
+<nav id="nav"></nav>
+<main><section class="board" id="board"></section>
+<aside class="side"><div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div></div>
+<div class="card"><h3>Ask Yorri <span class="mono">chief of staff</span></h3><div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report.</p></div>
+<div class="ask"><button class="mic" id="mic" title="Hey Yorri">🎙</button><input id="q" placeholder="e.g. pay vendor invoices, run payroll, summarize the NDA"></div></div>
+<div class="card"><h3>Risk tiers</h3>
+<div class="row"><span><span class="tier t0">T0</span>Read / insight</span><span class="mono">auto</span></div>
+<div class="row"><span><span class="tier t1">T1</span>Reversible draft</span><span class="mono">auto + report</span></div>
+<div class="row"><span><span class="tier t2">T2</span>Outbound message</span><span class="mono">confirm</span></div>
+<div class="row"><span><span class="tier t3">T3</span>Money · signature · offer</span><span class="mono">biometric + delay</span></div>
+<div class="row"><span><span class="tier t3">T4</span>Tax filing · termination</span><span class="mono">human / partner</span></div></div></aside></main>
+<script>
+const R={
+Briefing:`<div class="kpi"><div><b class="up">$184.2k</b><small>cash</small></div><div><b>42</b><small>team</small></div><div><b class="am">2</b><small>decisions</small></div></div><div class="row"><span>Payroll run</span><span class="am">Fri · ready</span></div><div class="row"><span>NDA (Acme) renewal</span><span class="am">9 days</span></div><div class="row"><span>Runway</span><span class="up">14.2 mo</span></div>`,
+Finance:`<div class="kpi"><div><b class="up">+$38.4k</b><small>MTD revenue</small></div><div><b class="dn">-$21.7k</b><small>MTD spend</small></div></div><div class="row"><span>QuickBooks sync</span><span class="up">live · 2m</span></div><div class="row"><span>Open AP</span><span>$6,420 · 4 bills</span></div><div class="row"><span>Anomaly</span><span class="am">SaaS +31% MoM</span></div>`,
+HR:`<div class="kpi"><div><b>42</b><small>employees</small></div><div><b class="am">3</b><small>PTO requests</small></div><div><b>2</b><small>open roles</small></div></div><div class="row"><span>Onboarding · J. Ruiz</span><span>68%</span></div><div class="row"><span>Reviews due</span><span>5 this month</span></div>`,
+Payroll:`<div class="kpi"><div><b>$71,880</b><small>next run</small></div><div><b>Fri</b><small>pay date</small></div></div><div class="row"><span>Provider</span><span>Gusto Embedded</span></div><div class="row"><span>Status</span><span class="am">needs CEO approval</span></div><div class="row"><span>Tax filing</span><span>partner-handled</span></div>`,
+Legal:`<div class="row"><span>NDA · Acme Corp</span><span class="am">renews 9d</span></div><div class="row"><span>MSA · Northwind</span><span>summarized</span></div><div class="row"><span>DocuSign pending</span><span>1 envelope</span></div><div class="row"><span>Trademark watch · Yorri</span><span class="up">clear</span></div>`,
+Support:`<div class="kpi"><div><b>7</b><small>open internal</small></div><div><b class="up">4m</b><small>median reply</small></div></div><div class="row"><span>"How do I file PTO?"</span><span class="up">auto-answered</span></div><div class="row"><span>Expense policy Q</span><span>drafted</span></div>`,
+Vault:`<div class="kpi"><div><b>1,284</b><small>docs</small></div><div><b class="up">AES-256</b><small>encrypted</small></div></div><div class="row"><span>W-9s</span><span>12</span></div><div class="row"><span>Contracts</span><span>87</span></div><div class="row"><span>Last indexed</span><span>6m ago</span></div>`,
+"YW Apps Support (demo)":`<div class="row"><span>Weather Radar tickets</span><span>3</span></div><div class="row"><span>Hunt AI tickets</span><span>1</span></div><div class="row"><span class="am">DEMO MODULE · detachable</span><span></span></div>`};
+let view='Command Board',queue=[];const $=s=>document.querySelector(s);
+function rooms(){return Object.keys(R).filter(k=>!k.includes('demo')||$('#demoT').checked)}
+function draw(){$('#nav').innerHTML=['Command Board',...rooms()].map(r=>`<button class="${r==view?'act':''}">${r}</button>`).join('');
+[...$('#nav').children].forEach(b=>b.onclick=()=>{view=b.textContent;draw()});
+const list=view=='Command Board'?rooms():[view];$('#board').innerHTML=list.map(r=>`<div class="card ${r.includes('demo')?'demo':''}"><h3>${r} <span class="mono">● live</span></h3>${R[r]}</div>`).join('');
+$('#pend').textContent=queue.length+' AWAITING YOUR DECISION';$('#dq').classList.toggle('decide',queue.length>0);
+$('#queue').innerHTML=queue.length?queue.map((a,i)=>`<div class="row" style="display:block"><p><span class="tier ${a.t[0]}">${a.t[1]}</span><b>${a.title}</b><br><small style="color:var(--mut)">${a.why}</small></p><button class="btn ok" data-i="${i}">Approve${a.t[1]=='T3'?' (biometric)':''}</button> <button class="btn no" data-x="${i}">Decline</button></div>`).join(''):'<p style="color:var(--mut)">Nothing pending. Yorri is watching.</p>';
+document.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>decide(+b.dataset.i,1));document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>decide(+b.dataset.x,0))}
+function say(w,t){$('#log').innerHTML+=`<p class="${w=='Yorri'?'y':''}"><b>${w}:</b> ${t}</p>`;$('#log').scrollTop=1e9}
+const P=[[/payroll/i,['t3','T3'],'Run Friday payroll · $71,880','Gusto Embedded, 42 employees. Biometric + 10-min delay.'],
+[/pay|invoice|bill/i,['t3','T3'],'Pay 4 vendor bills · $6,420','From operating account via QuickBooks.'],
+[/email|send|message|remind/i,['t2','T2'],'Send renewal reminder to Acme legal','Draft ready; outbound needs your confirm.'],
+[/nda|contract|legal|summar/i,['t0','T0'],null,'NDA Acme: mutual, 2-yr, auto-renews in 9 days, 30-day notice. Flag: non-solicit clause.'],
+[/pto|leave|hr/i,['t1','T1'],'Approve 3 PTO requests','Calendar drafts created; reversible.'],
+[/tax|fire|terminat/i,['t3','T4'],null,'That stays human/partner. I\'ve prepared the brief and routed it to your CPA/counsel lane.']];
+function ask(t){if(!t)return;say('You',t);setTimeout(()=>{const m=P.find(p=>p[0].test(t));
+if(!m)return say('Yorri','Cash $184.2k, runway 14.2 mo, payroll Friday, Acme NDA renews in 9 days. Want me to queue any of it?');
+if(!m[2])return say('Yorri','<span class="tier '+m[1][0]+'">'+m[1][1]+'</span>'+m[3]);
+say('Yorri',`Plan ready → <span class="tier ${m[1][0]}">${m[1][1]}</span>${m[2]}. Waiting on your decision.`);queue.push({t:m[1],title:m[2],why:m[3]});draw()},500)}
+function decide(i,ok){const a=queue.splice(i,1)[0];if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.'))return queue.splice(i,0,a);
+say('Yorri',ok?`Done: ${a.title}. Report filed to Vault.`:`Declined: ${a.title}. Nothing executed.`);draw()}
+$('#q').onkeydown=e=>{if(e.key=='Enter'){ask(e.target.value);e.target.value=''}};
+$('#mic').onclick=()=>{const S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S)return ask('Give me the briefing');const r=new S();r.onresult=e=>ask(e.results[0][0].transcript);r.start()};
+$('#demoT').onchange=()=>{if(view.includes('demo'))view='Command Board';draw()};
+setInterval(()=>$('#clock').textContent=new Date().toLocaleTimeString(),1000);draw();
+setTimeout(()=>{queue.push({t:['t3','T3'],title:'Run Friday payroll · $71,880',why:'Gusto Embedded, 42 employees.'},{t:['t2','T2'],title:'Send Acme NDA renewal notice',why:'Draft in Legal.'});draw()},800);
+</script></body></html>
