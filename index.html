@@ -403,9 +403,9 @@ function ttsChunk(t,m){m=m||180;const out=[];let cur='';(t.match(/[^.!?]+[.!?]*\
 function ttsVoice(){const v=speechSynthesis.getVoices()||[];return v.find(x=>x.lang==='en-US')||v.find(x=>/^en/i.test(x.lang))||null}
 function ttsNote(){if(ttsNoted)return;ttsNoted=true;const n=$('#ttsNote');if(n){n.textContent="Tesla browser can't play voice aloud — read Yorri on screen";n.style.display=''}}
 function speakYorri(h,force){if(!yorriSpeak&&!force)return;if(!TTS_OK){ttsNote();return}const t=ttsClean(h);if(!t)return;try{speechSynthesis.cancel();const v=ttsVoice();ttsChunk(t).forEach(c=>{const u=new SpeechSynthesisUtterance(c);u.lang='en-US';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){}}
-function applySpk(){const b=$('#spkT');if(b)b.textContent=yorriSpeak?'🔊 Voice on':'🔇 Voice off'}
+function applySpk(){const b=$('#spkT');if(b)b.textContent=yorriSpeak?'🔊 Voice on':'🔇 Voice off';const f=document.getElementById('spkF');if(f){f.textContent=yorriSpeak?'🔊':'🔇';f.classList.toggle('muted',!yorriSpeak);f.setAttribute('aria-pressed',yorriSpeak?'false':'true');f.title=yorriSpeak?'Mute Yorri':'Unmute Yorri'}}
 function say(w,t){if(!$('#log'))return;$('#log').querySelectorAll('.spk').forEach(x=>x.remove());const y=w=='Yorri';$('#log').insertAdjacentHTML('beforeend',`<p class="${y?'y':''}"><b>${w}:</b> ${t}${y&&TTS_OK?' <button type="button" class="spk" title="Speak again">🔈</button>':''}</p>`);$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML});if(y&&!applying)speakYorri(t)}
-document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#log .spk')){const p=e.target.closest('p').cloneNode(true);p.querySelectorAll('.spk,b:first-child').forEach(x=>x.remove());speakYorri(p.innerHTML,true)}else if(e.target.id==='spkT'){yorriSpeak=!yorriSpeak;try{localStorage.setItem('ywYorriSpeak',yorriSpeak?'1':'0')}catch(x){}applySpk();if(!yorriSpeak&&TTS_OK)speechSynthesis.cancel();else if(yorriSpeak&&!TTS_OK)ttsNote()}});
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#log .spk')){const p=e.target.closest('p').cloneNode(true);p.querySelectorAll('.spk,b:first-child').forEach(x=>x.remove());speakYorri(p.innerHTML,true)}else if((e.target.closest&&e.target.closest('#spkT,#spkF'))){yorriSpeak=!yorriSpeak;try{localStorage.setItem('ywYorriSpeak',yorriSpeak?'1':'0')}catch(x){}applySpk();if(!yorriSpeak&&TTS_OK)speechSynthesis.cancel();else if(yorriSpeak&&!TTS_OK)ttsNote()}});
 setTimeout(applySpk,0);if(TTS_OK&&speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=()=>{};
 
 /* —— Voice: approve / decline / open navigation —— */
@@ -704,4 +704,6 @@ else{
     if(screenCount>1)say('Yorri','Restored '+screenCount+'-screen layout. Click <b>Re-open</b> to pop room windows.');
   },800);
 }
-</script></body></html>
+</script><button type="button" id="spkF" aria-label="Mute or unmute Yorri voice" title="Mute Yorri">🔊</button>
+<style>#spkF{position:fixed;right:16px;bottom:16px;z-index:9999;width:56px;height:56px;border-radius:50%;border:2px solid #4ade80;background:#111;color:#fff;font-size:26px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5)}#spkF.muted{border-color:#f87171;background:#3a1111}</style>
+</body></html>
