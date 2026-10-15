@@ -94,6 +94,7 @@ body.car-layout #dq .btn{min-height:44px;padding:10px 16px;font-size:15px}
 .car-ctl label:hover{border-color:var(--teal2);color:var(--teal)}
 .car-ctl input{accent-color:var(--teal);width:16px;height:16px}
 body.sat .car-ctl{display:none}
+.spk-t{margin-left:8px;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid #445;background:transparent;color:inherit;cursor:pointer}.spk{border:0;background:none;cursor:pointer;font-size:16px;padding:0 4px}
 </style>
 <style>#ywGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#0e2a33,#05080c 70%);font-family:system-ui,sans-serif;color:#cfe}
 #ywGate .b{width:min(92vw,380px);padding:32px;border:1px solid #1fd3c655;border-radius:16px;background:#0a1218cc;box-shadow:0 0 40px #1fd3c633;text-align:center}
@@ -159,7 +160,8 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <aside class="side">
 <div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div>
 <p class="tip">Voice test: say <b>Yorri approve</b> or <b>Yorri decline</b> for the top item. Nav: <b>open Apps</b> · <b>open Command Center</b> · <b>open Finance</b>.</p></div>
-<div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span><span class="biz-tag" id="yorriBizTag"></span></h3>
+<div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span><span class="biz-tag" id="yorriBizTag"></span><button type="button" id="spkT" class="spk-t" title="Yorri voice replies on/off">🔊 Voice on</button></h3>
+<p class="vmsg" id="ttsNote" style="display:none"></p>
 <div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report. Say <b>open Apps</b>, <b>Yorri approve</b>, or a room name anytime.</p></div>
 <div class="ask"><button class="mic" id="mic" type="button" title="Hey Yorri / voice">🎙</button><input id="q" placeholder="e.g. hire 5 engineers, open Apps, Yorri approve…" autocomplete="off"><button class="send" id="send" type="button">Send</button></div>
 <p class="vmsg" id="vmsg" role="status"></p>
@@ -393,7 +395,17 @@ function draw(){
   }
   if(!applying)broadcast({type:'queue',queue});
 }
-function say(w,t){if(!$('#log'))return;$('#log').innerHTML+=`<p class="${w=='Yorri'?'y':''}"><b>${w}:</b> ${t}</p>`;$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML})}
+let yorriSpeak=true;try{yorriSpeak=localStorage.getItem('ywYorriSpeak')!=='0'}catch(e){}
+const TTS_OK=!IS_TESLA&&('speechSynthesis' in window)&&typeof SpeechSynthesisUtterance!=='undefined';let ttsNoted=false;
+function ttsClean(h){const d=document.createElement('div');d.innerHTML=h;return (d.textContent||'').replace(/\s+/g,' ').trim()}
+function ttsChunk(t,m){m=m||180;const out=[];let cur='';(t.match(/[^.!?]+[.!?]*\s*/g)||[t]).forEach(x=>{while(x.length>m){if(cur){out.push(cur.trim());cur=''}out.push(x.slice(0,m));x=x.slice(m)}if((cur+x).length>m){if(cur.trim())out.push(cur.trim());cur=x}else cur+=x});if(cur.trim())out.push(cur.trim());return out}
+function ttsVoice(){const v=speechSynthesis.getVoices()||[];return v.find(x=>x.lang==='en-US')||v.find(x=>/^en/i.test(x.lang))||null}
+function ttsNote(){if(ttsNoted)return;ttsNoted=true;const n=$('#ttsNote');if(n){n.textContent="Tesla browser can't play voice aloud — read Yorri on screen";n.style.display=''}}
+function speakYorri(h,force){if(!yorriSpeak&&!force)return;if(!TTS_OK){ttsNote();return}const t=ttsClean(h);if(!t)return;try{speechSynthesis.cancel();const v=ttsVoice();ttsChunk(t).forEach(c=>{const u=new SpeechSynthesisUtterance(c);u.lang='en-US';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){}}
+function applySpk(){const b=$('#spkT');if(b)b.textContent=yorriSpeak?'🔊 Voice on':'🔇 Voice off'}
+function say(w,t){if(!$('#log'))return;$('#log').querySelectorAll('.spk').forEach(x=>x.remove());const y=w=='Yorri';$('#log').insertAdjacentHTML('beforeend',`<p class="${y?'y':''}"><b>${w}:</b> ${t}${y&&TTS_OK?' <button type="button" class="spk" title="Speak again">🔈</button>':''}</p>`);$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML});if(y&&!applying)speakYorri(t)}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#log .spk')){const p=e.target.closest('p').cloneNode(true);p.querySelectorAll('.spk,b:first-child').forEach(x=>x.remove());speakYorri(p.innerHTML,true)}else if(e.target.id==='spkT'){yorriSpeak=!yorriSpeak;try{localStorage.setItem('ywYorriSpeak',yorriSpeak?'1':'0')}catch(x){}applySpk();if(!yorriSpeak&&TTS_OK)speechSynthesis.cancel();else if(yorriSpeak&&!TTS_OK)ttsNote()}});
+setTimeout(applySpk,0);if(TTS_OK&&speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=()=>{};
 
 /* —— Voice: approve / decline / open navigation —— */
 function normVoice(t){return String(t||'').toLowerCase().replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim()}
