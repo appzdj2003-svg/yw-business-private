@@ -150,7 +150,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <span class="chip mono" id="clock"></span>
 <div class="topnav" id="topNav">
 <button type="button" data-view="command" id="navCommand" class="act">Command Center</button>
-<button type="button" data-view="apps" id="navApps">Your World Apps</button>
+<select id="navBiz" aria-label="Open a business" title="Open a business" style="font-size:inherit"></select>
 <button type="button" id="navSettings" title="Text size, color theme, motion">⚙ Settings</button>
 </div>
 <div class="screens" id="screenCtl">
@@ -440,7 +440,8 @@ function yorriContext(){
   if(pageView==='apps'){const b=activeBiz();if(tag)tag.textContent='· '+b.name;if($('#q'))$('#q').placeholder='Ask about '+b.name+' · open Finance · Yorri approve…'}
   else{if(tag)tag.textContent='';if($('#q'))$('#q').placeholder='e.g. hire 5, open Apps, Yorri approve…'}
 }
-function refreshBizSelect(){const sel=$('#bizSelect');if(!sel)return;sel.innerHTML=bizStore.businesses.map(b=>`<option value="${b.id}" ${b.id===bizStore.activeId?'selected':''}>${esc(b.name)}</option>`).join('')}
+function refreshNavBiz(){const n=$('#navBiz');if(!n)return;n.innerHTML='<option value="">Businesses ▾</option>'+bizStore.businesses.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('');n.value='';n.classList.toggle('act',pageView==='apps')}
+function refreshBizSelect(){refreshNavBiz();const sel=$('#bizSelect');if(!sel)return;sel.innerHTML=bizStore.businesses.map(b=>`<option value="${b.id}" ${b.id===bizStore.activeId?'selected':''}>${esc(b.name)}</option>`).join('')}
 function ensureAssignments(){
   const pool=currentRoomPool();
   for(let i=2;i<=screenCount;i++){const k=String(i);if(!assignments[k]||!pool.includes(assignments[k]))assignments[k]=pool[(i-2)%Math.max(pool.length,1)]||pool[0]||'Finance'}
@@ -839,7 +840,7 @@ function saveEditor(){
 }
 
 if($('#navCommand'))$('#navCommand').onclick=()=>setPageView('command');
-if($('#navApps'))$('#navApps').onclick=()=>setPageView('apps');
+if($('#navBiz'))$('#navBiz').onchange=()=>{const v=$('#navBiz').value;if(!v)return;bizStore.activeId=v;saveBiz();roomView='Business Board';setPageView('apps');ensureAssignments();draw()};refreshNavBiz();
 if($('#bizSelect'))$('#bizSelect').onchange=()=>{
   bizStore.activeId=$('#bizSelect').value;saveBiz();roomView='Business Board';yorriContext();ensureAssignments();draw();
   broadcast({type:'biz',bizStore});broadcast(snapshot());say('Yorri',`Switched to <b>${esc(activeBiz().name)}</b>.`);
