@@ -395,7 +395,7 @@ function supMerge(t){const s=supSt()[t.id]||{};const th=t.thread.concat(s.sent||
 const SUP_STUB={name:'stub',
  list:async()=>SUP_SEED.map(supMerge),
  get:async id=>{const t=SUP_SEED.find(x=>x.id===id);return t?supMerge(t):null},
- send:async(id,body)=>{const s=supSt();const r=s[id]=s[id]||{};(r.sent=r.sent||[]).push({from:'you (stub — not emailed)',at:Date.now(),body,out:true});r.status='pending';r.read=true;supSave(s);return{ok:true,stub:true}}};
+ send:async(id,body)=>{if(!SUP_SEED.some(t=>t.id===id))throw new Error('ticket '+id+' is not a sample ticket and Support is not connected live — nothing was emailed');const s=supSt();const r=s[id]=s[id]||{};(r.sent=r.sent||[]).push({from:'you (stub — not emailed)',at:Date.now(),body,out:true});r.status='pending';r.read=true;supSave(s);return{ok:true,stub:true}}};
 /* PLACEHOLDER for the future Worker. Expected endpoints (to be built server-side later):
    GET {url}/tickets → [ticket]; GET {url}/tickets/{id} → ticket; POST {url}/tickets/{id}/reply {body} → {ok}.
    The access code would go in a header; no inbox credentials ever live in the browser. */
@@ -1233,7 +1233,7 @@ function decide(i,ok){
   const a=queue.splice(i,1)[0];if(!a)return;
   if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.')){queue.splice(i,0,a);draw();return}
   decided[qKey(a)]=Date.now();if(a.sup)supOnDecide(a,ok);if(a.maint)maintOnDecide(a,ok);if(a.mtmail)mmOnDecide(a,ok);audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
-  say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
+  if(a.sup&&ok)say('Yorri',`Approved: ${esc(a.title)}. Sending… result follows.`);else say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
   draw();broadcast(snapshot());
 }
 function stripHint(v){return String(v||'').replace(/^\s*(listening(\s*(…|\.\.\.))?[\s,.:;-]*)+/i,'').trim()}
