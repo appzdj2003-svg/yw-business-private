@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="manifest" href="/manifest.json"><link rel="apple-touch-icon" href="/icon-192.png"><meta name="theme-color" content="#0e141c"><meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="robots" content="noindex,nofollow"><title>Your World Business · Yorri</title>
 <script>window.ywA11yResolve=function(o){var d=document.documentElement,m=function(q){try{return matchMedia(q).matches}catch(e){return false}};o=o||{};var th=o.theme||'system';if(th==='system')th=m('(prefers-color-scheme: light)')?'light':'dark';if(th==='dark')d.removeAttribute('data-theme');else d.setAttribute('data-theme',th);var hc=o.contrast||'system';hc=hc==='system'?m('(prefers-contrast: more)'):hc==='on';var mo=o.motion||'system';mo=mo==='system'?m('(prefers-reduced-motion: reduce)'):mo==='on';var sc=Math.min(1.75,(+o.scale||1)*(o.large?1.15:1));d.style.setProperty('--ui-scale',String(sc));d.classList.toggle('a11y-large',!!o.large||sc>=1.3);d.classList.toggle('a11y-contrast',hc);d.classList.toggle('a11y-motion',mo);d.classList.toggle('a11y-soft',!!o.soft)};(function(){try{ywA11yResolve(JSON.parse(localStorage.getItem('ywA11y')||'{}'))}catch(e){ywA11yResolve({})}})()</script><style>
 :root{--ok:#5fd38d;--hdr:#070b10ee;--bar:#0a1218;--field:#081018;--card2:#0f1922;--bgglow:#0b2a2a55;--ink:#070b10;--panel:#0d141c;--line:#1b2a36;--teal:#2de1c2;--teal2:#0fb5a0;--txt:#d8e6ee;--mut:#7f97a6;--amber:#ffb547;--red:#ff5c6c;--blue:#5aa9ff}
@@ -285,7 +285,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
 <section aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
 <section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="syncBox"></div><div id="connList"></div></section>
-<section aria-labelledby="smsH"><h4 id="smsH">Text Alerts</h4><div id="smsBox"></div></section>
+<section aria-labelledby="smsH"><h4 id="smsH">Alerts</h4><div id="smsBox"></div></section>
 <section aria-labelledby="advH"><h4 id="advH">Advanced</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div><span class="ex">Restores text size, theme, contrast and motion. Layout reset is under Organize → Advanced; config export under Connections → Advanced.</span></section>
 </div></div>
 <nav class="rooms" id="nav"></nav>
@@ -539,41 +539,89 @@ const SMS_CATS=[['Approvals',[['wr','eMaint work requests needing approval','Tex
  ['Operations',[['sup','New Support tickets','Text when a new customer email arrives in Support.'],['room','Room on/off confirmations','Text when a room is switched Live or back to Sample.']]],
  ['System',[['sys','Server or connection problems','Text when a connector fails its check or a server goes down.']]],
  ['Summaries',[['digest','Daily digest','One text a day with tickets, work orders and decisions.']]]];
-function smsDefault(){return{phone:'',all:false,quiet:{on:false,start:'22:00',end:'07:00'},cats:{wr:{on:true,pri:'any',biz:''},dec:{on:true},sup:{on:false},room:{on:false},sys:{on:true},digest:{on:false,time:'07:30'}},updatedAt:0}}
+function smsDefault(){return{phone:'',all:false,quiet:{on:false,start:'22:00',end:'07:00'},cats:{wr:{on:true,push:true,pri:'any',biz:''},dec:{on:true,push:true},sup:{on:false,push:false},room:{on:false,push:false},sys:{on:true,push:true},digest:{on:false,push:false,time:'07:30'}},updatedAt:0}}
 function smsGet(){let o={};try{o=JSON.parse(localStorage.getItem(LS_SMS)||'{}')||{}}catch(e){}const d=smsDefault();return Object.assign(d,o,{quiet:Object.assign(d.quiet,o.quiet||{}),cats:Object.fromEntries(Object.keys(d.cats).map(k=>[k,Object.assign(d.cats[k],(o.cats||{})[k]||{})]))})}
-const SMS={sync:'',edit:false,live:false};let smsTimer=null;
+const SMS={sync:'',edit:false,live:false,pushLive:false,tw:null,twEdit:false,twMsg:'',res:null};let smsTimer=null;
 function smsSave(o,push){o.updatedAt=Date.now();try{localStorage.setItem(LS_SMS,JSON.stringify(o))}catch(e){}if(push!==false){clearTimeout(smsTimer);smsTimer=setTimeout(()=>smsSync('put'),600)}}
 function smsMask(p){const d=(p||'').replace(/\D/g,'');return d.length<4?'':'•••• ••• '+d.slice(-4)}
 function smsServer(){const c=connGet(SUP_KEY());return c.url&&c.token?{url:c.url.replace(/\/+$/,''),token:c.token}:null}
 async function smsSync(mode){const sv=smsServer();if(!sv){SMS.sync='local';smsRender();return}
  try{const o=smsGet();const r=await fetch(sv.url+'/alerts/settings',mode==='put'?{method:'PUT',headers:{Authorization:'Bearer '+sv.token,'Content-Type':'application/json'},body:JSON.stringify(o)}:{headers:{Authorization:'Bearer '+sv.token}});
-  if(r.status===404){SMS.sync='nosupport'}else if(!r.ok){SMS.sync='error:HTTP '+r.status}else{const j=await r.json();SMS.live=!!j.smsLive;if(mode!=='put'&&j.settings&&j.settings.updatedAt>(o.updatedAt||0))smsSave(Object.assign(smsGet(),j.settings),false);SMS.sync='saved'}}
+  if(r.status===404){SMS.sync='nosupport'}else if(!r.ok){SMS.sync='error:HTTP '+r.status}else{const j=await r.json();SMS.live=!!j.smsLive;SMS.pushLive=!!j.pushLive;if(mode!=='put'&&j.settings&&j.settings.updatedAt>(o.updatedAt||0))smsSave(Object.assign(smsGet(),j.settings),false);SMS.sync='saved'}}
  catch(e){SMS.sync='error:can’t reach server'}smsRender()}
-function smsRender(){const B=$('#smsBox');if(!B)return;const o=smsGet(),off=!o.all;
+function smsRender(){const B=$('#smsBox');if(!B)return;const o=smsGet(),off=!o.all,T=SMS.tw||{};
  const syncTxt=SMS.sync==='saved'?'<span class="cx-ok">Saved to server</span>':SMS.sync==='nosupport'?'Saved in this browser. The server doesn’t support alerts yet.':SMS.sync.startsWith('error:')?`<span class="cx-bad">Sync error (${esc(SMS.sync.slice(6))}). Saved in this browser.</span>`:'Saved in this browser.';
- const tip='Texts aren’t live yet. The alert server isn’t connected.';
  const sw=(id,on,lab,dis)=>`<input type="checkbox" role="switch" class="sm-sw" id="${id}"${on?' checked':''}${dis?' disabled':''} aria-label="${esc(lab)}">`;
+ const PS={on:['live','Enabled on this device'],off:['','Off on this device'],blocked:['err','Blocked: allow notifications for this site in your browser settings'],unsupported:['err','Not supported in this browser'],'unsupported-tesla':['err','Not supported in the Tesla browser'],'ios-home':['err','On iPhone/iPad: Share → Add to Home Screen, open it from there, then turn this on'],noserver:['err','Connect the Support server in Connections first'],'':['','Checking…']}[PUSH.state]||['',PUSH.state];
+ const smsOk=SMS.live&&!!o.phone,pushOk=PUSH.state==='on'&&SMS.pushLive;
  B.className=off?'sm-off':'';
  B.innerHTML=`<div class="sm-card">
-  <label class="sm-l" for="smPhone">Phone</label><div>${o.phone&&!SMS.edit?`<span aria-label="Phone ending ${esc(o.phone.replace(/\D/g,'').slice(-4))}">${smsMask(o.phone)}</span> <button type="button" class="og-b" id="smEdit">Change</button>`:`<input type="tel" id="smPhone" autocomplete="tel" inputmode="tel" placeholder="+1 555 123 4567" aria-describedby="smPhH"> <button type="button" class="og-b" id="smPhSave">Save</button>`}<div class="cx-st" id="smPhH" style="margin-top:4px">Stored in this browser only for now.</div></div>
-  <label class="sm-l" for="smAll">All texts</label><div style="display:flex;align-items:center;gap:8px">${sw('smAll',o.all,'All texts')}<span class="cx-st">${o.all?'On':'Off. Categories below are kept but paused.'}</span></div>
+  <label class="sm-l" for="smAll">All alerts</label><div style="display:flex;align-items:center;gap:8px">${sw('smAll',o.all,'All alerts')}<span class="cx-st">${o.all?'On':'Off. Categories below are kept but paused.'}</span></div>
   <label class="sm-l" for="smQ">Quiet hours</label><div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">${sw('smQ',o.quiet.on,'Quiet hours')}<label class="cx-st">from <input type="time" id="smQs" value="${esc(o.quiet.start)}" aria-label="Quiet hours start"${o.quiet.on?'':' disabled'}></label><label class="cx-st">to <input type="time" id="smQe" value="${esc(o.quiet.end)}" aria-label="Quiet hours end"${o.quiet.on?'':' disabled'}></label></div>
-  <div class="sm-stat" role="status" aria-live="polite"><span class="cx-dot ${SMS.live?'live':'err'}" aria-hidden="true"></span>${SMS.live?'Alert server connected.':'Not connected. Texts won’t send until the alert server is live.'} <span class="cx-st">${syncTxt}</span></div></div>
- <div class="sm-cats">${SMS_CATS.map(([h,rows])=>`<div class="sm-hdr" role="heading" aria-level="5">${h}</div>${rows.map(([k,lab,ex,sub])=>{const c=o.cats[k];return `<div class="sm-row">${sw('smc_'+k,c.on,lab,off)}<label for="smc_${k}">${esc(lab)}</label><span class="sm-x">${esc(ex)}</span>
-   <span class="sm-t" title="${esc(tip)}"><button type="button" class="og-b" disabled aria-disabled="true" aria-label="Send test for ${esc(lab)}. ${esc(tip)}">Send test</button></span>
+  <span class="sm-l">Status</span><div class="cx-st" role="status" aria-live="polite">${syncTxt}${SMS.res?` · <span class="${SMS.res.ok?'cx-ok':'cx-bad'}">${esc(SMS.res.msg)}</span>`:''}</div></div>
+ <div class="sm-card"><h5 style="grid-column:1/-1;margin:0">Push notifications (this device)</h5>
+  <label class="sm-l" for="pushT">Push</label><div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">${sw('pushT',PUSH.state==='on','Push notifications on this device',!['on','off'].includes(PUSH.state))}<span class="cx-st"><span class="cx-dot ${PS[0]}" aria-hidden="true"></span> ${esc(PUSH.msg||PS[1])}</span></div></div>
+ <div class="sm-card"><h5 style="grid-column:1/-1;margin:0">SMS (Twilio)</h5>
+  <label class="sm-l" for="twOn">Enable SMS</label><div style="display:flex;align-items:center;gap:8px">${sw('twOn',!!T.enabled,'Enable SMS',!T.configured||T.env)}<span class="cx-st"><span class="cx-dot ${SMS.live?'live':T.configured?'':'err'}" aria-hidden="true"></span> ${SMS.live?'Live':T.configured?'Off (settings kept)':'Not connected'}${T.env?' · set by Render env':''}</span></div>
+  ${T.env?'':`<label class="sm-l" for="twSid">Account SID</label><div>${T.configured&&!SMS.twEdit?`<span class="mono">AC••••${esc(T.sidLast4||'')}</span>`:`<input id="twSid" autocomplete="off" spellcheck="false" placeholder="AC…" value="">`}</div>
+  <label class="sm-l" for="twTok">Auth Token</label><div>${T.configured&&!SMS.twEdit?`<span class="mono">saved ••••</span> <button type="button" class="og-b" id="twRep">Replace</button> <button type="button" class="og-b" id="twDel">Remove</button>`:`<input id="twTok" type="password" autocomplete="new-password" spellcheck="false" placeholder="32-character token">`}</div>
+  <label class="sm-l" for="twFrom">From number</label><div>${T.configured&&!SMS.twEdit?esc(T.from||''):`<input id="twFrom" type="tel" inputmode="tel" placeholder="+15551234567" value="${esc(T.from||'')}">`}</div>
+  ${!T.configured||SMS.twEdit?`<span></span><div><button type="button" class="og-b" id="twSave">Save &amp; verify</button>${SMS.twEdit&&T.configured?' <button type="button" class="og-b" id="twCancel">Cancel</button>':''} <span class="cx-st" id="twMsg">${esc(SMS.twMsg||'Checked with Twilio before saving. The token never leaves the server again.')}</span></div>`:''}`}
+  <label class="sm-l" for="smPhone">Your phone</label><div>${o.phone&&!SMS.edit?`<span aria-label="Phone ending ${esc(o.phone.replace(/\D/g,'').slice(-4))}">${smsMask(o.phone)}</span> <button type="button" class="og-b" id="smEdit">Change</button>`:`<input type="tel" id="smPhone" autocomplete="tel" inputmode="tel" placeholder="+1 555 123 4567" aria-describedby="smPhH"> <button type="button" class="og-b" id="smPhSave">Save</button>`}<div class="cx-st" id="smPhH" style="margin-top:4px">Only this number can reply YES/NO.</div></div>
+  <span class="sm-l">Webhook</span><div><span class="mono" style="overflow-wrap:anywhere" id="twHook">${esc(T.webhook||'https://yw-business-server.onrender.com/sms/inbound')}</span> <button type="button" class="og-b" id="twCopy">Copy</button><div class="cx-st">Twilio Console → Phone Numbers → your number → Messaging → “A message comes in”: Webhook, HTTP POST, paste this.</div></div>
+  <span class="sm-l">US carriers</span><div class="cx-st">Texts to US phones need an approved A2P 10DLC registration (or a verified toll-free number). Until then Twilio may block delivery with error 30034 — the test result shows the exact code.</div></div>
+ <div class="sm-cats">${SMS_CATS.map(([h,rows])=>`<div class="sm-hdr" role="heading" aria-level="5">${h}</div>${rows.map(([k,lab,ex,sub])=>{const c=o.cats[k];return `<div class="sm-row"><span style="display:flex;gap:10px;align-items:center"><label class="cx-st"><input type="checkbox" id="smp_${k}"${c.push?' checked':''}${off?' disabled':''} aria-label="Push: ${esc(lab)}"> Push</label><label class="cx-st"><input type="checkbox" id="smc_${k}"${c.on?' checked':''}${off?' disabled':''} aria-label="SMS: ${esc(lab)}"> SMS</label></span><b>${esc(lab)}</b><span class="sm-x">${esc(ex)}</span>
+   <span class="sm-t"><button type="button" class="og-b" data-smtest="${k}" data-ch="push"${pushOk?'':' disabled'} aria-label="Send test push for ${esc(lab)}">Test push</button> <button type="button" class="og-b" data-smtest="${k}" data-ch="sms"${smsOk?'':' disabled'} aria-label="Send test text for ${esc(lab)}">Test SMS</button></span>
    ${sub?`<details class="sm-sub"><summary>Filters</summary><div class="sm-fl"><label>Priority <select id="smPri" aria-label="Minimum priority"><option value="any"${c.pri==='any'?' selected':''}>Any</option><option value="2"${c.pri==='2'?' selected':''}>P2 and higher</option><option value="1"${c.pri==='1'?' selected':''}>P1 only</option></select></label><label>Business <select id="smBiz" aria-label="Only this business"><option value="">All businesses</option>${bizOrdered().map(b=>`<option value="${esc(b.id)}"${c.biz===b.id?' selected':''}>${esc(b.name)}</option>`).join('')}</select></label></div></details>`:''}
    ${k==='digest'?`<label class="sm-sub cx-st">Send at <input type="time" id="smDt" value="${esc(c.time)}" aria-label="Digest time"></label>`:''}</div>`}).join('')}`).join('')}</div>
- <p class="sm-hint">Reply OFF/ON &lt;category&gt; once texting is live.</p>`}
+ <p class="sm-hint">Approvals arrive with Approve/Decline buttons (push) or “Reply YES 1234 / NO 1234” (SMS). Text HELP, ON/OFF &lt;category&gt;, or STOP.</p>`}
 function smsOpen(){const B=$('#smsBox');if(B)B.closest('section').scrollIntoView({block:'start'})}
 document.addEventListener('change',e=>{const t=e.target;if(!t.closest||!t.closest('#smsBox'))return;const o=smsGet();
  if(t.id==='smAll')o.all=t.checked;else if(t.id==='smQ')o.quiet.on=t.checked;else if(t.id==='smQs')o.quiet.start=t.value;else if(t.id==='smQe')o.quiet.end=t.value;
- else if(t.id.startsWith('smc_'))o.cats[t.id.slice(4)].on=t.checked;else if(t.id==='smPri')o.cats.wr.pri=t.value;else if(t.id==='smBiz')o.cats.wr.biz=t.value;else if(t.id==='smDt')o.cats.digest.time=t.value;else return;
+ else if(t.id.startsWith('smc_'))o.cats[t.id.slice(4)].on=t.checked;else if(t.id.startsWith('smp_'))o.cats[t.id.slice(4)].push=t.checked;else if(t.id==='pushT'){t.checked?pushEnable():pushDisable();return}else if(t.id==='twOn'){twCall('POST',{enabled:t.checked});return}else if(t.id==='smPri')o.cats.wr.pri=t.value;else if(t.id==='smBiz')o.cats.wr.biz=t.value;else if(t.id==='smDt')o.cats.digest.time=t.value;else return;
  smsSave(o);const id=t.id;smsRender();const n=document.getElementById(id);if(n)n.focus()});
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#smEdit,#smPhSave');if(!t)return;
  if(t.id==='smEdit'){SMS.edit=true;smsRender();$('#smPhone').focus();return}
  const v=($('#smPhone').value||'').trim(),d=v.replace(/\D/g,'');if(v&&(d.length<7||d.length>15)){$('#smPhH').textContent='That doesn’t look like a phone number.';return}
  const o=smsGet();o.phone=v?(v.startsWith('+')?'+':'')+d:'';SMS.edit=false;smsSave(o);smsRender()});
 
+/* ---- Push (service worker) + Twilio self-config + decision relay ---- */
+const PUSH={state:'',msg:''};
+async function svReq(method,path,body){const sv=smsServer();if(!sv)throw new Error('Connect the Support server in Connections first');const r=await fetch(sv.url+path,{method,headers:Object.assign({Authorization:'Bearer '+sv.token},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+function pushSupport(){if(IS_TESLA)return 'unsupported-tesla';const ios=/iPhone|iPad|iPod/.test(NAV.userAgent||'');if(!('serviceWorker' in NAV)||!('PushManager' in window)||!('Notification' in window))return ios&&!NAV.standalone?'ios-home':'unsupported';return 'ok'}
+let swReg=null;
+async function pushInit(){const s=pushSupport();if(s!=='ok'){PUSH.state=s;return smsRender()}try{swReg=await NAV.serviceWorker.register('/sw.js',{scope:'/'});const sub=await swReg.pushManager.getSubscription();PUSH.state=Notification.permission==='denied'?'blocked':sub?'on':'off'}catch(e){PUSH.state='unsupported';PUSH.msg='Service worker failed: '+e.message}smsRender()}
+function b64u(s){const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))}
+function pushEnable(){const perm=Notification.requestPermission();PUSH.msg='Asking permission…';smsRender();(async()=>{try{const p=await perm;if(p!=='granted'){PUSH.state=p==='denied'?'blocked':'off';PUSH.msg='';return smsRender()}
+  const reg=swReg||await NAV.serviceWorker.ready;const {publicKey}=await svReq('GET','/push/vapid');let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(publicKey)});
+  const lab=/Android/i.test(NAV.userAgent)?'Android':/iPhone|iPad/.test(NAV.userAgent)?'iPhone':/Mac/.test(NAV.userAgent)?'Mac':/Windows/.test(NAV.userAgent)?'Windows PC':'device';
+  await svReq('POST','/push/subscribe',{subscription:sub.toJSON(),label:lab});PUSH.state='on';PUSH.msg=''}catch(e){PUSH.msg='Couldn’t enable: '+String(e.message||e).slice(0,100)}smsRender()})()}
+async function pushDisable(){try{const reg=swReg||await NAV.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub){await svReq('DELETE','/push/subscribe',{endpoint:sub.endpoint}).catch(()=>{});await sub.unsubscribe()}PUSH.state='off';PUSH.msg=''}catch(e){PUSH.msg='Couldn’t turn off: '+e.message}smsRender()}
+async function twLoad(){try{SMS.tw=await svReq('GET','/sms/config')}catch(e){SMS.tw=null}smsRender()}
+async function twCall(method,body){SMS.twMsg='Checking with Twilio…';smsRender();try{SMS.tw=await svReq(method,'/sms/config',body);SMS.twEdit=false;SMS.twMsg='';await smsSync('get')}catch(e){SMS.twMsg=String(e.message||e).slice(0,140);if(method==='POST'&&body&&'enabled'in body&&Object.keys(body).length===1)SMS.res={ok:false,msg:SMS.twMsg}}smsRender()}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#twSave,#twRep,#twDel,#twCancel,#twCopy,[data-smtest]');if(!t)return;
+ if(t.id==='twRep'){SMS.twEdit=true;SMS.twMsg='';smsRender();return}if(t.id==='twCancel'){SMS.twEdit=false;smsRender();return}
+ if(t.id==='twDel'){if(confirm('Remove the saved Twilio credentials from the server?'))twCall('DELETE');return}
+ if(t.id==='twCopy'){const v=$('#twHook').textContent;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{t.textContent='Copied'},()=>{t.textContent='Select & copy'});return}
+ if(t.id==='twSave'){const b={sid:($('#twSid')||{}).value||'',token:($('#twTok')||{}).value||'',from:($('#twFrom')||{}).value||'',enabled:true};if(SMS.tw&&SMS.tw.configured&&!b.token){SMS.twMsg='Enter the Auth Token';return smsRender()}twCall('POST',b);return}
+ const cat=t.dataset.smtest,ch=t.dataset.ch;t.disabled=true;t.textContent='Sending…';
+ svReq('POST','/alerts/test',{cat,channel:ch}).then(r=>{const ok=r.sent&&!r.error;SMS.res={ok,msg:(ch==='push'?'Push':'SMS')+' test: '+(ok?(ch==='push'?'sent to '+(r.devices||r.push&&r.push.devices||1)+' device(s)':'sent'+(r.status?' ('+r.status+')':'')):(r.error||r.reason||'not sent'))}}).catch(e=>{SMS.res={ok:false,msg:'Test failed: '+e.message}}).finally(smsRender)});
+/* Decisions relay: tell the server about new decisions (for push/SMS approval) and apply approvals made by phone. */
+function alertsDecision(a,done){if(mockOn||!smsServer())return;svReq('POST','/alerts/decision',done?{key:qKey(a),done:true}:{key:qKey(a),title:a.title}).catch(()=>{})}
+let actBusy=false;
+async function alertsActions(){if(actBusy||!smsServer())return;actBusy=true;try{const since=+localStorage.getItem('ywAlertActSince')||0;const {actions}=await svReq('GET','/alerts/actions?since='+since);let max=since;
+ for(const x of actions||[]){max=Math.max(max,x.at);const via=x.via==='push'?'push':'SMS';
+  if(x.kind==='wr'){audit({decision:(x.ok?'APPROVED':'DECLINED')+' via '+via+' (recorded only — eMaint API pending)',tier:'T1',title:'WR #'+x.id+' '+(x.title||''),lane:'Maintenance'});say('Yorri',`WR #${esc(x.id)} ${x.ok?'approval':'decline'} recorded from your ${via}. Approve it in eMaint — the API isn’t connected yet.`)}
+  else{const i=queue.findIndex(q=>qKey(q)===x.key);if(i<0){audit({decision:(x.ok?'APPROVED':'DECLINED')+' via '+via+' (item no longer in queue)',tier:'T1',title:x.title||x.id,lane:''});continue}
+   if(x.ok&&queue[i].t[1]==='T3'){say('Yorri',`${esc(queue[i].title)} is T3 — it needs your on-site confirmation. Approve it here.`);continue}
+   audit({decision:(x.ok?'APPROVED':'DECLINED')+' via '+via,tier:queue[i].t[1],title:queue[i].title,lane:queue[i].lane||''});decide(i,x.ok)}}
+ localStorage.setItem('ywAlertActSince',String(max))}catch(e){}actBusy=false}
+setInterval(alertsActions,60e3);setTimeout(()=>{alertsActions();pushInit();twLoad()},2500);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')alertsActions()});
+function ywDeepLink(u){try{const q=new URL(u,location.href).searchParams;if(q.get('biz')&&bizStore.businesses.some(b=>b.id===q.get('biz'))){bizStore.activeId=q.get('biz');saveBiz();setPageView('apps')}
+ if(q.get('room')){roomView=q.get('room');draw()}if(q.get('decisions')){const d=$('#dq');if(d)d.scrollIntoView({block:'start'})}if(q.get('settings')){ywSettings(true);if(q.get('settings')==='connections')connOpen()}
+ if(location.search)history.replaceState(null,'',location.pathname)}catch(e){}}
+if(NAV.serviceWorker)NAV.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='yw-open')ywDeepLink(d.url);if(d.type==='yw-actions')alertsActions()});
+setTimeout(()=>{if(location.search)ywDeepLink(location.href)},800);
 /* nesting: one level. bizParent() ignores stale/invalid parents so data never breaks */
 function bizParent(b){const p=b&&b.parent&&bizStore.businesses.find(x=>x.id===b.parent);return p&&!p.parent&&p!==b?p.id:null}
 const bizTop=()=>bizStore.businesses.filter(b=>!bizParent(b));
@@ -1109,7 +1157,7 @@ function tryVoiceCommand(raw){
     if(!queue.length){say('Yorri','Nothing pending to decline.');return true}
     say('You',raw);decide(0,0);return true;
   }
-  if(/\b(open|go\s+to|show)\s+(the\s+)?(text|sms)\s*alerts?\b/.test(t)){say('You',raw);ywSettings(true);smsOpen();say('Yorri','Opened <b>Text Alerts</b> in Settings. Texts aren’t live yet.');return true}
+  if(/\b(open|go\s+to|show)\s+(the\s+)?(text|sms)\s*alerts?\b/.test(t)){say('You',raw);ywSettings(true);smsOpen();say('Yorri','Opened <b>Alerts</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(organi[sz]e|organizer)\b/.test(t)){say('You',raw);ywSettings(true);orgOpen();say('Yorri','Opened <b>Organize</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?connections?\b/.test(t)){say('You',raw);ywSettings(true);connOpen();say('Yorri','Opened <b>Connections</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(true);say('Yorri','Opened <b>Settings</b>.');return true}
@@ -1271,12 +1319,12 @@ function ask(t){
 const decided={};
 function qKey(a){return (a&&a.t?String(a.t[1]).toUpperCase():'')+'|'+String(a&&a.title||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
 function dedupeQ(){const seen=new Set();queue=queue.filter(a=>{const k=qKey(a);if(!a||seen.has(k))return false;seen.add(k);return true})}
-function pushQ(a){const k=qKey(a);if(decided[k]&&Date.now()-decided[k]<10*60e3)return false;if(queue.some(x=>qKey(x)===k))return false;queue.push(a);return true}
+function pushQ(a){const k=qKey(a);if(decided[k]&&Date.now()-decided[k]<10*60e3)return false;if(queue.some(x=>qKey(x)===k))return false;queue.push(a);try{alertsDecision(a)}catch(e){}return true}
 const APPROVE_RE=/^(?:hey\s+)?(?:yorri\s+)?(?:i\s+)?(approve|approved|approving|ok|okay|yes|decline|declined|deny|denied|reject|rejected)\b|\b(t[0-3])\s+(approved|declined|denied|rejected)\b/i;
 function decide(i,ok){
   const a=queue.splice(i,1)[0];if(!a)return;
   if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.')){queue.splice(i,0,a);draw();return}
-  decided[qKey(a)]=Date.now();if(a.sup)supOnDecide(a,ok);if(a.maint)maintOnDecide(a,ok);if(a.mtmail)mmOnDecide(a,ok);audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
+  decided[qKey(a)]=Date.now();try{alertsDecision(a,true)}catch(e){}if(a.sup)supOnDecide(a,ok);if(a.maint)maintOnDecide(a,ok);if(a.mtmail)mmOnDecide(a,ok);audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
   if(a.sup&&ok)say('Yorri',`Approved: ${esc(a.title)}. Sending… result follows.`);else say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
   draw();broadcast(snapshot());
 }
