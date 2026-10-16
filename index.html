@@ -12,11 +12,12 @@ header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:
 .topnav{display:flex;gap:6px}
 .topnav button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;font:inherit;transition:all .2s}
 .topnav button.act{color:var(--ink);background:var(--teal);border-color:var(--teal);font-weight:700}
-.topnav button:hover{color:var(--teal);box-shadow:0 0 12px color-mix(in srgb,var(--teal) 20%,transparent)}
+.topnav button:not(.act):hover{color:var(--teal);box-shadow:0 0 12px color-mix(in srgb,var(--teal) 20%,transparent)}
 nav.rooms{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
 nav.rooms button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:all .2s}
 nav.rooms button.act{color:var(--ink);background:var(--teal);border-color:var(--teal)}
-nav.rooms button:hover{color:var(--teal);box-shadow:0 0 12px color-mix(in srgb,var(--teal) 20%,transparent)}
+nav.rooms button.act:hover,.topnav button.act:hover{color:var(--ink)}
+nav.rooms button:not(.act):hover{color:var(--teal);box-shadow:0 0 12px color-mix(in srgb,var(--teal) 20%,transparent)}
 .bizrow{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:4px}
 .bizrow h3{grid-column:1/-1;margin:0;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}
 .biztile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;min-width:0}
@@ -125,6 +126,17 @@ html.a11y-large .board{grid-template-columns:repeat(auto-fill,minmax(min(300px,1
 #setPage .ex{display:block;color:var(--mut);font-size:12px;margin:6px 0 2px}
 #setPage{display:none;position:fixed;inset:0;z-index:50;background:var(--ink);color:var(--txt);overflow:auto;padding:16px 18px 40px}
 body.view-settings #setPage{display:block}
+.og-row{display:flex;align-items:center;gap:6px;padding:6px 12px 6px 20px;border-top:1px solid var(--line);color:var(--txt);flex-wrap:wrap}
+.og-row.drop,.cx-biz.drop{outline:2px dashed var(--teal);outline-offset:-2px}
+.og-row .og-name,.cx-biz>summary .og-name{flex:1 1 120px;min-width:0;overflow-wrap:anywhere}
+.og-h{cursor:grab;color:var(--mut);user-select:none;padding:0 4px;font-size:1.1em}
+.og-b{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font:inherit;font-size:.85em;cursor:pointer;min-width:30px}
+.og-b:hover:not(:disabled){border-color:var(--teal)}.og-b:disabled{opacity:.35;cursor:default}.og-b.danger{color:var(--red)}
+.og-b:focus-visible,.og-sel:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.og-sel{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:inherit;font-size:.85em;max-width:150px}
+.og-add{padding:8px 12px 10px 20px;border-top:1px solid var(--line)}
+html.a11y-contrast .og-b,html.a11y-contrast .og-sel{border-width:1.5px}
+@media (hover:none){.og-h{display:none}}
 .cx-biz{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--panel)}
 .cx-biz>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 12px;font-weight:600;color:var(--txt)}
 .cx-biz>summary::-webkit-details-marker,.cx-room>summary::-webkit-details-marker{display:none}
@@ -229,6 +241,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
 <button type="button" class="sbt" data-proxy="#mockT" id="setMock">Mock data</button>
 </div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
+<section aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
 <section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="connList"></div></section>
 <section><h4>Reset</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div></section>
 </div></div>
@@ -325,8 +338,10 @@ const connAll=()=>{try{return JSON.parse(localStorage.getItem(LS_CONN)||'{}')||{
 const connSave=o=>{try{localStorage.setItem(LS_CONN,JSON.stringify(o))}catch(e){}};
 const connKey=(b,r)=>b+'/'+r;
 function connRoom(bizId,pred){try{const b=bizStore.businesses.find(x=>x.id===bizId);const r=b&&b.rooms.find(pred);return r?connKey(b.id,r.id):null}catch(e){return null}}
-const SUP_KEY=()=>connRoom('yw-apps',r=>r.label==='Support')||'yw-apps/support';
-const MT_KEY=()=>connRoom('safe-rack',r=>r.type==='maint')||'safe-rack/sr-maint';
+function roomFind(pred){try{for(const b of bizStore.businesses){const r=(b.rooms||[]).find(pred);if(r)return {b,r}}}catch(e){}return null}
+const supRoomPred=r=>r.role==='support';
+const SUP_KEY=()=>{const f=roomFind(supRoomPred)||roomFind(r=>r.type==='tickets'&&r.label==='Support');return f?connKey(f.b.id,f.r.id):'yw-apps/support'};
+const MT_KEY=()=>{const f=roomFind(r=>r.type==='maint');return f?connKey(f.b.id,f.r.id):'safe-rack/sr-maint'};
 function connGet(k){return Object.assign({type:'none',url:'',token:'',live:false},connAll()[k]||{})}
 function connSet(k,patch){const o=connAll();o[k]=Object.assign(connGet(k),patch);connSave(o);try{broadcast&&broadcast(snapshot())}catch(e){}}
 const connLiveURL=k=>{const c=connGet(k);return c.live&&c.url?c.url.trim():''};
@@ -354,6 +369,56 @@ const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,op
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
+/* ---- Organize: reorder / move / rename / add / delete businesses & rooms ---- */
+const OG={open:{}};
+function orgCommit(msg){saveBiz();refreshBizSelect();ensureAssignments();try{saveLayout()}catch(e){}if(!activeBiz().rooms.find(r=>r.label===roomView)&&pageView==='apps')roomView='Business Board';draw();try{broadcast({type:'biz',bizStore})}catch(e){}orgRender();connRender();supRefresh();maintRefresh();if(msg){const m=$('#ogMsg');if(m)m.textContent=msg}}
+function orgMoveConn(oldB,newB,rid){const o=connAll(),k=connKey(oldB,rid);if(o[k]){o[connKey(newB,rid)]=o[k];delete o[k];connSave(o)}}
+function orgMoveRoom(fromId,rid,toId,idx){const A=bizStore.businesses.find(b=>b.id===fromId),B=bizStore.businesses.find(b=>b.id===toId);if(!A||!B)return;const i=A.rooms.findIndex(r=>r.id===rid);if(i<0)return;const [r]=A.rooms.splice(i,1);
+ if(A!==B&&B.rooms.some(x=>x.label===r.label)){let n=2;while(B.rooms.some(x=>x.label===r.label+' '+n))n++;r.label=r.label+' '+n}
+ if(idx==null||idx>B.rooms.length)idx=B.rooms.length;B.rooms.splice(idx,0,r);OG.force=B.id;if(A!==B)orgMoveConn(A.id,B.id,r.id);orgCommit(A===B?'Moved '+r.label+'.':'Moved '+r.label+' to '+B.name+'.')}
+function orgRender(){const L=$('#orgList');if(!L)return;const keep=Object.assign({},OG.open);L.querySelectorAll('details[data-ogb]').forEach(d=>OG.open[d.dataset.ogb]=d.open||keep[d.dataset.ogb]===true&&OG.force===d.dataset.ogb);if(OG.force){OG.open[OG.force]=true;OG.force=null}const bs=bizStore.businesses;
+ L.innerHTML=bs.map((b,bi)=>`<details class="cx-biz" data-ogb="${esc(b.id)}"${OG.open[b.id]?' open':''} draggable="true">
+  <summary aria-label="${esc(b.name)}, ${b.rooms.length} rooms"><span class="og-h" aria-hidden="true" title="Drag to reorder">⠿</span><span class="og-name">${esc(b.name)}</span> <span class="cx-n">${b.rooms.length} room${b.rooms.length===1?'':'s'}</span>
+   <button type="button" class="og-b" data-og="bup" data-b="${esc(b.id)}" aria-label="Move ${esc(b.name)} up"${bi?'':' disabled'}>↑</button><button type="button" class="og-b" data-og="bdn" data-b="${esc(b.id)}" aria-label="Move ${esc(b.name)} down"${bi<bs.length-1?'':' disabled'}>↓</button></summary>
+  <div class="og-row" style="padding-left:12px"><button type="button" class="og-b" data-og="bren" data-b="${esc(b.id)}">Rename</button><button type="button" class="og-b" data-og="blay" data-b="${esc(b.id)}">Edit room layouts…</button><button type="button" class="og-b danger" data-og="bdel" data-b="${esc(b.id)}"${bs.length>1?'':' disabled title="Can’t delete the last business"'}>Delete business</button></div>
+  ${b.rooms.map((r,ri)=>`<div class="og-row" draggable="true" data-ogr="${esc(r.id)}" data-b="${esc(b.id)}"><span class="og-h" aria-hidden="true" title="Drag to reorder or move">⠿</span><span class="og-name">${esc(r.label)}</span>
+   <button type="button" class="og-b" data-og="rup" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Move ${esc(r.label)} up"${ri?'':' disabled'}>↑</button><button type="button" class="og-b" data-og="rdn" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Move ${esc(r.label)} down"${ri<b.rooms.length-1?'':' disabled'}>↓</button>
+   ${bs.length>1?`<select class="og-sel" data-og="rmove" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Move ${esc(r.label)} to another business"><option value="">Move to…</option>${bs.filter(x=>x!==b).map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select>`:''}
+   <button type="button" class="og-b" data-og="rren" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Rename ${esc(r.label)}">Rename</button><button type="button" class="og-b danger" data-og="rdel" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Delete ${esc(r.label)}">Delete</button></div>`).join('')}
+  <div class="og-add"><button type="button" class="og-b" data-og="radd" data-b="${esc(b.id)}">＋ Add room</button></div></details>`).join('')+
+ `<div class="opts" style="margin-top:8px"><button type="button" class="sbt" data-og="badd">＋ Add business</button></div><span class="ex" id="ogMsg" role="status" aria-live="polite"></span>
+ <details class="cx-adv"><summary>Advanced</summary><div class="opts"><button type="button" class="sbt" data-og="reset">Reset to default layout</button></div><span class="ex">Restores the original businesses and rooms. Connections for rooms that no longer exist are removed.</span></details>`}
+function orgOpen(){const L=$('#orgList');if(L)L.closest('section').scrollIntoView({block:'start'})}
+const ogB=id=>bizStore.businesses.find(b=>b.id===id);
+function orgFocus(sel){setTimeout(()=>{const e=document.querySelector(sel);if(e&&!e.disabled)e.focus()},0)}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#orgList [data-og]');if(!t||t.tagName==='SELECT')return;const a=t.dataset.og,b=ogB(t.dataset.b),bs=bizStore.businesses;
+ if(t.closest('summary'))e.preventDefault();
+ if(a==='bup'||a==='bdn'){const i=bs.indexOf(b),j=i+(a==='bup'?-1:1);if(j<0||j>=bs.length)return;[bs[i],bs[j]]=[bs[j],bs[i]];orgCommit('Moved '+b.name+(a==='bup'?' up.':' down.'));orgFocus(`[data-og="${a}"][data-b="${CSS.escape(b.id)}"]`);return}
+ if(a==='rup'||a==='rdn'){const i=b.rooms.findIndex(r=>r.id===t.dataset.r),j=i+(a==='rup'?-1:1);if(j<0||j>=b.rooms.length)return;[b.rooms[i],b.rooms[j]]=[b.rooms[j],b.rooms[i]];orgCommit('Moved '+b.rooms[j].label+(a==='rup'?' up.':' down.'));orgFocus(`[data-og="${a}"][data-r="${CSS.escape(t.dataset.r)}"]`);return}
+ if(a==='bren'){const n=(prompt('Rename business',b.name)||'').trim();if(n&&n!==b.name){b.name=n;orgCommit('Renamed to '+n+'.')}return}
+ if(a==='rren'){const r=b.rooms.find(r=>r.id===t.dataset.r),n=(prompt('Rename room',r.label)||'').trim();if(!n||n===r.label)return;if(b.rooms.some(x=>x!==r&&x.label.toLowerCase()===n.toLowerCase())){alert('That business already has a room called '+n+'.');return}const old=r.label;r.label=n;if(roomView===old)roomView=n;orgCommit('Renamed room to '+n+'.');return}
+ if(a==='radd'){const n=(prompt('New room name','New room')||'').trim();if(!n)return;if(b.rooms.some(x=>x.label.toLowerCase()===n.toLowerCase())){alert('That business already has a room called '+n+'.');return}b.rooms.push({id:uid(),label:n,type:'custom',rows:[{l:'Custom field',v:'Set in editor'}]});OG.force=b.id;orgCommit('Added room '+n+'.');return}
+ if(a==='badd'){const n=(prompt('New business name','New Business')||'').trim();if(!n)return;const id='biz-'+Date.now().toString(36);bs.push({id,name:n,rooms:[{id:uid(),label:'Overview',type:'metrics',kpiA:'—',kpiALabel:'KPI 1',kpiB:'—',kpiBLabel:'KPI 2',kpiC:'—',kpiCLabel:'KPI 3'}]});OG.force=id;orgCommit('Added business '+n+'.');return}
+ if(a==='rdel'){const r=b.rooms.find(r=>r.id===t.dataset.r);if(!confirm('Delete room "'+r.label+'" from '+b.name+'? Its connection settings are removed too.'))return;b.rooms=b.rooms.filter(x=>x!==r);const o=connAll();delete o[connKey(b.id,r.id)];connSave(o);orgCommit('Deleted room '+r.label+'.');return}
+ if(a==='bdel'){if(bs.length<2)return;const others=bs.filter(x=>x!==b);let moveTo=null;
+  if(b.rooms.length){const names=others.map((x,i)=>(i+1)+'. '+x.name).join('\n');const ans=prompt(`"${b.name}" has ${b.rooms.length} room(s).\nType a number to MOVE them to that business, or type DELETE to delete them too:\n${names}`,'1');if(ans==null)return;
+   if(/^delete$/i.test(ans.trim())){if(!confirm('Delete '+b.name+' and all '+b.rooms.length+' rooms? This can’t be undone.'))return}else{moveTo=others[(+ans||0)-1];if(!moveTo){alert('No business with that number.');return}}}
+  else if(!confirm('Delete business "'+b.name+'"?'))return;
+  const o=connAll();for(const r of b.rooms.slice()){if(moveTo){let lab=r.label,n=2;while(moveTo.rooms.some(x=>x.label===lab))lab=r.label+' '+n++;r.label=lab;moveTo.rooms.push(r);o[connKey(moveTo.id,r.id)]=o[connKey(b.id,r.id)];if(!o[connKey(moveTo.id,r.id)])delete o[connKey(moveTo.id,r.id)]}delete o[connKey(b.id,r.id)]}connSave(o);
+  bizStore.businesses=others;if(bizStore.activeId===b.id)bizStore.activeId=(moveTo||others[0]).id;orgCommit('Deleted '+b.name+(moveTo?'; rooms moved to '+moveTo.name:'')+'.');return}
+ if(a==='blay'){ywSettings(false);bizStore.activeId=b.id;saveBiz();setPageView('apps');roomView='Business Board';draw();openEditor();return}
+ if(a==='reset'){if(!confirm('Reset all businesses and rooms to the default layout? Your custom businesses and rooms will be removed.'))return;const fresh=seedBusinesses();bizStore.businesses=fresh.businesses;bizStore.activeId=fresh.activeId;
+  const ok=new Set();bizStore.businesses.forEach(x=>x.rooms.forEach(r=>ok.add(connKey(x.id,r.id))));const o=connAll();Object.keys(o).forEach(k=>{if(!ok.has(k))delete o[k]});connSave(o);connMigrate();roomView=pageView==='apps'?'Business Board':roomView;orgCommit('Reset to default layout.')}});
+document.addEventListener('change',e=>{const t=e.target;if(!(t.dataset&&t.dataset.og==='rmove')||!t.value)return;orgMoveRoom(t.dataset.b,t.dataset.r,t.value,null)});
+// drag & drop (desktop). Rows: reorder/move rooms. Groups: reorder businesses, or drop a room onto a group to move it there.
+let OGD=null;
+document.addEventListener('dragstart',e=>{const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(r){OGD={kind:'room',b:r.dataset.b,r:r.dataset.ogr};e.stopPropagation()}else if(g)OGD={kind:'biz',b:g.dataset.ogb};else return;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','og')}catch(x){}});
+document.addEventListener('dragover',e=>{if(!OGD)return;const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(!r&&!g)return;e.preventDefault();document.querySelectorAll('#orgList .drop').forEach(x=>x.classList.remove('drop'));((OGD.kind==='room'&&r)||g).classList.add('drop')});
+document.addEventListener('dragend',()=>{OGD=null;document.querySelectorAll('#orgList .drop').forEach(x=>x.classList.remove('drop'))});
+document.addEventListener('drop',e=>{if(!OGD)return;const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(!g){OGD=null;return}e.preventDefault();const d=OGD;OGD=null;
+ if(d.kind==='biz'){const bs=bizStore.businesses,i=bs.findIndex(x=>x.id===d.b),j=bs.findIndex(x=>x.id===g.dataset.ogb);if(i<0||j<0||i===j)return orgRender();const [x]=bs.splice(i,1);bs.splice(j,0,x);orgCommit('Moved '+x.name+'.');return}
+ const to=g.dataset.ogb,B=ogB(to);let idx=r?B.rooms.findIndex(x=>x.id===r.dataset.ogr):B.rooms.length;if(d.b===to){const from=B.rooms.findIndex(x=>x.id===d.r);if(from<idx)idx--}orgMoveRoom(d.b,d.r,to,idx)});
+
 function bizTilesHTML(){const bs=bizStore.businesses||[];if(!bs.length)return '';
  return `<section class="bizrow" aria-label="Businesses"><h3>Businesses</h3>${bs.map(b=>{const rooms=b.rooms||[],live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
   return `<button type="button" class="biztile" data-bizgo="${esc(b.id)}" aria-label="Open ${esc(b.name)}: ${rooms.length} rooms, ${live} live"><b>${esc(b.name)}</b><small><span class="cx-dot ${live?'live':''}" aria-hidden="true"></span>${rooms.length} room${rooms.length===1?'':'s'} · ${live?live+' live':'sample'}</small></button>`}).join('')}</section>`}
@@ -365,7 +430,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 const CONN_TYPES={none:['None','Room shows sample data only.'],support:['Support mail server','Our support server: GET /tickets, GET /tickets/{id}, POST /tickets/{id}/reply, GET /health.'],
  emaint:['eMaint CMMS','Our server’s /maint/* routes (it signs in to eMaint X4). Needs GET /health.'],rest:['Generic REST JSON','Any HTTPS URL returning JSON (shown as rows). Test calls URL + /health.']};
 const CX={open:{},roomOpen:{}};
-function connMigrate(){const o=connAll();let ch=false;const mv=(k,uk,tk,type)=>{let u='',t='';try{u=(localStorage.getItem(uk)||'').trim();t=(localStorage.getItem(tk)||'').trim()}catch(e){}
+function connMigrate(){if(!roomFind(supRoomPred)){const y=bizStore.businesses.find(b=>b.id==='yw-apps');const r=y&&y.rooms.find(r=>r.label==='Support'&&r.type==='tickets');if(r){r.role='support';saveBiz()}}const o=connAll();let ch=false;const mv=(k,uk,tk,type)=>{let u='',t='';try{u=(localStorage.getItem(uk)||'').trim();t=(localStorage.getItem(tk)||'').trim()}catch(e){}
  if((u||t)&&!o[k]){o[k]={type,url:u,token:t,live:!!u};ch=true}try{localStorage.removeItem(uk);localStorage.removeItem(tk)}catch(e){}};
  mv(SUP_KEY(),LS_SUPURL,LS_SUPTOK,'support');mv(MT_KEY(),LS_MTURL,LS_MTTOK,'emaint');
  const dflt=(k,type)=>{if(!o[k]){o[k]={type,url:'',token:'',live:false};ch=true}};dflt(SUP_KEY(),'support');dflt(MT_KEY(),'emaint');if(ch)connSave(o)}
@@ -464,7 +529,7 @@ function maintRender(){if(!MT.loaded){maintRefresh();return '<div class="empty">
  ${sec('Low-stock parts',MT.parts.filter(p=>p.low).map(p=>`<div class="row"><span>${esc(p.id)} — ${esc(p.name)}</span><span class="dn">${p.onHand} on hand / reorder at ${p.reorderAt}</span></div>`),'All parts above reorder point.')}`;
  return head+pq+body+`<div style="margin-top:8px">${mtChip()} <span class="mono">source: ${esc(MaintSource().name)} · eMaint X4</span></div>`+
  `<details id="mtCfg" style="margin-top:10px"${MT.cfgOpen?' open':''}><summary>Maintenance connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="mtUrl" value="${esc(connGet(MT_KEY()).url)}" placeholder="empty = SAMPLE data" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="mtTok" type="password" autocomplete="off" placeholder="${mtTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="mtSave">Save connector</button> <button type="button" class="btn" id="mtTokClear">Clear token</button> ${mtChip()}</div><p class="tip">Saved only in this browser. eMaint username/password live on the server, never here.</p></details>`}
-function maintGo(){const b=bizStore.businesses.find(x=>x.id==='safe-rack'||x.name==='Safe Rack');if(b){bizStore.activeId=b.id;saveBiz()}setPageView('apps');roomView='Maintenance';draw()}
+function maintGo(){const f=roomFind(r=>r.type==='maint');if(f){bizStore.activeId=f.b.id;saveBiz()}setPageView('apps');roomView=f?f.r.label:'Business Board';draw()}
 function maintPropose(a){a.lane='Maintenance';if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Approve it in the Maintenance room or say "approved T1".`);draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
 async function maintOnDecide(a,ok){if(!ok){say('Yorri','Maintenance action discarded: '+esc(a.title));return}
  try{const r=await MaintSource().act(a.maint.kind,a.maint);audit({decision:'EXECUTED'+(r&&r.stub?' (sample)':''),tier:'T1',title:a.title,lane:'Maintenance'});say('Yorri',`${esc(a.title)} — ${r&&r.stub?'done in SAMPLE data (nothing sent to eMaint)':'done in eMaint'}. Logged to Vault.`)}
@@ -505,7 +570,7 @@ function supRender(){const ts=supView(),all=SUP.tickets;const b=(k,l)=>`<button 
  return head+pq+rows+`<div style="margin-top:8px">${mockOn?mockBadgeWrap():liveBadge()} ${supChip()} <span class="mono">source: ${esc(SupportSource().name)}</span></div>`+supSettingsHTML()}
 function supSettingsHTML(){return `<details id="supCfg" style="margin-top:10px"${SUP.cfgOpen?' open':''}><summary>Support connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="supUrl" value="${esc(connGet(SUP_KEY()).url)}" placeholder="empty = stub tickets" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="supTok" type="password" autocomplete="off" placeholder="${supTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="supUrlSave">Save connector</button> <button type="button" class="btn" id="supTokClear">Clear token</button> ${supChip()} <span id="supUrlStat" class="mono">${supURL()?'':'Empty URL = stub'}</span></div><p class="tip">URL and token are saved only in this browser. The token is sent with every request; the inbox password never comes to this site.</p></details>`}
 function supTileHTML(){const all=SUP.tickets,o=all.filter(t=>t.status!=='closed').length;return `<div class="kpi"><div><b>${o}</b><small>open</small></div><div><b class="am">${all.filter(t=>t.unread).length}</b><small>unread</small></div><div><b class="dn">${all.filter(supBreach).length}</b><small>SLA breach</small></div></div><button class="btn" data-supgo="1" style="margin-top:6px">Open Support in Your World Apps →</button> ${supChip()}`}
-function supGo(){const b=bizStore.businesses.find(x=>x.id==='yw-apps');if(b){bizStore.activeId=b.id;saveBiz()}setPageView('apps');if(b&&b.rooms.find(r=>r.label==='Support'))roomView='Support';draw()}
+function supGo(){const f=roomFind(supRoomPred);if(f){bizStore.activeId=f.b.id;saveBiz()}setPageView('apps');roomView=f?f.r.label:'Business Board';draw()}
 function supTpl(t){const n=(t.fromName||t.from||'there').split(/[ @]/)[0];return `Hi ${n},\n\nThanks for flagging "${t.subject}". We're on it and will follow up shortly with next steps.\n\nBest,\nAaron`}
 async function supDraft(){const t=SUP.open;if(!t)return;const c=llmCfg();SUP.draft='Drafting…';supModal();
  if(c.key){try{SUP.draft=(await llmCall([{role:'system',content:'You are Yorri drafting a concise, friendly support email reply signed "Aaron". Reply with the email body only.'},{role:'user',content:'Thread:\n'+t.thread.map(m=>m.from+': '+m.body).join('\n')}],c)).trim();supModal();return}catch(e){}}
@@ -552,7 +617,7 @@ function cmdBody(name){if(name==='Support')return supTileHTML();if(!mockOn)retur
 
 function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
-  if(t==='tickets'&&label==='Support'&&bizName==='Your World Apps')return supRender();
+  if(room.role==='support')return supRender();
   if(t==='maint')return maintRender();
   {const ck=connKey(activeBiz().id,room.id),c=connGet(ck);if(c.type==='rest'&&c.live&&c.url&&!mockOn)return genRender(ck,label)}
   if(!mockOn)return emptyState(label);
@@ -567,7 +632,7 @@ function layoutHTML(room,bizName){
 function seedBusinesses(){return{activeId:'yw-apps',businesses:[
 {id:'yw-apps',name:'Your World Apps',rooms:[
 {id:uid(),label:'Overview',type:'metrics',kpiA:'4',kpiALabel:'products',kpiB:'12k',kpiBLabel:'MAU',kpiC:'2',kpiCLabel:'incidents'},
-{id:uid(),label:'Support',type:'tickets',tickets:['Login loop · iOS','Radar refresh lag','Hunt sync delay']},
+{id:uid(),label:'Support',type:'tickets',role:'support',tickets:['Login loop · iOS','Radar refresh lag','Hunt sync delay']},
 {id:uid(),label:'Roadmap',type:'pipeline',stages:[{n:'Ideas',v:'9'},{n:'Build',v:'4'},{n:'Ship',v:'1'}]},
 {id:uid(),label:'Releases',type:'custom',rows:[{l:'Weather Radar',v:'1.4.2'},{l:'Hunt',v:'0.9.1'},{l:'Next cut',v:'Fri'}]}
 ]},
@@ -593,7 +658,7 @@ const SAFE_RACK_SEED=()=>({id:'safe-rack',name:'Safe Rack',rooms:[
 {id:'sr-safety',label:'Safety',type:'custom',rows:[{l:'Rack inspections',v:'Set in editor'},{l:'Incidents (30d)',v:'—'}]}
 ]});
 let bizStore=seedBusinesses();
-function loadBiz(){try{const raw=localStorage.getItem(LS_BIZ);if(!raw){saveBiz();return}const o=JSON.parse(raw);if(o&&Array.isArray(o.businesses)&&o.businesses.length){bizStore.businesses=o.businesses;bizStore.activeId=o.activeId||o.businesses[0].id;if(!o.businesses.some(b=>b.id==='safe-rack'||b.name==='Safe Rack')){bizStore.businesses.push(SAFE_RACK_SEED());saveBiz()}else{const sr=o.businesses.find(b=>b.id==='safe-rack'||b.name==='Safe Rack');if(!sr.rooms.some(r=>r.type==='maint')){sr.rooms.unshift({id:'sr-maint',label:'Maintenance',type:'maint'});saveBiz()}}}}catch(e){}}
+function loadBiz(){try{const raw=localStorage.getItem(LS_BIZ);if(!raw){saveBiz();return}const o=JSON.parse(raw);if(o&&Array.isArray(o.businesses)&&o.businesses.length){bizStore.businesses=o.businesses;bizStore.activeId=o.activeId||o.businesses[0].id;if(!localStorage.getItem('ywSeedSR')){localStorage.setItem('ywSeedSR','1');if(!o.businesses.some(b=>b.id==='safe-rack'||b.name==='Safe Rack')){bizStore.businesses.push(SAFE_RACK_SEED());saveBiz()}else if(!o.businesses.some(b=>(b.rooms||[]).some(r=>r.type==='maint'))){o.businesses.find(b=>b.id==='safe-rack'||b.name==='Safe Rack').rooms.unshift({id:'sr-maint',label:'Maintenance',type:'maint'});saveBiz()}}}}catch(e){}}
 function saveBiz(){try{localStorage.setItem(LS_BIZ,JSON.stringify(bizStore))}catch(e){}}
 function activeBiz(){return bizStore.businesses.find(b=>b.id===bizStore.activeId)||bizStore.businesses[0]}
 
@@ -784,6 +849,7 @@ function tryVoiceCommand(raw){
     if(!queue.length){say('Yorri','Nothing pending to decline.');return true}
     say('You',raw);decide(0,0);return true;
   }
+  if(/\b(open|go\s+to|show)\s+(the\s+)?(organi[sz]e|organizer)\b/.test(t)){say('You',raw);ywSettings(true);orgOpen();say('Yorri','Opened <b>Organize</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?connections?\b/.test(t)){say('You',raw);ywSettings(true);connOpen();say('Yorri','Opened <b>Connections</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(true);say('Yorri','Opened <b>Settings</b>.');return true}
   if(/\b(close|exit|hide)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(false);say('Yorri','Closed Settings.');return true}
@@ -830,6 +896,9 @@ function tryVoiceCommand(raw){
       }
     }
   }
+  // open a room in any business (rooms can be moved between businesses)
+  for(const b of bizStore.businesses)for(const r of (b.rooms||[])){const rn=normVoice(r.label);
+    if(rn&&new RegExp('\\b(open|go\\s+to)\\s+(the\\s+)?'+rn.replace(/ /g,'\\s+')+'\\b').test(t)){say('You',raw);bizStore.activeId=b.id;saveBiz();setPageView('apps');roomView=r.label;draw();say('Yorri','Opened room <b>'+esc(r.label)+'</b> · '+esc(b.name)+'.');return true}}
   return false;
 }
 const P=[
@@ -1101,7 +1170,7 @@ function a11yUI(){const o=a11yGet();const sc=$('#optScale');if(!sc)return;
  const sp=$('#setSpk');if(sp)sp.textContent=(typeof yorriSpeak!=='undefined'&&!yorriSpeak)?'🔇 Yorri voice: off':'🔊 Yorri voice: on';
  const ca=$('#setCar'),ct=$('#carT');if(ca&&ct)ca.textContent='🚗 Car layout: '+(ct.checked?'on':'off');
  const mo=$('#setMock'),mt=$('#mockT');if(mo&&mt)mo.textContent='Mock data: '+(mt.checked?'on':'off')}
-function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();connRender();const f=$('#setClose');if(f)f.focus()}}
+function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();connRender();orgRender();const f=$('#setClose');if(f)f.focus()}}
 window.ywSettings=ywSettings;
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#navSettings,#setClose,[data-scale],[data-theme-set],[data-contrast],[data-motion],#optLarge,#optSoft,[data-proxy],#setAI,#setReset');if(!t)return;
  if(t.id==='navSettings')return ywSettings(!document.body.classList.contains('view-settings'));
