@@ -200,8 +200,8 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
 <button type="button" class="sbt" data-proxy="#mockT" id="setMock">Mock data</button>
-<button type="button" class="sbt" id="setAI">⚙ AI key, model &amp; Support connector URL</button>
-</div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data · AI opens key/model/Support connector.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
+<button type="button" class="sbt" id="setAI">⚙ AI key &amp; model</button>
+</div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data · AI opens key/model (Support connector is under Your World Apps → Support).</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
 <section><h4>Reset</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div></section>
 </div></div>
 <nav class="rooms" id="nav"></nav>
@@ -211,7 +211,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div>
 <p class="tip">Voice test: say <b>Yorri approve</b> or <b>Yorri decline</b> for the top item. Nav: <b>open Apps</b> · <b>open Command Center</b> · <b>open Finance</b>.</p></div>
 <div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span><span class="biz-tag" id="yorriBizTag"></span><button type="button" id="spkT" class="spk-t" title="Yorri voice replies on/off">🔊 Voice on</button><button type="button" id="llmBtn" class="spk-t" title="AI settings">⚙ AI</button></h3>
-<div id="llmPanel" style="display:none;padding:8px 0;font-size:13px"><label>xAI API key <input id="llmKey" type="password" autocomplete="off" style="width:100%"></label><label>Base URL <input id="llmBase" style="width:100%"></label><label>Model <input id="llmModel" style="width:100%"></label><div style="margin-top:6px"><button type="button" id="llmSave">Save</button> <button type="button" id="llmTest">Test</button> <button type="button" id="llmClear">Clear key</button> <span id="llmStat" class="mono"></span></div><label style="display:block;margin-top:8px">Support connector URL <input id="supUrl" placeholder="empty = stub (future Worker URL)" style="width:100%"></label><button type="button" id="supUrlSave">Save connector</button> <span id="supUrlStat" class="mono"></span><p class="tip">Key stays in this browser only (localStorage). If Test fails with a network/CORS error, put a CORS proxy URL in Base URL (see README).</p></div>
+<div id="llmPanel" style="display:none;padding:8px 0;font-size:13px"><label>xAI API key <input id="llmKey" type="password" autocomplete="off" style="width:100%"></label><label>Base URL <input id="llmBase" style="width:100%"></label><label>Model <input id="llmModel" style="width:100%"></label><div style="margin-top:6px"><button type="button" id="llmSave">Save</button> <button type="button" id="llmTest">Test</button> <button type="button" id="llmClear">Clear key</button> <span id="llmStat" class="mono"></span></div><p class="tip">Support connector settings now live in <b>Your World Apps → Support</b>.</p><p class="tip">Key stays in this browser only (localStorage). If Test fails with a network/CORS error, put a CORS proxy URL in Base URL (see README).</p></div>
 <p class="vmsg" id="ttsNote" style="display:none"></p>
 <div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report. Say <b>open Apps</b>, <b>Yorri approve</b>, or a room name anytime.</p></div>
 <div class="ask"><button class="mic" id="mic" type="button" title="Hey Yorri / voice">🎙</button><input id="q" placeholder="e.g. hire 5 engineers, open Apps, Yorri approve…" autocomplete="off"><button class="send" id="send" type="button">Send</button></div>
@@ -290,8 +290,9 @@ const LIVE_RENDER={
    Implementation today: SUP_STUB (local fake inbox, NO real email ever sent).
    FUTURE: set "Support connector URL" in ⚙ → SUP_REMOTE placeholder calls a server-side Worker (NOT built yet).
    Never put inbox passwords/API keys in this file; the Worker holds them. */
-const LS_SUPURL='ywSupportURL',LS_SUPST='ywSupportState';
+const LS_SUPURL='ywSupportURL',LS_SUPTOK='ywSupportToken',LS_SUPST='ywSupportState';
 const supURL=()=>{try{return (localStorage.getItem(LS_SUPURL)||'').trim()}catch(e){return ''}};
+const supTok=()=>{try{return (localStorage.getItem(LS_SUPTOK)||'').trim()}catch(e){return ''}};
 const supSt=()=>{try{return JSON.parse(localStorage.getItem(LS_SUPST)||'{}')}catch(e){return{}}};
 const supSave=s=>{try{localStorage.setItem(LS_SUPST,JSON.stringify(s))}catch(e){}};
 const SUP_H=3600e3,NOW0=Date.now();
@@ -310,10 +311,9 @@ const SUP_STUB={name:'stub',
 /* PLACEHOLDER for the future Worker. Expected endpoints (to be built server-side later):
    GET {url}/tickets → [ticket]; GET {url}/tickets/{id} → ticket; POST {url}/tickets/{id}/reply {body} → {ok}.
    The access code would go in a header; no inbox credentials ever live in the browser. */
-const SUP_REMOTE=url=>({name:'worker',
- list:async()=>{const r=await fetch(url.replace(/\/+$/,'')+'/tickets');if(!r.ok)throw new Error('HTTP '+r.status);return r.json()},
- get:async id=>{const r=await fetch(url.replace(/\/+$/,'')+'/tickets/'+encodeURIComponent(id));if(!r.ok)throw new Error('HTTP '+r.status);return r.json()},
- send:async()=>{throw new Error('Worker send not enabled yet')}});
+const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,opt={})=>{const r=await fetch(base+path,Object.assign({},opt,{headers:Object.assign({'Authorization':'Bearer '+supTok()},opt.body?{'Content-Type':'application/json'}:{})}));if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (check token)':''));return r.json()};
+ return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
+ /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 const SupportSource=()=>supURL()?SUP_REMOTE(supURL()):SUP_STUB;
 const SUP={tickets:[],status:'Stub',err:'',filter:'all',sort:'sla',open:null,draft:'',loading:false};
 async function supRefresh(){SUP.loading=true;const src=SupportSource();try{SUP.tickets=(await src.list())||[];SUP.status=src.name==='stub'?'Stub':'Connected';SUP.err=''}catch(e){SUP.tickets=[];SUP.status='Error';SUP.err=String(e.message||e).slice(0,100)}SUP.loading=false;if(typeof draw==='function')draw();supModal()}
@@ -330,10 +330,14 @@ function supRender(){const ts=supView(),all=SUP.tickets;const b=(k,l)=>`<button 
  <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:6px 0">${b('all','All')}${b('open','Open')}${b('high','High')}${b('breach','Breach')}
  <select data-sups style="font-size:10px"><option value="sla"${SUP.sort==='sla'?' selected':''}>Sort: SLA</option><option value="new"${SUP.sort==='new'?' selected':''}>Sort: newest</option><option value="pri"${SUP.sort==='pri'?' selected':''}>Sort: priority</option></select>
  <button class="btn" data-supr="1" style="padding:2px 6px;font-size:10px">↻</button></div>`;
- const rows=SUP.status==='Error'?`<div class="empty"><b>CONNECTOR ERROR</b>${esc(SUP.err)} — clear "Support connector URL" in ⚙ to use the stub.</div>`:
+ const rows=SUP.status==='Error'?`<div class="empty"><b>CONNECTOR ERROR</b>${esc(SUP.err)} — check URL/token below, or clear the URL to use the stub.</div>`:
   !ts.length?`<div class="empty"><b>${all.length?'NO MATCHES':'INBOX ZERO'}</b>${all.length?'No tickets match this filter.':'No tickets yet. They will appear here once the inbox is connected.'}</div>`:
   ts.map(t=>`<div class="row" data-supo="${esc(t.id)}" style="cursor:pointer;${t.unread?'font-weight:600':''}"><span>${t.unread?'● ':''}${esc(t.fromName||t.from)} — ${esc(t.subject)}<br><span class="mono" style="font-weight:400">${esc(String(t.snippet).slice(0,70))}</span><br><span class="mono" style="font-weight:400">${esc(t.id)} · ${esc(t.priority)} · ${supAge(t)} · ${esc(t.status)}</span></span><span>${supSla(t)}</span></div>`).join('');
- return head+rows+`<div style="margin-top:8px">${mockOn?mockBadgeWrap():liveBadge()} ${supChip()} <span class="mono">source: ${esc(SupportSource().name)}</span></div>`}
+ const pend=queue.map((a,i)=>[a,i]).filter(([a])=>a.sup);const pq=pend.length?`<div style="margin:8px 0"><b>Awaiting your approval</b>${pend.map(([a,i])=>`<div class="row"><span>${esc(a.title)}</span><span><button class="btn" data-supok="${i}">Approve</button> <button class="btn" data-supno="${i}">Decline</button></span></div>`).join('')}</div>`:'';
+ return head+pq+rows+`<div style="margin-top:8px">${mockOn?mockBadgeWrap():liveBadge()} ${supChip()} <span class="mono">source: ${esc(SupportSource().name)}</span></div>`+supSettingsHTML()}
+function supSettingsHTML(){return `<details id="supCfg" style="margin-top:10px"${SUP.cfgOpen?' open':''}><summary>Support connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="supUrl" value="${esc(supURL())}" placeholder="empty = stub tickets" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="supTok" type="password" autocomplete="off" placeholder="${supTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="supUrlSave">Save connector</button> <button type="button" class="btn" id="supTokClear">Clear token</button> ${supChip()} <span id="supUrlStat" class="mono">${supURL()?'':'Empty URL = stub'}</span></div><p class="tip">URL and token are saved only in this browser. The token is sent with every request; the inbox password never comes to this site.</p></details>`}
+function supTileHTML(){const all=SUP.tickets,o=all.filter(t=>t.status!=='closed').length;return `<div class="kpi"><div><b>${o}</b><small>open</small></div><div><b class="am">${all.filter(t=>t.unread).length}</b><small>unread</small></div><div><b class="dn">${all.filter(supBreach).length}</b><small>SLA breach</small></div></div><button class="btn" data-supgo="1" style="margin-top:6px">Open Support in Your World Apps →</button> ${supChip()}`}
+function supGo(){const b=bizStore.businesses.find(x=>x.id==='yw-apps');if(b){bizStore.activeId=b.id;saveBiz()}setPageView('apps');if(b&&b.rooms.find(r=>r.label==='Support'))roomView='Support';draw()}
 function supTpl(t){const n=(t.fromName||t.from||'there').split(/[ @]/)[0];return `Hi ${n},\n\nThanks for flagging "${t.subject}". We're on it and will follow up shortly with next steps.\n\nBest,\nAaron`}
 async function supDraft(){const t=SUP.open;if(!t)return;const c=llmCfg();SUP.draft='Drafting…';supModal();
  if(c.key){try{SUP.draft=(await llmCall([{role:'system',content:'You are Yorri drafting a concise, friendly support email reply signed "Aaron". Reply with the email body only.'},{role:'user',content:'Thread:\n'+t.thread.map(m=>m.from+': '+m.body).join('\n')}],c)).trim();supModal();return}catch(e){}}
@@ -342,30 +346,33 @@ function supModal(){let m=document.getElementById('supModal');const t=SUP.open;i
  if(!m){m=document.createElement('div');m.id='supModal';m.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px';document.body.appendChild(m)}
  m.innerHTML=`<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:14px;color:var(--txt);font-size:14px">
  <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(t.subject)}</b><button class="btn" data-supx="1">✕</button></div>
- <div class="mono" style="margin:4px 0 10px">${esc(t.id)} · ${esc(t.fromName||'')} &lt;${esc(t.from)}&gt; · ${esc(t.priority)} · ${supAge(t)} · ${supSla(t)} · ${esc(t.status)} ${mockOn?'· MOCK':'· LIVE (stub)'}</div>
+ <div class="mono" style="margin:4px 0 10px">${esc(t.id)} · ${esc(t.fromName||'')} &lt;${esc(t.from)}&gt; · ${esc(t.priority)} · ${supAge(t)} · ${supSla(t)} · ${esc(t.status)} ${mockOn?'· MOCK':SupportSource().name==='stub'?'· LIVE (stub)':'· LIVE'}</div>
  ${t.thread.map(x=>`<div style="margin:6px 0;display:flex;justify-content:${x.out?'flex-end':'flex-start'}"><div style="max-width:85%;padding:8px 10px;border-radius:12px;background:${x.out?'color-mix(in srgb,var(--ok) 22%,var(--panel))':'var(--field)'}"><div class="mono">${esc(x.from)} · ${new Date(x.at).toLocaleString()}</div>${esc(x.body).replace(/\n/g,'<br>')}</div></div>`).join('')}
  <div style="margin-top:10px"><b>Yorri's suggested reply</b> <span class="mono">${llmCfg().key?'Grok':'template'}</span></div>
  <textarea id="supDraft" rows="6" style="width:100%;box-sizing:border-box;margin-top:4px;font-size:14px" placeholder="Tap Draft with Yorri…">${esc(SUP.draft)}</textarea>
  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><button class="btn" data-supd="1">✨ Draft with Yorri</button><button class="btn" data-supp="1">Propose send (T1)</button>
  <button class="btn" data-supc="${t.status==='closed'?'open':'closed'}">${t.status==='closed'?'Reopen':'Close ticket'}</button></div>
- <p class="tip">Approve in the decision queue to send. Stub connector: nothing is emailed; the reply is marked sent and logged to Vault.</p></div>`}
+ <p class="tip">Approve in the decision queue to send. ${SupportSource().name==='stub'?'Stub connector: nothing is emailed; the reply is marked sent and logged to Vault.':'Connected: approving sends a real email and logs it to Vault.'}</p></div>`}
 async function supOpen(id){const s=supSt();(s[id]=s[id]||{}).read=true;supSave(s);try{SUP.open=await SupportSource().get(id)}catch(e){SUP.open=null;SUP.status='Error';SUP.err=String(e.message||e)}SUP.draft='';supModal();supRefresh()}
 async function supOnDecide(a,ok){if(!a||!a.sup)return;if(!ok){say('Yorri',`Draft for ${esc(a.sup.id)} discarded.`);return}
  try{const r=await SupportSource().send(a.sup.id,a.sup.body);audit({decision:'SENT'+(r&&r.stub?' (stub)':''),tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Reply to ${esc(a.sup.id)} ${r&&r.stub?'marked sent (stub — no real email)':'sent'}. Logged to Vault.`)}
  catch(e){SUP.status='Error';SUP.err=String(e.message||e);audit({decision:'SEND FAILED',tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Send failed for ${esc(a.sup.id)}: ${esc(SUP.err)}`)}
  if(SUP.open&&SUP.open.id===a.sup.id)SUP.open=await SupportSource().get(a.sup.id).catch(()=>null);supRefresh()}
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.sups!==undefined){SUP.sort=e.target.value;draw()}});
+document.addEventListener('toggle',e=>{if(e.target.id==='supCfg')SUP.cfgOpen=e.target.open},true);
 document.addEventListener('input',e=>{if(e.target.id==='supDraft')SUP.draft=e.target.value});
-document.addEventListener('click',async e=>{const el=e.target.closest&&e.target.closest('[data-supf],[data-supr],[data-supo],[data-supx],[data-supd],[data-supp],[data-supc],#supModal,#supUrlSave');if(!el)return;const d=el.dataset;
+document.addEventListener('click',async e=>{const el=e.target.closest&&e.target.closest('[data-supf],[data-supr],[data-supo],[data-supx],[data-supd],[data-supp],[data-supc],#supModal,#supUrlSave,#supTokClear,[data-supok],[data-supno],[data-supgo]');if(!el)return;const d=el.dataset;
  if(el.id==='supModal'){if(e.target===el){SUP.open=null;supModal()}return}
- if(el.id==='supUrlSave'){try{localStorage.setItem(LS_SUPURL,$('#supUrl').value.trim())}catch(x){}$('#supUrlStat').textContent=supURL()?'Saved — trying connector':'Empty = stub';supRefresh();return}
+ if(d.supgo){supGo();return}if(d.supok!==undefined||d.supno!==undefined){decide(+(d.supok??d.supno),d.supok!==undefined);return}
+ if(el.id==='supTokClear'){try{localStorage.removeItem(LS_SUPTOK)}catch(x){}supRefresh();return}
+ if(el.id==='supUrlSave'){try{localStorage.setItem(LS_SUPURL,$('#supUrl').value.trim());const tk=$('#supTok').value.trim();if(tk)localStorage.setItem(LS_SUPTOK,tk)}catch(x){}$('#supUrlStat').textContent=supURL()?'Saved — trying connector':'Empty = stub';supRefresh();return}
  if(d.supf){SUP.filter=d.supf;draw()}else if(d.supr)supRefresh();else if(d.supo)supOpen(d.supo);else if(d.supx){SUP.open=null;supModal()}
  else if(d.supd)supDraft();
  else if(d.supc){const s=supSt();(s[SUP.open.id]=s[SUP.open.id]||{}).status=d.supc;supSave(s);audit({decision:d.supc==='closed'?'CLOSED':'REOPENED',tier:'T0',title:SUP.open.id,lane:'Support'});SUP.open=await SupportSource().get(SUP.open.id);supModal();supRefresh()}
  else if(d.supp){const t=SUP.open,body=($('#supDraft')&&$('#supDraft').value.trim())||'';if(!body){say('Yorri','Draft a reply first.');return}
   const a={t:['t1','T1'],title:'Send reply to '+t.id+': '+t.subject,why:'Support · '+t.priority+' · to '+t.from+' · "'+body.slice(0,60)+'…"',lane:'Support',sup:{id:t.id,body}};
   if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);SUP.open=null;supModal();draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}});
-window.addEventListener('storage',e=>{if(e.key===LS_SUPST||e.key===LS_SUPURL)supRefresh()});
+window.addEventListener('storage',e=>{if(e.key===LS_SUPST||e.key===LS_SUPURL||e.key===LS_SUPTOK)supRefresh()});
 setTimeout(supRefresh,0);setInterval(()=>{if(!SUP.open)draw()},60e3);
 const LIVE_SUM={
  Support:()=>{const d=liveData('support')||{tickets:[]};const ts=d.tickets;const br=ts.filter(t=>t.ageH>=t.slaH);return `Support (stub source): <b>${ts.length} open</b> — ${ts.filter(t=>t.pri==='high').length} high. ${br.length?'<b>SLA breach:</b> '+br.map(t=>esc(t.id+' '+t.subj)).join(', '):'No SLA breaches.'} Real inbox not connected yet.`},
@@ -373,10 +380,11 @@ const LIVE_SUM={
 };
 const CMD_ROOMS=['Briefing','Finance','HR','Payroll','Legal','Support','Vault'];
 const CMD_DEFAULT_MULTI=['Finance','HR','Payroll','Legal','Support','Vault'];
-function cmdBody(name){if(name==='Support')return supRender();if(!mockOn)return LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
+function cmdBody(name){if(name==='Support')return supTileHTML();if(!mockOn)return LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
 
 function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
+  if(t==='tickets'&&label==='Support'&&bizName==='Your World Apps')return supRender();
   if(!mockOn)return emptyState(label);
   if(t==='metrics')return `<div class="kpi"><div><b class="up">${esc(room.kpiA||'—')}</b><small>${esc(room.kpiALabel||'metric A')}</small></div><div><b>${esc(room.kpiB||'—')}</b><small>${esc(room.kpiBLabel||'metric B')}</small></div><div><b class="am">${esc(room.kpiC||'—')}</b><small>${esc(room.kpiCLabel||'metric C')}</small></div></div><div class="row"><span>${esc(bizName)}</span><span class="up">layout · metrics</span></div>`+mockBadgeWrap();
   if(t==='tickets'){const rows=(room.tickets||['Open ticket A','Open ticket B']).map(x=>`<div class="row"><span>${esc(x)}</span><span class="am">open</span></div>`).join('');return `<div class="kpi"><div><b>${(room.tickets||[]).length||2}</b><small>open</small></div></div>${rows}`+mockBadgeWrap()}
@@ -713,7 +721,7 @@ const isDecision=APPROVE_RE.test(normVoice(t));let added=0;
 if(!isDecision)acts.forEach(a=>{if(a.t&&pushQ(a)){added++;h+=`<br>Plan ready → <span class="tier ${a.t[0]}">${a.t[1]}</span>${esc(a.title)}. Waiting on your decision.`}});
 say('Yorri',h||'(no reply)');if(added){draw();broadcast(snapshot())}return true}
 catch(e){const net=e instanceof TypeError;say('Yorri',`<span class="mono">AI offline (${esc(net?'network/CORS blocked — set a proxy Base URL':e.message).slice(0,140)}) — using built-in.</span>`);return false}}
-function llmUI(){const c=llmCfg();if(!$('#llmKey'))return;$('#llmKey').value=c.key;$('#llmBase').value=c.base;$('#llmModel').value=c.model;$('#llmStat').textContent=c.key?'Grok on':'No key — built-in mode';if($('#supUrl'))$('#supUrl').value=supURL()}
+function llmUI(){const c=llmCfg();if(!$('#llmKey'))return;$('#llmKey').value=c.key;$('#llmBase').value=c.base;$('#llmModel').value=c.model;$('#llmStat').textContent=c.key?'Grok on':'No key — built-in mode';}
 function llmRead(){return{key:$('#llmKey').value.trim(),base:$('#llmBase').value.trim()||LLM_DEF.base,model:$('#llmModel').value.trim()||LLM_DEF.model}}
 document.addEventListener('click',async e=>{const id=e.target.id;
 if(id==='llmBtn'){const p=$('#llmPanel');p.style.display=p.style.display==='none'?'block':'none';llmUI()}
