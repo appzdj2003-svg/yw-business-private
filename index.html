@@ -17,6 +17,13 @@ nav.rooms{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;border-bottom:1
 nav.rooms button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:all .2s}
 nav.rooms button.act{color:var(--ink);background:var(--teal);border-color:var(--teal)}
 nav.rooms button:hover{color:var(--teal);box-shadow:0 0 12px color-mix(in srgb,var(--teal) 20%,transparent)}
+.bizrow{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:4px}
+.bizrow h3{grid-column:1/-1;margin:0;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal)}
+.biztile{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;min-width:0}
+.biztile:hover{border-color:var(--teal);box-shadow:0 0 12px color-mix(in srgb,var(--teal) 20%,transparent)}
+.biztile:focus-visible,#backCmd:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.biztile b{font-size:1em;overflow-wrap:anywhere}.biztile small{color:var(--mut);display:flex;align-items:center;gap:6px}
+html.a11y-contrast .biztile{border-width:1.5px}
 .appsbar{display:none;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap;background:var(--bar)}
 body.view-apps .appsbar{display:flex}
 .biz-tag{display:none;font-size:10px;color:var(--amber);margin-left:8px;letter-spacing:.08em}
@@ -118,6 +125,27 @@ html.a11y-large .board{grid-template-columns:repeat(auto-fill,minmax(min(300px,1
 #setPage .ex{display:block;color:var(--mut);font-size:12px;margin:6px 0 2px}
 #setPage{display:none;position:fixed;inset:0;z-index:50;background:var(--ink);color:var(--txt);overflow:auto;padding:16px 18px 40px}
 body.view-settings #setPage{display:block}
+.cx-biz{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--panel)}
+.cx-biz>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 12px;font-weight:600;color:var(--txt)}
+.cx-biz>summary::-webkit-details-marker,.cx-room>summary::-webkit-details-marker{display:none}
+.cx-biz>summary::after,.cx-room>summary::after{content:'';margin-left:auto;width:7px;height:7px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-45deg);transition:transform .15s}
+.cx-biz[open]>summary::after,.cx-room[open]>summary::after{transform:rotate(45deg)}
+.cx-biz>summary .cx-n{color:var(--mut);font-weight:400;font-size:.85em}
+.cx-room{border-top:1px solid var(--line)}
+.cx-room>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 12px 8px 20px;color:var(--txt)}
+.cx-room>summary .cx-st{color:var(--mut);font-size:.85em}
+.cx-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:var(--mut)}.cx-dot.live{background:var(--ok)}.cx-dot.sample{background:var(--amber)}.cx-dot.err{background:var(--red)}
+.cx-form{display:grid;grid-template-columns:max-content 1fr;gap:8px 12px;align-items:center;padding:4px 12px 12px 20px}
+.cx-form label{color:var(--mut);font-size:.9em}
+.cx-form input[type=text],.cx-form input[type=url],.cx-form input[type=password],.cx-form select{width:100%;box-sizing:border-box;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit}
+.cx-form .cx-help{grid-column:1/-1;color:var(--mut);font-size:.85em;margin:0}
+.cx-form .cx-act{grid-column:2;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cx-ok{color:var(--ok)}.cx-bad{color:var(--red)}
+.cx-adv{margin-top:12px;border:1px dashed var(--line);border-radius:10px;padding:0 12px}
+.cx-adv>summary{cursor:pointer;padding:8px 0;color:var(--mut)}
+.cx-adv .opts{margin-bottom:10px}
+html.a11y-contrast .cx-biz,html.a11y-contrast .cx-form input,html.a11y-contrast .cx-form select{border-width:1.5px}
+@media (max-width:560px){.cx-form{grid-template-columns:1fr}.cx-form .cx-act{grid-column:1}}
 #setPage .wrap{max-width:760px;margin:0 auto}
 #setPage h2{margin:0 0 4px;color:var(--teal);font-size:20px}
 #setPage section{border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0;background:var(--panel)}
@@ -170,7 +198,8 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <span class="chip mono" id="satHint">Synced via BroadcastChannel</span>
 </div>
 <div class="appsbar" id="appsBar">
-<label>Business</label>
+<button type="button" class="sbtn" id="backCmd" aria-label="Back to Command Center">← Command Center</button>
+<label for="bizSelect">Business</label>
 <select id="bizSelect"></select>
 <button type="button" class="sbtn" id="addBiz">+ Add business</button>
 <button type="button" class="sbtn" id="editRooms">Edit rooms</button>
@@ -199,8 +228,8 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
 <button type="button" class="sbt" data-proxy="#mockT" id="setMock">Mock data</button>
-<button type="button" class="sbt" id="setAI">⚙ AI key &amp; model</button>
-</div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data · AI opens key/model (Support connector is under Your World Apps → Support).</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
+</div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
+<section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="connList"></div></section>
 <section><h4>Reset</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div></section>
 </div></div>
 <nav class="rooms" id="nav"></nav>
@@ -290,8 +319,19 @@ const LIVE_RENDER={
    FUTURE: set "Support connector URL" in ⚙ → SUP_REMOTE placeholder calls a server-side Worker (NOT built yet).
    Never put inbox passwords/API keys in this file; the Worker holds them. */
 const LS_SUPURL='ywSupportURL',LS_SUPTOK='ywSupportToken',LS_SUPST='ywSupportState';
-const supURL=()=>{try{return (localStorage.getItem(LS_SUPURL)||'').trim()}catch(e){return ''}};
-const supTok=()=>{try{return (localStorage.getItem(LS_SUPTOK)||'').trim()}catch(e){return ''}};
+/* ==== CONNECTIONS (ywConn): one object, key = bizId/roomId → {type,url,token,live,tested,result}. Tokens are site→server only. */
+const LS_CONN='ywConn';
+const connAll=()=>{try{return JSON.parse(localStorage.getItem(LS_CONN)||'{}')||{}}catch(e){return{}}};
+const connSave=o=>{try{localStorage.setItem(LS_CONN,JSON.stringify(o))}catch(e){}};
+const connKey=(b,r)=>b+'/'+r;
+function connRoom(bizId,pred){try{const b=bizStore.businesses.find(x=>x.id===bizId);const r=b&&b.rooms.find(pred);return r?connKey(b.id,r.id):null}catch(e){return null}}
+const SUP_KEY=()=>connRoom('yw-apps',r=>r.label==='Support')||'yw-apps/support';
+const MT_KEY=()=>connRoom('safe-rack',r=>r.type==='maint')||'safe-rack/sr-maint';
+function connGet(k){return Object.assign({type:'none',url:'',token:'',live:false},connAll()[k]||{})}
+function connSet(k,patch){const o=connAll();o[k]=Object.assign(connGet(k),patch);connSave(o);try{broadcast&&broadcast(snapshot())}catch(e){}}
+const connLiveURL=k=>{const c=connGet(k);return c.live&&c.url?c.url.trim():''};
+const supURL=()=>connLiveURL(SUP_KEY());
+const supTok=()=>connGet(SUP_KEY()).token||'';
 const supSt=()=>{try{return JSON.parse(localStorage.getItem(LS_SUPST)||'{}')}catch(e){return{}}};
 const supSave=s=>{try{localStorage.setItem(LS_SUPST,JSON.stringify(s))}catch(e){}};
 const SUP_H=3600e3,NOW0=Date.now();
@@ -314,12 +354,73 @@ const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,op
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
+function bizTilesHTML(){const bs=bizStore.businesses||[];if(!bs.length)return '';
+ return `<section class="bizrow" aria-label="Businesses"><h3>Businesses</h3>${bs.map(b=>{const rooms=b.rooms||[],live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
+  return `<button type="button" class="biztile" data-bizgo="${esc(b.id)}" aria-label="Open ${esc(b.name)}: ${rooms.length} rooms, ${live} live"><b>${esc(b.name)}</b><small><span class="cx-dot ${live?'live':''}" aria-hidden="true"></span>${rooms.length} room${rooms.length===1?'':'s'} · ${live?live+' live':'sample'}</small></button>`}).join('')}</section>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-bizgo],#backCmd');if(!t)return;
+ if(t.id==='backCmd'){setPageView('command');roomView='Command Board';draw();return}
+ bizStore.activeId=t.dataset.bizgo;saveBiz();roomView='Business Board';setPageView('apps');ensureAssignments();draw();const bk=$('#backCmd');if(bk)bk.focus()});
+
+/* ---- Connections UI ---- */
+const CONN_TYPES={none:['None','Room shows sample data only.'],support:['Support mail server','Our support server: GET /tickets, GET /tickets/{id}, POST /tickets/{id}/reply, GET /health.'],
+ emaint:['eMaint CMMS','Our server’s /maint/* routes (it signs in to eMaint X4). Needs GET /health.'],rest:['Generic REST JSON','Any HTTPS URL returning JSON (shown as rows). Test calls URL + /health.']};
+const CX={open:{},roomOpen:{}};
+function connMigrate(){const o=connAll();let ch=false;const mv=(k,uk,tk,type)=>{let u='',t='';try{u=(localStorage.getItem(uk)||'').trim();t=(localStorage.getItem(tk)||'').trim()}catch(e){}
+ if((u||t)&&!o[k]){o[k]={type,url:u,token:t,live:!!u};ch=true}try{localStorage.removeItem(uk);localStorage.removeItem(tk)}catch(e){}};
+ mv(SUP_KEY(),LS_SUPURL,LS_SUPTOK,'support');mv(MT_KEY(),LS_MTURL,LS_MTTOK,'emaint');
+ const dflt=(k,type)=>{if(!o[k]){o[k]={type,url:'',token:'',live:false};ch=true}};dflt(SUP_KEY(),'support');dflt(MT_KEY(),'emaint');if(ch)connSave(o)}
+function connState(c){if(c.live&&c.url)return c.result&&!c.result.ok?['err','Error']:['live','Live'];return c.type==='none'?['','Not connected']:['sample','Sample']}
+function connRender(){const L=$('#connList');if(!L)return;L.querySelectorAll('details[data-cxb]').forEach(d=>CX.open[d.dataset.cxb]=d.open);L.querySelectorAll('details[data-cxr]').forEach(d=>CX.roomOpen[d.dataset.cxr]=d.open);const all=connAll();
+ L.innerHTML=bizStore.businesses.map(b=>{const rooms=b.rooms||[];const live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
+  return `<details class="cx-biz" data-cxb="${esc(b.id)}"${CX.open[b.id]?' open':''}><summary aria-label="${esc(b.name)}, ${live} of ${rooms.length} rooms live">${esc(b.name)} <span class="cx-n">${live}/${rooms.length} live</span></summary>`+
+  (rooms.length?rooms.map(r=>{const k=connKey(b.id,r.id),c=connGet(k),[cls,lab]=connState(c),id='cx'+k.replace(/[^a-z0-9]/gi,'_');
+   return `<details class="cx-room" data-cxr="${esc(k)}"${CX.roomOpen[k]?' open':''}><summary aria-label="${esc(r.label)}: ${lab}. Edit"><span class="cx-dot ${cls}" aria-hidden="true"></span>${esc(r.label)} <span class="cx-st">${lab}</span></summary>
+   <div class="cx-form">
+    <label for="${id}t">Type</label><select id="${id}t" data-cxk="${esc(k)}" data-cxf="type">${Object.entries(CONN_TYPES).map(([v,[n]])=>`<option value="${v}"${c.type===v?' selected':''}>${n}</option>`).join('')}</select>
+    <p class="cx-help">${esc(CONN_TYPES[c.type]?CONN_TYPES[c.type][1]:'')}</p>
+    ${c.type==='none'?'':`<label for="${id}u">Server URL</label><input id="${id}u" type="url" inputmode="url" autocomplete="off" placeholder="https://…" value="${esc(c.url)}" data-cxk="${esc(k)}" data-cxf="url">
+    <label for="${id}k">Site token</label><input id="${id}k" type="password" autocomplete="off" placeholder="${c.token?'saved · type to replace':'site-to-server token'}" data-cxk="${esc(k)}" data-cxf="token" aria-describedby="${id}kh">
+    <p class="cx-help" id="${id}kh">Only the site-to-server token. Never your Gmail or eMaint password. Those stay on Render.</p>
+    <label for="${id}l">Mode</label><label style="color:var(--txt)"><input id="${id}l" type="checkbox" data-cxk="${esc(k)}" data-cxf="live"${c.live?' checked':''}> Live (off = sample data)</label>
+    <span></span><div class="cx-act"><button type="button" class="sbt" data-cxtest="${esc(k)}">Test connection</button><span role="status" aria-live="polite" class="${c.result?(c.result.ok?'cx-ok':'cx-bad'):''}">${c.result?esc(c.result.msg):''}${c.tested?` <span class="cx-st">· ${new Date(c.tested).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>`:''}</span></div>`}
+   </div></details>`}).join(''):'<p class="cx-help" style="padding:8px 20px">No rooms yet.</p>')+'</details>'}).join('')+
+ `<details class="cx-adv"><summary>Advanced</summary>
+  <div class="opts"><button type="button" class="sbt" id="setAI">Grok / xAI key &amp; model</button></div>
+  <div class="opts"><button type="button" class="sbt" id="cxExport">Export config</button><label style="color:var(--mut)"><input type="checkbox" id="cxExTok"> include tokens</label>
+  <button type="button" class="sbt" id="cxImport">Import config</button><input type="file" id="cxFile" accept="application/json,.json" hidden aria-label="Choose config file"></div>
+  <span class="ex" id="cxMsg" role="status" aria-live="polite"></span></details>`}
+function connOpen(){const L=$('#connList');if(L)L.closest('section').scrollIntoView({block:'start'})}
+function connAfter(k){if(k===SUP_KEY())supRefresh();if(k===MT_KEY())maintRefresh();delete GEN[k];connRender();draw()}
+document.addEventListener('toggle',e=>{const d=e.target.dataset||{};if(d.cxb)CX.open[d.cxb]=e.target.open;if(d.cxr)CX.roomOpen[d.cxr]=e.target.open},true);
+document.addEventListener('change',e=>{const el=e.target,k=el.dataset&&el.dataset.cxk,f=el.dataset&&el.dataset.cxf;
+ if(k&&f){const v=f==='live'?el.checked:el.value.trim();if(f==='token'&&!v)return;const p={[f]:v};if(f==='url'||f==='type'||f==='token')p.result=null;if(f==='url'&&!v)p.live=false;if(f==='url'&&v&&!connGet(k).url)p.live=true;connSet(k,p);el.type==='password'&&(el.value='');connAfter(k);return}
+ if(el.id==='cxFile'&&el.files[0]){el.files[0].text().then(t=>{const j=JSON.parse(t),o=connAll(),src=j.connections||j;let n=0;for(const[k,v]of Object.entries(src)){if(!/^[\w-]+\/[\w-]+$/.test(k)||typeof v!=='object')continue;
+  const ok={type:CONN_TYPES[v.type]?v.type:'none',url:typeof v.url==='string'&&/^https?:\/\//.test(v.url)?v.url:'',live:!!v.live};if(typeof v.token==='string'&&v.token)ok.token=v.token;o[k]=Object.assign(connGet(k),ok);n++}
+  connSave(o);supRefresh();maintRefresh();connRender();$('#cxMsg').textContent='Imported '+n+' room connection'+(n===1?'':'s')+'.'}).catch(()=>{$('#cxMsg').textContent='Import failed: not a valid config file.'});el.value=''}});
+document.addEventListener('click',async e=>{const el=e.target.closest&&e.target.closest('[data-cxtest],#cxExport,#cxImport');if(!el)return;
+ if(el.id==='cxImport'){$('#cxFile').click();return}
+ if(el.id==='cxExport'){const inc=$('#cxExTok').checked,o=connAll(),out={};for(const[k,v]of Object.entries(o)){out[k]={type:v.type,url:v.url,live:!!v.live};if(inc&&v.token)out[k].token=v.token}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({app:'yw-business',version:1,connections:out},null,2)],{type:'application/json'}));a.download='yw-connections'+(inc?'-WITH-TOKENS':'')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2e3);$('#cxMsg').textContent=inc?'Exported with tokens. Keep that file private.':'Exported without tokens.';return}
+ const k=el.dataset.cxtest,c=connGet(k);if(!c.url){connSet(k,{tested:Date.now(),result:{ok:false,msg:'Add a server URL first'}});connRender();return}
+ el.disabled=true;el.textContent='Testing…';let res;
+ try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),10e3);const r=await fetch(c.url.replace(/\/+$/,'')+'/health',{headers:c.token?{Authorization:'Bearer '+c.token}:{},signal:ctl.signal});clearTimeout(tm);
+  res=r.ok?{ok:true,msg:'OK, server reachable'}:{ok:false,msg:'Failed: HTTP '+r.status+(r.status===401||r.status===403?' (token rejected)':r.status===404?' (no /health on this server)':'')}}
+ catch(x){res={ok:false,msg:x.name==='AbortError'?'Failed: timed out after 10s':'Failed: can’t reach server (offline, wrong URL, or CORS blocked)'}}
+ connSet(k,{tested:Date.now(),result:res});connRender();const b=$(`[data-cxtest="${CSS.escape(k)}"]`);if(b)b.focus()});
+/* Generic REST JSON room */
+const GEN={};
+function genRender(k,label){const g=GEN[k];if(!g){GEN[k]={loading:true};const c=connGet(k);fetch(c.url,{headers:c.token?{Authorization:'Bearer '+c.token}:{}}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(j=>{GEN[k]={data:j}}).catch(e=>{GEN[k]={err:String(e.message||e).slice(0,80)}}).finally(()=>draw());return '<div class="empty"><b>LOADING</b>Fetching '+esc(label)+'…</div>'}
+ if(g.loading)return '<div class="empty"><b>LOADING</b></div>';
+ if(g.err)return `<div class="empty"><b>CONNECTOR ERROR</b>${esc(g.err)}. Check this room in Settings → Connections.</div>`;
+ const d=g.data,rows=Array.isArray(d)?d.slice(0,20).map((x,i)=>typeof x==='object'&&x?[x.name||x.title||x.id||('#'+(i+1)),Object.entries(x).filter(([k2])=>!['name','title','id'].includes(k2)).slice(0,2).map(([k2,v])=>k2+': '+(typeof v==='object'?JSON.stringify(v):v)).join(' · ')]:['#'+(i+1),x]):Object.entries(d||{}).slice(0,20).map(([k2,v])=>[k2,typeof v==='object'?JSON.stringify(v).slice(0,60):v]);
+ return rows.map(([a,b])=>`<div class="row"><span>${esc(String(a))}</span><span>${esc(String(b))}</span></div>`).join('')+'<div style="margin-top:8px">'+liveBadge()+' <span class="mono">source: REST</span></div>'}
+
 /* ==== MAINTENANCE (Safe Rack · eMaint X4). MaintSource {name, workorders(), workorder(id), pms(), requests(), parts(), act(kind,payload)}
    Stub = clearly labeled SAMPLE data, nothing leaves the browser. Remote = our server's /maint/* (eMaint creds live on the server only).
    Every action: propose → approve in queue → server call → Vault log. */
 const LS_MTURL='ywMaintURL',LS_MTTOK='ywMaintToken';
-const mtURL=()=>{try{return (localStorage.getItem(LS_MTURL)||'').trim()}catch(e){return ''}};
-const mtTok=()=>{try{return (localStorage.getItem(LS_MTTOK)||'').trim()}catch(e){return ''}};
+const mtURL=()=>connLiveURL(MT_KEY());
+const mtTok=()=>connGet(MT_KEY()).token||'';
 const MD=864e5,MN=Date.now();
 const MT_SEED={wos:[{id:'WO-5012',title:'Upright damage · aisle 14 bay 3',status:'OPEN',type:'CM',asset:'RACK-A14',priority:'1',assignee:'J. Ortiz',openedAt:MN-6*MD,dueAt:MN-2*MD},
  {id:'WO-5019',title:'Replace beam safety clips · zone B',status:'IN PROGRESS',type:'CM',asset:'RACK-B07',priority:'2',assignee:'M. Lee',openedAt:MN-3*MD,dueAt:MN+2*MD},
@@ -362,7 +463,7 @@ function maintRender(){if(!MT.loaded){maintRefresh();return '<div class="empty">
  ${sec('Pending work requests',MT.reqs.map(r=>`<div class="row"><span>${esc(r.id)} — ${esc(r.title)}<br><span class="mono">from ${esc(r.requester||'?')}</span></span><span>${btn(`data-mtappr="${esc(r.id)}"`,'Approve…')} ${btn(`data-mtrej="${esc(r.id)}"`,'Reject…')}</span></div>`),'No pending requests.')}
  ${sec('Low-stock parts',MT.parts.filter(p=>p.low).map(p=>`<div class="row"><span>${esc(p.id)} — ${esc(p.name)}</span><span class="dn">${p.onHand} on hand / reorder at ${p.reorderAt}</span></div>`),'All parts above reorder point.')}`;
  return head+pq+body+`<div style="margin-top:8px">${mtChip()} <span class="mono">source: ${esc(MaintSource().name)} · eMaint X4</span></div>`+
- `<details id="mtCfg" style="margin-top:10px"${MT.cfgOpen?' open':''}><summary>Maintenance connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="mtUrl" value="${esc(mtURL())}" placeholder="empty = SAMPLE data" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="mtTok" type="password" autocomplete="off" placeholder="${mtTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="mtSave">Save connector</button> <button type="button" class="btn" id="mtTokClear">Clear token</button> ${mtChip()}</div><p class="tip">Saved only in this browser. eMaint username/password live on the server, never here.</p></details>`}
+ `<details id="mtCfg" style="margin-top:10px"${MT.cfgOpen?' open':''}><summary>Maintenance connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="mtUrl" value="${esc(connGet(MT_KEY()).url)}" placeholder="empty = SAMPLE data" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="mtTok" type="password" autocomplete="off" placeholder="${mtTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="mtSave">Save connector</button> <button type="button" class="btn" id="mtTokClear">Clear token</button> ${mtChip()}</div><p class="tip">Saved only in this browser. eMaint username/password live on the server, never here.</p></details>`}
 function maintGo(){const b=bizStore.businesses.find(x=>x.id==='safe-rack'||x.name==='Safe Rack');if(b){bizStore.activeId=b.id;saveBiz()}setPageView('apps');roomView='Maintenance';draw()}
 function maintPropose(a){a.lane='Maintenance';if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Approve it in the Maintenance room or say "approved T1".`);draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
 async function maintOnDecide(a,ok){if(!ok){say('Yorri','Maintenance action discarded: '+esc(a.title));return}
@@ -372,14 +473,14 @@ async function maintOnDecide(a,ok){if(!ok){say('Yorri','Maintenance action disca
 document.addEventListener('toggle',e=>{if(e.target.id==='mtCfg')MT.cfgOpen=e.target.open},true);
 document.addEventListener('click',e=>{const el=e.target.closest&&e.target.closest('[data-mtok],[data-mtno],[data-mtr],[data-mtnew],[data-mtcreate],[data-mtclose],[data-mtappr],[data-mtrej],#mtSave,#mtTokClear');if(!el)return;const d=el.dataset;
  if(d.mtok!==undefined||d.mtno!==undefined){decide(+(d.mtok??d.mtno),d.mtok!==undefined);return}
- if(el.id==='mtSave'){try{localStorage.setItem(LS_MTURL,$('#mtUrl').value.trim());const tk=$('#mtTok').value.trim();if(tk)localStorage.setItem(LS_MTTOK,tk)}catch(x){}maintRefresh();return}
- if(el.id==='mtTokClear'){try{localStorage.removeItem(LS_MTTOK)}catch(x){}maintRefresh();return}
+ if(el.id==='mtSave'){const u=$('#mtUrl').value.trim(),tk=$('#mtTok').value.trim();connSet(MT_KEY(),Object.assign({type:'emaint',url:u,live:!!u},tk?{token:tk}:{}));maintRefresh();return}
+ if(el.id==='mtTokClear'){connSet(MT_KEY(),{token:''});maintRefresh();return}
  if(d.mtr){maintRefresh();return}if(d.mtnew){MT.newOpen=!MT.newOpen;draw();return}
  if(d.mtcreate){const t=($('#mtTitle').value||'').trim(),as=($('#mtAsset').value||'').trim();if(!t){say('Yorri','Add a work order description first.');return}MT.newOpen=false;maintPropose({t:['t1','T1'],title:'Create work order: '+t.slice(0,80),why:'Maintenance · eMaint'+(as?' · asset '+as:''),maint:{kind:'create',title:t,assetId:as}});return}
  if(d.mtclose){const w=MT.wos.concat(MT.pms).find(x=>x.id===d.mtclose);maintPropose({t:['t1','T1'],title:'Close work order '+d.mtclose+(w?': '+w.title:''),why:'Maintenance · eMaint closeWorkOrder',maint:{kind:'close',id:d.mtclose}});return}
  if(d.mtappr||d.mtrej){const id=d.mtappr||d.mtrej,r=MT.reqs.find(x=>x.id===id)||{},rej=!!d.mtrej;const reason=rej?(prompt('Reason for rejecting '+id+'?','No resources at this time')||''):'';if(rej&&!reason)return;
   maintPropose({t:['t1','T1'],title:(rej?'Reject':'Approve')+' work request '+id+(r.title?': '+r.title:''),why:'Maintenance · eMaint '+(rej?'rejectRequest':'approveRequest'),maint:{kind:rej?'reject':'approve',id,contactId:r.requester||'',reason}})}});
-window.addEventListener('storage',e=>{if(e.key===LS_MTURL||e.key===LS_MTTOK)maintRefresh()});
+window.addEventListener('storage',e=>{if(e.key===LS_CONN){maintRefresh();connRender()}});
 
 const SupportSource=()=>supURL()?SUP_REMOTE(supURL()):SUP_STUB;
 const SUP={tickets:[],status:'Stub',err:'',filter:'all',sort:'sla',open:null,draft:'',loading:false};
@@ -402,7 +503,7 @@ function supRender(){const ts=supView(),all=SUP.tickets;const b=(k,l)=>`<button 
   ts.map(t=>`<div class="row" data-supo="${esc(t.id)}" style="cursor:pointer;${t.unread?'font-weight:600':''}"><span>${t.unread?'● ':''}${esc(t.fromName||t.from)} — ${esc(t.subject)}<br><span class="mono" style="font-weight:400">${esc(String(t.snippet).slice(0,70))}</span><br><span class="mono" style="font-weight:400">${esc(t.id)} · ${esc(t.priority)} · ${supAge(t)} · ${esc(t.status)}</span></span><span>${supSla(t)}</span></div>`).join('');
  const pend=queue.map((a,i)=>[a,i]).filter(([a])=>a.sup);const pq=pend.length?`<div style="margin:8px 0"><b>Awaiting your approval</b>${pend.map(([a,i])=>`<div class="row"><span>${esc(a.title)}</span><span><button class="btn" data-supok="${i}">Approve</button> <button class="btn" data-supno="${i}">Decline</button></span></div>`).join('')}</div>`:'';
  return head+pq+rows+`<div style="margin-top:8px">${mockOn?mockBadgeWrap():liveBadge()} ${supChip()} <span class="mono">source: ${esc(SupportSource().name)}</span></div>`+supSettingsHTML()}
-function supSettingsHTML(){return `<details id="supCfg" style="margin-top:10px"${SUP.cfgOpen?' open':''}><summary>Support connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="supUrl" value="${esc(supURL())}" placeholder="empty = stub tickets" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="supTok" type="password" autocomplete="off" placeholder="${supTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="supUrlSave">Save connector</button> <button type="button" class="btn" id="supTokClear">Clear token</button> ${supChip()} <span id="supUrlStat" class="mono">${supURL()?'':'Empty URL = stub'}</span></div><p class="tip">URL and token are saved only in this browser. The token is sent with every request; the inbox password never comes to this site.</p></details>`}
+function supSettingsHTML(){return `<details id="supCfg" style="margin-top:10px"${SUP.cfgOpen?' open':''}><summary>Support connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="supUrl" value="${esc(connGet(SUP_KEY()).url)}" placeholder="empty = stub tickets" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="supTok" type="password" autocomplete="off" placeholder="${supTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="supUrlSave">Save connector</button> <button type="button" class="btn" id="supTokClear">Clear token</button> ${supChip()} <span id="supUrlStat" class="mono">${supURL()?'':'Empty URL = stub'}</span></div><p class="tip">URL and token are saved only in this browser. The token is sent with every request; the inbox password never comes to this site.</p></details>`}
 function supTileHTML(){const all=SUP.tickets,o=all.filter(t=>t.status!=='closed').length;return `<div class="kpi"><div><b>${o}</b><small>open</small></div><div><b class="am">${all.filter(t=>t.unread).length}</b><small>unread</small></div><div><b class="dn">${all.filter(supBreach).length}</b><small>SLA breach</small></div></div><button class="btn" data-supgo="1" style="margin-top:6px">Open Support in Your World Apps →</button> ${supChip()}`}
 function supGo(){const b=bizStore.businesses.find(x=>x.id==='yw-apps');if(b){bizStore.activeId=b.id;saveBiz()}setPageView('apps');if(b&&b.rooms.find(r=>r.label==='Support'))roomView='Support';draw()}
 function supTpl(t){const n=(t.fromName||t.from||'there').split(/[ @]/)[0];return `Hi ${n},\n\nThanks for flagging "${t.subject}". We're on it and will follow up shortly with next steps.\n\nBest,\nAaron`}
@@ -431,15 +532,15 @@ document.addEventListener('input',e=>{if(e.target.id==='supDraft')SUP.draft=e.ta
 document.addEventListener('click',async e=>{const el=e.target.closest&&e.target.closest('[data-supf],[data-supr],[data-supo],[data-supx],[data-supd],[data-supp],[data-supc],#supModal,#supUrlSave,#supTokClear,[data-supok],[data-supno],[data-supgo]');if(!el)return;const d=el.dataset;
  if(el.id==='supModal'){if(e.target===el){SUP.open=null;supModal()}return}
  if(d.supgo){supGo();return}if(d.supok!==undefined||d.supno!==undefined){decide(+(d.supok??d.supno),d.supok!==undefined);return}
- if(el.id==='supTokClear'){try{localStorage.removeItem(LS_SUPTOK)}catch(x){}supRefresh();return}
- if(el.id==='supUrlSave'){try{localStorage.setItem(LS_SUPURL,$('#supUrl').value.trim());const tk=$('#supTok').value.trim();if(tk)localStorage.setItem(LS_SUPTOK,tk)}catch(x){}$('#supUrlStat').textContent=supURL()?'Saved — trying connector':'Empty = stub';supRefresh();return}
+ if(el.id==='supTokClear'){connSet(SUP_KEY(),{token:''});supRefresh();return}
+ if(el.id==='supUrlSave'){const u=$('#supUrl').value.trim(),tk=$('#supTok').value.trim();connSet(SUP_KEY(),Object.assign({type:'support',url:u,live:!!u},tk?{token:tk}:{}));$('#supUrlStat').textContent=supURL()?'Saved — trying connector':'Empty = stub';supRefresh();return}
  if(d.supf){SUP.filter=d.supf;draw()}else if(d.supr)supRefresh();else if(d.supo)supOpen(d.supo);else if(d.supx){SUP.open=null;supModal()}
  else if(d.supd)supDraft();
  else if(d.supc){const s=supSt();(s[SUP.open.id]=s[SUP.open.id]||{}).status=d.supc;supSave(s);audit({decision:d.supc==='closed'?'CLOSED':'REOPENED',tier:'T0',title:SUP.open.id,lane:'Support'});SUP.open=await SupportSource().get(SUP.open.id);supModal();supRefresh()}
  else if(d.supp){const t=SUP.open,body=($('#supDraft')&&$('#supDraft').value.trim())||'';if(!body){say('Yorri','Draft a reply first.');return}
   const a={t:['t1','T1'],title:'Send reply to '+t.id+': '+t.subject,why:'Support · '+t.priority+' · to '+t.from+' · "'+body.slice(0,60)+'…"',lane:'Support',sup:{id:t.id,body}};
   if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);SUP.open=null;supModal();draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}});
-window.addEventListener('storage',e=>{if(e.key===LS_SUPST||e.key===LS_SUPURL||e.key===LS_SUPTOK)supRefresh()});
+window.addEventListener('storage',e=>{if(e.key===LS_SUPST||e.key===LS_CONN)supRefresh()});
 setTimeout(supRefresh,0);setInterval(()=>{if(!SUP.open)draw()},60e3);
 const LIVE_SUM={
  Support:()=>{const d=liveData('support')||{tickets:[]};const ts=d.tickets;const br=ts.filter(t=>t.ageH>=t.slaH);return `Support (stub source): <b>${ts.length} open</b> — ${ts.filter(t=>t.pri==='high').length} high. ${br.length?'<b>SLA breach:</b> '+br.map(t=>esc(t.id+' '+t.subj)).join(', '):'No SLA breaches.'} Real inbox not connected yet.`},
@@ -453,6 +554,7 @@ function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
   if(t==='tickets'&&label==='Support'&&bizName==='Your World Apps')return supRender();
   if(t==='maint')return maintRender();
+  {const ck=connKey(activeBiz().id,room.id),c=connGet(ck);if(c.type==='rest'&&c.live&&c.url&&!mockOn)return genRender(ck,label)}
   if(!mockOn)return emptyState(label);
   if(t==='metrics')return `<div class="kpi"><div><b class="up">${esc(room.kpiA||'—')}</b><small>${esc(room.kpiALabel||'metric A')}</small></div><div><b>${esc(room.kpiB||'—')}</b><small>${esc(room.kpiBLabel||'metric B')}</small></div><div><b class="am">${esc(room.kpiC||'—')}</b><small>${esc(room.kpiCLabel||'metric C')}</small></div></div><div class="row"><span>${esc(bizName)}</span><span class="up">layout · metrics</span></div>`+mockBadgeWrap();
   if(t==='tickets'){const rows=(room.tickets||['Open ticket A','Open ticket B']).map(x=>`<div class="row"><span>${esc(x)}</span><span class="am">open</span></div>`).join('');return `<div class="kpi"><div><b>${(room.tickets||[]).length||2}</b><small>open</small></div></div>${rows}`+mockBadgeWrap()}
@@ -621,6 +723,7 @@ function draw(){if(typeof dedupeQ==='function')dedupeQ();
       else list=CMD_ROOMS.slice();
     }else list=[roomView];
     html=list.map(r=>cardHTML(r,cmdBody(r),r==='Briefing'||isSat)).join('');
+    if(!isSat&&roomView==='Command Board')html=bizTilesHTML()+html;
   }else{
     const b=activeBiz();let list;
     if(isSat)list=[{label:roomView,room:(b.rooms||[]).find(x=>x.label===roomView)}];
@@ -681,6 +784,7 @@ function tryVoiceCommand(raw){
     if(!queue.length){say('Yorri','Nothing pending to decline.');return true}
     say('You',raw);decide(0,0);return true;
   }
+  if(/\b(open|go\s+to|show)\s+(the\s+)?connections?\b/.test(t)){say('You',raw);ywSettings(true);connOpen();say('Yorri','Opened <b>Connections</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(true);say('Yorri','Opened <b>Settings</b>.');return true}
   if(/\b(close|exit|hide)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(false);say('Yorri','Closed Settings.');return true}
   // open Apps aliases (Your World Apps / YourWorldApps / Apps)
@@ -958,7 +1062,7 @@ if($('#satRoom'))$('#satRoom').onchange=()=>{
 };
 if($('#satSync'))$('#satSync').onclick=()=>broadcast({type:'hello'});
 
-loadMock();loadVoiceCodes();loadBiz();loadLayout();loadCar();
+loadMock();loadVoiceCodes();loadBiz();connMigrate();loadLayout();loadCar();
 if($('#mockT'))$('#mockT').checked=mockOn;
 applyCarLayout();
 if(IS_TESLA){setVmsg('Tesla detected — tap the ask box, use the steering-wheel mic, then Send. Car layout on (toggle under rooms if you want side panel).');if($('#mic'))$('#mic').title='Tesla: focus box + yoke mic'}
@@ -997,7 +1101,7 @@ function a11yUI(){const o=a11yGet();const sc=$('#optScale');if(!sc)return;
  const sp=$('#setSpk');if(sp)sp.textContent=(typeof yorriSpeak!=='undefined'&&!yorriSpeak)?'🔇 Yorri voice: off':'🔊 Yorri voice: on';
  const ca=$('#setCar'),ct=$('#carT');if(ca&&ct)ca.textContent='🚗 Car layout: '+(ct.checked?'on':'off');
  const mo=$('#setMock'),mt=$('#mockT');if(mo&&mt)mo.textContent='Mock data: '+(mt.checked?'on':'off')}
-function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();const f=$('#setClose');if(f)f.focus()}}
+function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();connRender();const f=$('#setClose');if(f)f.focus()}}
 window.ywSettings=ywSettings;
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#navSettings,#setClose,[data-scale],[data-theme-set],[data-contrast],[data-motion],#optLarge,#optSoft,[data-proxy],#setAI,#setReset');if(!t)return;
  if(t.id==='navSettings')return ywSettings(!document.body.classList.contains('view-settings'));
