@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Your World Business · Yorri</title>
-<script>(function(){try{var o=JSON.parse(localStorage.getItem('ywA11y')||'{}'),d=document.documentElement;d.style.setProperty('--ui-scale',String(o.scale||1));if((o.scale||1)>=1.3)d.setAttribute('data-big','');if(o.theme&&o.theme!=='dark')d.setAttribute('data-theme',o.theme);if(o.motion)d.setAttribute('data-motion','reduce')}catch(e){}})()</script><style>
+<script>window.ywA11yResolve=function(o){var d=document.documentElement,m=function(q){try{return matchMedia(q).matches}catch(e){return false}};o=o||{};var th=o.theme||'system';if(th==='system')th=m('(prefers-color-scheme: light)')?'light':'dark';if(th==='dark')d.removeAttribute('data-theme');else d.setAttribute('data-theme',th);var hc=o.contrast||'system';hc=hc==='system'?m('(prefers-contrast: more)'):hc==='on';var mo=o.motion||'system';mo=mo==='system'?m('(prefers-reduced-motion: reduce)'):mo==='on';var sc=Math.min(1.75,(+o.scale||1)*(o.large?1.15:1));d.style.setProperty('--ui-scale',String(sc));d.classList.toggle('a11y-large',!!o.large||sc>=1.3);d.classList.toggle('a11y-contrast',hc);d.classList.toggle('a11y-motion',mo);d.classList.toggle('a11y-soft',!!o.soft)};(function(){try{ywA11yResolve(JSON.parse(localStorage.getItem('ywA11y')||'{}'))}catch(e){ywA11yResolve({})}})()</script><style>
 :root{--hdr:#070b10ee;--bar:#0a1218;--field:#081018;--card2:#0f1922;--bgglow:#0b2a2a55;--ink:#070b10;--panel:#0d141c;--line:#1b2a36;--teal:#2de1c2;--teal2:#0fb5a0;--txt:#d8e6ee;--mut:#7f97a6;--amber:#ffb547;--red:#ff5c6c;--blue:#5aa9ff}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,var(--bgglow),transparent),var(--ink);color:var(--txt);font:14px/1.45 Inter,system-ui,sans-serif}
 .mono{font-family:ui-monospace,Menlo,monospace}
@@ -52,7 +52,7 @@ main,nav,header,.appsbar,.satbar,#popupWarn,#editor{position:relative;z-index:1}
 @keyframes listenPulse{50%{box-shadow:0 0 26px #ff5c6ccc;transform:scale(1.06)}}
 @keyframes glow{50%{box-shadow:0 0 18px var(--teal)}}@keyframes p{50%{opacity:.3}}@keyframes grid{to{background-position:40px 40px}}
 @keyframes scan{to{left:110%}}@keyframes in{from{opacity:0;transform:translateY(12px) scale(.98)}}@keyframes amb{50%{box-shadow:0 0 30px #ffb54733}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
 .screens{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .screens label,.appsbar label{font-size:11px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
 .screens select,.appsbar select,.satbar select,#editor select,#editor input{background:var(--field);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:5px 8px;font-size:12px}
@@ -99,14 +99,23 @@ body.sat .car-ctl{display:none}
 /* —— Settings / accessibility —— */
 html{--ui-scale:1}body{zoom:var(--ui-scale)}
 html[data-theme=light]{--hdr:#f4f7faee;--bar:#eaf0f5;--field:#ffffff;--card2:#ffffff;--bgglow:#bfe9e255;--ink:#f4f7fa;--panel:#f7fafc;--line:#c9d6e0;--teal:#0a7f70;--teal2:#0a8f7e;--txt:#14212b;--mut:#4c6170;--amber:#9a5a00;--red:#c0182b;--blue:#1d5fbf}
-html[data-theme=contrast]{--hdr:#000;--bar:#000;--field:#000;--card2:#000;--bgglow:transparent;--ink:#000;--panel:#000;--line:#fff;--teal:#ffff00;--teal2:#ffff00;--txt:#fff;--mut:#e6e6e6;--amber:#ffb000;--red:#ff6b6b;--blue:#7cc4ff}
-html[data-theme=contrast] .card,html[data-theme=contrast] button{border-width:2px}html[data-theme=contrast] *:focus-visible{outline:3px solid #ffff00;outline-offset:2px}
 html[data-theme=midnight]{--hdr:#060a1aee;--bar:#0a1030;--field:#070c24;--card2:#111a44;--bgglow:#2a3b9a55;--ink:#050817;--panel:#0c1336;--line:#22306a;--teal:#7aa2ff;--teal2:#5a7fe6;--txt:#e3e9ff;--mut:#8f9cc8}
-html[data-theme=amber]{--hdr:#0d0904ee;--bar:#150f06;--field:#110b04;--card2:#1e1608;--bgglow:#5a3a0a55;--ink:#0a0703;--panel:#171006;--line:#3a2a10;--teal:#ffb547;--teal2:#e09a2a;--txt:#f3e6d0;--mut:#b39a78}
-html[data-motion=reduce] *,html[data-motion=reduce] *:before,html[data-motion=reduce] *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-html[data-motion=reduce] .card:after{display:none}html[data-motion=reduce] .card:hover{transform:none}
-html[data-motion=reduce] .logo b{text-shadow:none}
-@media(min-width:1001px){html[data-big] main{grid-template-columns:1fr}}html[data-big],html[data-big] body{overflow-x:hidden}
+html[data-theme=sand]{--hdr:#efe4cfee;--bar:#e6d8bd;--field:#fbf5ea;--card2:#f8efdd;--bgglow:#e0b97055;--ink:#efe4cf;--panel:#f3e9d6;--line:#cdb88f;--teal:#8a5a12;--teal2:#a06a1c;--txt:#2e2414;--mut:#6a5634;--amber:#8a4f00;--red:#a8202e;--blue:#2a5a9a}
+html[data-theme=olive]{--hdr:#1f241aee;--bar:#262b1f;--field:#1a1e16;--card2:#3a3426;--bgglow:#6b6a4a33;--ink:#1f241a;--panel:#2c3022;--line:#6b6a4a;--teal:#c9a44c;--teal2:#8f9a5b;--txt:#e8dfc8;--mut:#b5ac92;--amber:#d9a94a;--red:#e07a6a;--blue:#9ab0c8}
+html.a11y-contrast{--txt:#F5FBFF;--mut:#B8C9D6;--line:#3A6A88;--bgglow:transparent}
+html.a11y-contrast[data-theme=light],html.a11y-contrast[data-theme=sand]{--txt:#000;--mut:#1e2a33;--line:#3A6A88}
+html.a11y-contrast .card,html.a11y-contrast button,html.a11y-contrast input,html.a11y-contrast select,html.a11y-contrast .chip,html.a11y-contrast #setPage section{border-width:1.5px}
+html.a11y-contrast *:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+html.a11y-motion *,html.a11y-motion *:before,html.a11y-motion *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+html.a11y-motion .card:after{display:none}html.a11y-motion .card:hover{transform:none}html.a11y-motion .logo b{text-shadow:none}
+@keyframes glowS{50%{box-shadow:0 0 8px #2de1c273}}@keyframes ambS{50%{box-shadow:0 0 13px #ffb54717}}@keyframes listenPulseS{50%{box-shadow:0 0 12px #ff5c6c5c;transform:scale(1.03)}}@keyframes pS{50%{opacity:.68}}
+html.a11y-soft .mic:not(.listen){animation-name:glowS}html.a11y-soft .decide{animation-name:ambS;box-shadow:0 0 0 1px #ffb5470f,0 0 11px #ffb54709}html.a11y-soft .mic.listen{animation-name:listenPulseS}html.a11y-soft .pulse{animation-name:pS;box-shadow:0 0 4px var(--teal)}
+html.a11y-soft .card:after{opacity:.45}html.a11y-soft .logo b{text-shadow:0 0 5px var(--teal)}html.a11y-soft .card:hover{box-shadow:0 0 10px #2de1c211}
+html.a11y-large .topnav button,html.a11y-large nav.rooms button,html.a11y-large .chip,html.a11y-large .card h3,html.a11y-large .row{white-space:normal!important;overflow-wrap:break-word;word-break:normal;text-overflow:clip!important}html.a11y-large .topnav{flex-wrap:wrap}html.a11y-large .topnav button{flex:0 0 auto;max-width:100%}
+html.a11y-large .card h3 span{float:none;display:inline-block;margin-left:6px}
+@media(min-width:1001px){html.a11y-large main{grid-template-columns:1fr}}html.a11y-large,html.a11y-large body{overflow-x:hidden}
+html.a11y-large .board{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}html.a11y-large main{padding:10px;grid-template-columns:minmax(0,1fr)!important}html.a11y-large .card,html.a11y-large .side,html.a11y-large .board{min-width:0}html.a11y-large .row>*{min-width:0;overflow-wrap:anywhere}html.a11y-large .row{flex-wrap:wrap;gap:4px}#spkF{overflow:hidden;line-height:1;padding:0}
+#setPage .ex{display:block;color:var(--mut);font-size:12px;margin:6px 0 2px}
 #setPage{display:none;position:fixed;inset:0;z-index:50;background:var(--ink);color:var(--txt);overflow:auto;padding:16px 18px 40px}
 body.view-settings #setPage{display:block}
 #setPage .wrap{max-width:760px;margin:0 auto}
@@ -181,16 +190,19 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <div id="setPage" role="dialog" aria-label="Settings"><div class="wrap">
 <div style="display:flex;align-items:center;gap:10px"><h2>Settings</h2><button type="button" class="sbt" id="setClose" style="margin-left:auto">✕ Close</button></div>
 <p class="tip">Saved in this browser and synced to pop-out screens. Say "open Settings" / "close Settings".</p>
-<section><h4>Text size</h4><div class="opts" id="optScale"></div></section>
-<section><h4>Color theme</h4><div class="opts" id="optTheme"></div></section>
-<section><h4>Motion</h4><div class="opts"><button type="button" id="optMotion" aria-pressed="false">Reduce motion (no glow/animations)</button></div></section>
+<section><h4>Text size</h4><div class="opts" id="optScale" role="group" aria-label="Text size"></div><span class="ex">Scales the whole board, Yorri and pop-outs (max 175% with Larger text).</span>
+<div class="opts" style="margin-top:10px"><button type="button" id="optLarge" aria-pressed="false">Larger text (+15%)</button></div><span class="ex">Adds 15% on top of the size above and lets labels wrap instead of clipping.</span></section>
+<section><h4>Color theme</h4><div class="opts" id="optTheme" role="group" aria-label="Color theme"></div><span class="ex">System follows your device's light/dark setting.</span></section>
+<section><h4>High contrast</h4><div class="opts" id="optContrast" role="group" aria-label="High contrast"></div><span class="ex">Brighter text and thicker borders on top of any theme. System follows your device's contrast setting.</span></section>
+<section><h4>Reduce motion</h4><div class="opts" id="optMotion" role="group" aria-label="Reduce motion"></div><span class="ex">Turns off glow, scanning lines and animations. System follows your device setting.</span></section>
+<section><h4>Softer flashes</h4><div class="opts"><button type="button" id="optSoft" aria-pressed="false">Softer flashes</button></div><span class="ex">Keeps pulses and glows, but at 45% strength.</span></section>
 <section><h4>Yorri &amp; layout</h4><div class="opts">
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
 <button type="button" class="sbt" data-proxy="#mockT" id="setMock">Mock data</button>
 <button type="button" class="sbt" id="setAI">⚙ AI key, model &amp; Support connector URL</button>
-</div><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
-<section><h4>Reset</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset text size, theme &amp; motion</button></div></section>
+</div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data · AI opens key/model/Support connector.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
+<section><h4>Reset</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div></section>
 </div></div>
 <nav class="rooms" id="nav"></nav>
 <div class="car-ctl" id="carCtl"><label title="Ask Yorri on top + decisions under it. Auto-on in Tesla; use this to test on phone/laptop."><input type="checkbox" id="carT"> Car layout</label></div>
@@ -879,30 +891,44 @@ else{
 
 /* —— Settings / accessibility —— */
 const A11Y_SCALES=[[0.9,'Small 90%'],[1,'Default 100%'],[1.15,'Large 115%'],[1.3,'Extra large 130%'],[1.5,'Huge 150%']];
-const A11Y_THEMES=[['dark','Command dark (default)','#2de1c2'],['light','Light','#f4f7fa'],['contrast','High contrast','#ffff00'],['midnight','Midnight blue','#7aa2ff'],['amber','Amber','#ffb547']];
-function a11yGet(){try{return Object.assign({scale:1,theme:'dark',motion:false},JSON.parse(localStorage.getItem('ywA11y')||'{}'))}catch(e){return{scale:1,theme:'dark',motion:false}}}
-function a11yApply(o){const d=document.documentElement;d.style.setProperty('--ui-scale',String(o.scale));d.toggleAttribute('data-big',o.scale>=1.3);if(o.theme&&o.theme!=='dark')d.setAttribute('data-theme',o.theme);else d.removeAttribute('data-theme');if(o.motion)d.setAttribute('data-motion','reduce');else d.removeAttribute('data-motion');a11yUI()}
+const A11Y_THEMES=[['system','System','linear-gradient(90deg,#f4f7fa 50%,#070b10 50%)'],['dark','Command Dark','#2de1c2'],['light','Daylight','#f4f7fa'],['midnight','Midnight Blue','#7aa2ff'],['sand','Desert Sand','#e6d8bd'],['olive','Field Olive','#8f9a5b']];
+const A11Y_TRI=[['system','System'],['on','On'],['off','Off']];
+const A11Y_DEF={scale:1,large:false,theme:'system',contrast:'system',motion:'system',soft:false};
+function a11yGet(){try{return Object.assign({},A11Y_DEF,JSON.parse(localStorage.getItem('ywA11y')||'{}'))}catch(e){return Object.assign({},A11Y_DEF)}}
+function a11yApply(o){window.ywA11yResolve(o||a11yGet());a11yUI()}
 function a11ySet(patch){const o=Object.assign(a11yGet(),patch);try{localStorage.setItem('ywA11y',JSON.stringify(o))}catch(e){}a11yApply(o);try{if(window.ywBC)ywBC.postMessage({type:'a11y',a11y:o})}catch(e){}}
-function a11yUI(){const o=a11yGet();const sc=$('#optScale'),th=$('#optTheme');if(!sc)return;
+function a11yUI(){const o=a11yGet();const sc=$('#optScale');if(!sc)return;
  sc.innerHTML=A11Y_SCALES.map(([v,l])=>`<button type="button" data-scale="${v}" aria-pressed="${o.scale==v}">${l}</button>`).join('');
- th.innerHTML=A11Y_THEMES.map(([v,l,c])=>`<button type="button" data-theme-set="${v}" aria-pressed="${o.theme===v}"><span class="sw" style="background:${c}"></span>${l}</button>`).join('');
- $('#optMotion').setAttribute('aria-pressed',String(!!o.motion));
+ $('#optTheme').innerHTML=A11Y_THEMES.map(([v,l,c])=>`<button type="button" data-theme-set="${v}" aria-pressed="${o.theme===v}"><span class="sw" style="background:${c}" aria-hidden="true"></span>${l}</button>`).join('');
+ $('#optContrast').innerHTML=A11Y_TRI.map(([v,l])=>`<button type="button" data-contrast="${v}" aria-pressed="${o.contrast===v}">${l}</button>`).join('');
+ $('#optMotion').innerHTML=A11Y_TRI.map(([v,l])=>`<button type="button" data-motion="${v}" aria-pressed="${o.motion===v}">${l}</button>`).join('');
+ $('#optLarge').setAttribute('aria-pressed',String(!!o.large));$('#optSoft').setAttribute('aria-pressed',String(!!o.soft));
  const sp=$('#setSpk');if(sp)sp.textContent=(typeof yorriSpeak!=='undefined'&&!yorriSpeak)?'🔇 Yorri voice: off':'🔊 Yorri voice: on';
  const ca=$('#setCar'),ct=$('#carT');if(ca&&ct)ca.textContent='🚗 Car layout: '+(ct.checked?'on':'off');
  const mo=$('#setMock'),mt=$('#mockT');if(mo&&mt)mo.textContent='Mock data: '+(mt.checked?'on':'off')}
-function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b)b.classList.toggle('act',!!open);if(open){a11yUI();const f=$('#setClose');if(f)f.focus()}}
+function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();const f=$('#setClose');if(f)f.focus()}}
 window.ywSettings=ywSettings;
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#navSettings,#setClose,[data-scale],[data-theme-set],#optMotion,[data-proxy],#setAI,#setReset');if(!t)return;
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#navSettings,#setClose,[data-scale],[data-theme-set],[data-contrast],[data-motion],#optLarge,#optSoft,[data-proxy],#setAI,#setReset');if(!t)return;
  if(t.id==='navSettings')return ywSettings(!document.body.classList.contains('view-settings'));
  if(t.id==='setClose')return ywSettings(false);
  if(t.dataset.scale)return a11ySet({scale:+t.dataset.scale});
  if(t.dataset.themeSet)return a11ySet({theme:t.dataset.themeSet});
- if(t.id==='optMotion')return a11ySet({motion:!a11yGet().motion});
- if(t.id==='setReset')return a11ySet({scale:1,theme:'dark',motion:false});
+ if(t.dataset.contrast)return a11ySet({contrast:t.dataset.contrast});
+ if(t.dataset.motion)return a11ySet({motion:t.dataset.motion});
+ if(t.id==='optLarge')return a11ySet({large:!a11yGet().large});
+ if(t.id==='optSoft')return a11ySet({soft:!a11yGet().soft});
+ if(t.id==='setReset')return a11ySet(Object.assign({},A11Y_DEF));
  if(t.id==='setAI'){ywSettings(false);const pn=$('#llmPanel');if(pn&&pn.style.display==='none'){const b=$('#llmBtn');if(b)b.click()}if(pn)pn.scrollIntoView({block:'center'});return}
  if(t.dataset.proxy){const x=$(t.dataset.proxy);if(x)x.click();setTimeout(a11yUI,30)}});
+['(prefers-color-scheme: light)','(prefers-contrast: more)','(prefers-reduced-motion: reduce)'].forEach(q=>{try{matchMedia(q).addEventListener('change',()=>a11yApply())}catch(e){}});
+/* screen-reader labels */
+(function(){const L={mic:'Talk to Yorri (voice input)',send:'Send to Yorri',spkT:'Mute or unmute Yorri voice',llmBtn:'AI settings',navCommand:'Command Center tab',navApps:'Your World Apps tab',navSettings:'Settings tab',q:'Ask Yorri',carT:'Car layout',mockT:'Mock data'};
+ for(const[k,v] of Object.entries(L)){const el=document.getElementById(k);if(el&&!el.getAttribute('aria-label'))el.setAttribute('aria-label',v)}
+ const lg=$('#log');if(lg){lg.setAttribute('role','log');lg.setAttribute('aria-live','polite');lg.setAttribute('aria-label','Yorri conversation')}
+ const tn=$('#navCommand')&&$('#navCommand').parentElement;if(tn)tn.setAttribute('aria-label','Main tabs');
+ const qu=$('#queue');if(qu){qu.setAttribute('aria-live','polite');new MutationObserver(()=>qu.querySelectorAll('button[data-i],button[data-x]').forEach(b=>{const r=b.closest('.row'),ti=r&&r.querySelector('b');b.setAttribute('aria-label',(b.dataset.i!==undefined?'Approve ':'Decline ')+(ti?ti.textContent:''))})).observe(qu,{childList:true,subtree:true});qu.dispatchEvent(new Event('x'))}})();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('view-settings'))ywSettings(false)});
-window.addEventListener('storage',e=>{if(e.key==='ywA11y')a11yApply(a11yGet())});
+window.addEventListener('storage',e=>{if(e.key==='ywA11y')a11yApply()});
 try{if(window.ywBC)ywBC.addEventListener('message',e=>{if(e.data&&e.data.type==='a11y')a11yApply(a11yGet())})}catch(e){}
 a11yApply(a11yGet());
 </script><button type="button" id="spkF" aria-label="Mute or unmute Yorri voice" title="Mute Yorri">🔊</button>
