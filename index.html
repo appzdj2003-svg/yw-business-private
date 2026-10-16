@@ -273,7 +273,16 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
 <button type="button" class="sbt" data-proxy="#mockT" id="setMock">Mock data</button>
-</div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
+</div>
+<div class="sgrp" id="voiceGrp"><h5>Yorri’s speaking voice</h5>
+<label>Voice <select id="vcSel" aria-label="Yorri speaking voice"></select></label>
+<label>Speed <input type="range" id="vcRate" min="0.7" max="1.4" step="0.05" aria-label="Voice speed"> <span id="vcRateV" class="mono"></span></label>
+<label>Pitch <input type="range" id="vcPitch" min="0.7" max="1.3" step="0.05" aria-label="Voice pitch"> <span id="vcPitchV" class="mono"></span></label>
+<label><input type="checkbox" id="vcAi"> Lifelike AI voice (uses your xAI key)</label>
+<label id="vcAiVL">AI voice <select id="vcAiV" aria-label="AI voice"><option value="eve">Eve</option><option value="ara">Ara</option><option value="rex">Rex</option><option value="sal">Sal</option><option value="leo">Leo</option></select></label>
+<button type="button" id="vcPrev">▶ Preview</button>
+<span class="ex" id="vcNote">Each device lists its own voices (phone and PC differ). “Auto” picks the most natural one here. The AI voice costs about $15 per million characters on your xAI account; if it fails, Yorri falls back to the device voice.</span></div>
+<span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
 <section aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
 <section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="syncBox"></div><div id="connList"></div></section>
 <section aria-labelledby="smsH"><h4 id="smsH">Text Alerts</h4><div id="smsBox"></div></section>
@@ -473,7 +482,7 @@ setTimeout(()=>{try{bizStore.businesses.forEach(b=>(b.rooms||[]).forEach(r=>{con
 
 /* ---- Sync this device (ywDevSync): pull/push the settings bundle via {server}/config. Only the site token is used; no mailbox/eMaint passwords. */
 const LS_DS='ywDevSync',DS_DEF_URL='https://yw-business-server.onrender.com';
-const DS_KEYS=['ywConn','ywBusinesses','ywSms','ywA11y'];
+const DS_KEYS=['ywConn','ywBusinesses','ywSms','ywA11y','ywVoice'];
 const dsGet=()=>{try{return JSON.parse(localStorage.getItem(LS_DS)||'{}')||{}}catch(e){return{}}};
 const dsSet=p=>{const o=Object.assign(dsGet(),p);try{_lsSet.call(localStorage,LS_DS,JSON.stringify(o))}catch(e){}return o};
 const DSU={busy:false,msg:'',err:false,quiet:false};let dsTimer=null;
@@ -482,7 +491,7 @@ Storage.prototype.setItem=function(k,v){_lsSet.call(this,k,v);try{if(this===loca
 function dsQueue(){clearTimeout(dsTimer);dsTimer=setTimeout(dsPush,1500)}
 function dsBundle(){const d=dsGet(),j=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
  const conn=j('ywConn')||{};const c2={};for(const[k,v]of Object.entries(conn)){c2[k]={type:v.type,url:v.url,live:!!v.live};if(v.tested)c2[k].tested=v.tested}
- const b={conn:c2,biz:j('ywBusinesses'),sms:j('ywSms'),a11y:j('ywA11y')};if(d.xai){const l=j('ywLlm');if(l)b.xai=l}return b}
+ const b={conn:c2,biz:j('ywBusinesses'),sms:j('ywSms'),a11y:j('ywA11y'),voice:j('ywVoice')};if(d.xai){const l=j('ywLlm');if(l)b.xai=l}return b}
 async function dsReq(method,body){const d=dsGet();const r=await fetch(d.url.replace(/\/+$/,'')+'/config',{method,headers:Object.assign({Authorization:'Bearer '+d.token},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});
  if(r.status===404)throw new Error('this server doesn’t support sync yet');if(r.status===401||r.status===403)throw new Error('token rejected');const j=await r.json().catch(()=>({}));if(!r.ok&&r.status!==409)throw new Error('HTTP '+r.status);return {status:r.status,j}}
 function dsApply(b){if(!b)return false;const d=dsGet();DSU.quiet=true;try{
@@ -490,7 +499,7 @@ function dsApply(b){if(!b)return false;const d=dsGet();DSU.quiet=true;try{
    const same=v.url&&v.url.replace(/\/+$/,'')===d.url.replace(/\/+$/,'');out[k].token=same?d.token:(L.token||'')}
   for(const[k,v]of Object.entries(local))if(!out[k])out[k]=v;_lsSet.call(localStorage,'ywConn',JSON.stringify(out))}
  if(b.biz&&Array.isArray(b.biz.businesses)&&b.biz.businesses.length)_lsSet.call(localStorage,'ywBusinesses',JSON.stringify(b.biz));
- if(b.sms)_lsSet.call(localStorage,'ywSms',JSON.stringify(b.sms));if(b.a11y)_lsSet.call(localStorage,'ywA11y',JSON.stringify(b.a11y));
+ if(b.sms)_lsSet.call(localStorage,'ywSms',JSON.stringify(b.sms));if(b.a11y)_lsSet.call(localStorage,'ywA11y',JSON.stringify(b.a11y));if(b.voice)_lsSet.call(localStorage,'ywVoice',JSON.stringify(b.voice));
  if(b.xai&&d.xai)_lsSet.call(localStorage,'ywLlm',JSON.stringify(b.xai))}finally{DSU.quiet=false}return true}
 async function dsPush(){const d=dsGet();if(!d.linked)return;DSU.busy=true;dsRender();
  try{let r=await dsReq('PUT',{bundle:dsBundle(),baseRev:d.rev||0});if(r.status===409)r=await dsReq('PUT',{bundle:dsBundle(),baseRev:r.j.rev});
@@ -1031,13 +1040,40 @@ let yorriSpeak=true;try{yorriSpeak=localStorage.getItem('ywYorriSpeak')!=='0'}ca
 const TTS_OK=!IS_TESLA&&('speechSynthesis' in window)&&typeof SpeechSynthesisUtterance!=='undefined';let ttsNoted=false;
 function ttsClean(h){const d=document.createElement('div');d.innerHTML=h;return (d.textContent||'').replace(/\s+/g,' ').trim()}
 function ttsChunk(t,m){m=m||180;const out=[];let cur='';(t.match(/[^.!?]+[.!?]*\s*/g)||[t]).forEach(x=>{while(x.length>m){if(cur){out.push(cur.trim());cur=''}out.push(x.slice(0,m));x=x.slice(m)}if((cur+x).length>m){if(cur.trim())out.push(cur.trim());cur=x}else cur+=x});if(cur.trim())out.push(cur.trim());return out}
-function ttsVoice(){const v=speechSynthesis.getVoices()||[];return v.find(x=>x.lang==='en-US')||v.find(x=>/^en/i.test(x.lang))||null}
+const VC_DEF={name:'auto',rate:1,pitch:1,ai:false,aiVoice:'eve'};
+function vcGet(){try{return Object.assign({},VC_DEF,JSON.parse(localStorage.getItem('ywVoice')||'{}'))}catch(e){return Object.assign({},VC_DEF)}}
+function vcSet(p){localStorage.setItem('ywVoice',JSON.stringify(Object.assign(vcGet(),p)))}
+function ttsScore(v){const n=v.name||'',l=(v.lang||'').replace('_','-');let s=0;
+ if(/^en-US/i.test(l))s+=40;else if(/^en/i.test(l))s+=30;else return -100;
+ if(/natural/i.test(n))s+=60;if(/neural/i.test(n))s+=55;if(/online/i.test(n))s+=40;if(/premium|enhanced/i.test(n))s+=35;
+ if(/google us english/i.test(n))s+=45;else if(/^google/i.test(n))s+=25;
+ if(/\b(ava|aria|jenny|samantha|emma|michelle|allison|zoe|serena)\b/i.test(n))s+=20;
+ if(/espeak|robot|compact|novelty|zarvox|whisper|bad news|bells|trinoids|albert/i.test(n))s-=80;if(!v.localService)s+=3;return s}
+function ttsRanked(){return (TTS_OK?speechSynthesis.getVoices()||[]:[]).map(v=>({v,s:ttsScore(v)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.v)}
+function ttsVoice(){const r=ttsRanked(),c=vcGet();if(c.name&&c.name!=='auto'){const m=(speechSynthesis.getVoices()||[]).find(x=>x.name===c.name);if(m)return m}return r[0]||null}
+function vcRender(){const sel=$('#vcSel');if(!sel)return;const c=vcGet();
+ if(!TTS_OK){sel.innerHTML='<option>Not available in this browser</option>';sel.disabled=true;return}
+ const r=ttsRanked(),best=r[0];sel.innerHTML=`<option value="auto">Auto — ${best?esc(best.name):'device default'}</option>`+r.map(v=>`<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('');
+ sel.value=[...sel.options].some(o=>o.value===c.name)?c.name:'auto';
+ $('#vcRate').value=c.rate;$('#vcRateV').textContent=(+c.rate).toFixed(2)+'×';$('#vcPitch').value=c.pitch;$('#vcPitchV').textContent=(+c.pitch).toFixed(2);
+ $('#vcAi').checked=!!c.ai;$('#vcAiV').value=c.aiVoice;$('#vcAiVL').style.display=c.ai?'':'none'}
+let ttsAudio=null;
+function ttsStop(){try{if(TTS_OK)speechSynthesis.cancel()}catch(e){}if(ttsAudio){try{ttsAudio.pause()}catch(e){}ttsAudio=null}}
+function ttsBrowser(t){const c=vcGet(),v=ttsVoice();ttsChunk(t).forEach(x=>{const u=new SpeechSynthesisUtterance(x);u.lang=v?v.lang:'en-US';if(v)u.voice=v;u.rate=+c.rate||1;u.pitch=+c.pitch||1;speechSynthesis.speak(u)})}
+async function ttsAI(t){const c=vcGet();let k='';try{k=(JSON.parse(localStorage.getItem('ywLlm')||'{}').key||'').trim()}catch(e){}if(!k)throw new Error('no xAI key');
+ const r=await fetch('https://api.x.ai/v1/tts',{method:'POST',headers:{Authorization:'Bearer '+k,'Content-Type':'application/json'},body:JSON.stringify({text:t.slice(0,4000),voice_id:c.aiVoice||'eve',language:'en',speed:Math.min(1.5,Math.max(0.7,+c.rate||1))})});
+ if(!r.ok)throw new Error('xAI TTS HTTP '+r.status);const u=URL.createObjectURL(await r.blob());const a=new Audio(u);ttsAudio=a;a.onended=()=>URL.revokeObjectURL(u);await a.play()}
+function ttsSpeak(t){ttsStop();const c=vcGet();if(c.ai)ttsAI(t).catch(e=>{console.warn('AI voice fallback:',e.message);const n=$('#vcNote');if(n&&!/fell back/.test(n.textContent))n.textContent+=' (AI voice failed: '+e.message+' — fell back to device voice.)';if(TTS_OK)ttsBrowser(t)});else if(TTS_OK)ttsBrowser(t)}
 function ttsNote(){if(ttsNoted)return;ttsNoted=true;const n=$('#ttsNote');if(n){n.textContent="Tesla browser can't play voice aloud — read Yorri on screen";n.style.display=''}}
-function speakYorri(h,force){if(!yorriSpeak&&!force)return;if(!TTS_OK){ttsNote();return}const t=ttsClean(h);if(!t)return;try{speechSynthesis.cancel();const v=ttsVoice();ttsChunk(t).forEach(c=>{const u=new SpeechSynthesisUtterance(c);u.lang='en-US';if(v)u.voice=v;speechSynthesis.speak(u)})}catch(e){}}
+function speakYorri(h,force){if(!yorriSpeak&&!force)return;if(!TTS_OK){ttsNote();return}const t=ttsClean(h);if(!t)return;try{ttsSpeak(t)}catch(e){}}
 function applySpk(){const b=$('#spkT');if(b)b.textContent=yorriSpeak?'🔊 Voice on':'🔇 Voice off';const f=document.getElementById('spkF');if(f){f.textContent=yorriSpeak?'🔊':'🔇';f.classList.toggle('muted',!yorriSpeak);f.setAttribute('aria-pressed',yorriSpeak?'false':'true');f.title=yorriSpeak?'Mute Yorri':'Unmute Yorri'}}
 function say(w,t){if(!$('#log'))return;$('#log').querySelectorAll('.spk').forEach(x=>x.remove());const y=w=='Yorri';$('#log').insertAdjacentHTML('beforeend',`<p class="${y?'y':''}"><b>${w}:</b> ${t}${y&&TTS_OK?' <button type="button" class="spk" title="Speak again">🔈</button>':''}</p>`);$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML});if(y&&!applying)speakYorri(t)}
-document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#log .spk')){const p=e.target.closest('p').cloneNode(true);p.querySelectorAll('.spk,b:first-child').forEach(x=>x.remove());speakYorri(p.innerHTML,true)}else if((e.target.closest&&e.target.closest('#spkT,#spkF'))){yorriSpeak=!yorriSpeak;try{localStorage.setItem('ywYorriSpeak',yorriSpeak?'1':'0')}catch(x){}applySpk();if(!yorriSpeak&&TTS_OK)speechSynthesis.cancel();else if(yorriSpeak&&!TTS_OK)ttsNote()}});
-setTimeout(applySpk,0);if(TTS_OK&&speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=()=>{};
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#log .spk')){const p=e.target.closest('p').cloneNode(true);p.querySelectorAll('.spk,b:first-child').forEach(x=>x.remove());speakYorri(p.innerHTML,true)}else if((e.target.closest&&e.target.closest('#spkT,#spkF'))){yorriSpeak=!yorriSpeak;try{localStorage.setItem('ywYorriSpeak',yorriSpeak?'1':'0')}catch(x){}applySpk();if(!yorriSpeak)ttsStop();else if(yorriSpeak&&!TTS_OK)ttsNote()}});
+setTimeout(applySpk,0);if(TTS_OK&&speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=()=>vcRender();
+setTimeout(vcRender,0);setTimeout(vcRender,1500);
+document.addEventListener('input',e=>{const id=e.target&&e.target.id;if(id==='vcRate'||id==='vcPitch'){vcSet({[id==='vcRate'?'rate':'pitch']:+e.target.value});vcRender()}});
+document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id==='vcSel')vcSet({name:e.target.value});else if(id==='vcAi')vcSet({ai:e.target.checked});else if(id==='vcAiV')vcSet({aiVoice:e.target.value});else return;vcRender()});
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='vcPrev'){if(IS_TESLA){ttsNoted=false;ttsNote();return}ttsSpeak('Hi Aaron, this is Yorri. Your board is up to date, and I have two items waiting for your approval.')}});
 
 /* —— Voice: approve / decline / open navigation —— */
 function normVoice(t){return String(t||'').toLowerCase().replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim()}
