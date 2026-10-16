@@ -330,7 +330,7 @@ function saveMock(){try{localStorage.setItem(LS_MOCK,mockOn?'1':'0')}catch(e){}}
 function loadVoiceCodes(){try{const raw=localStorage.getItem(LS_VOICE);if(!raw)return;const o=JSON.parse(raw);if(o&&o.approve)voiceCodes.approve=String(o.approve).toLowerCase();if(o&&o.decline)voiceCodes.decline=String(o.decline).toLowerCase()}catch(e){}}
 function mockBadge(){return mockOn?'<span class="mock-badge">MOCK</span>':''}
 function mockBadgeWrap(){return mockOn?`<div style="margin-top:8px">${mockBadge()}</div>`:''}
-function emptyState(label){return `<div class="empty"><b>CONNECT LIVE</b>No live ${label||'data'} yet. Turn on Mock data in the header to preview, or wire this room later.</div>`}
+function emptyState(label){return `<div class="empty" style="padding:10px"><b>NOT CONNECTED</b>No ${esc(label||'data')} connector yet. <button type="button" class="bz-link" data-cxgo="">Set up in Connections</button></div>`}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function uid(){return 'r'+Math.random().toString(36).slice(2,9)}
 function setVmsg(t){const el=$('#vmsg');if(el)el.textContent=t||''}
@@ -354,7 +354,7 @@ const LIVE={
    {vendor:'Stub Vendor A',amt:null,due:'—'}],connected:false})}}
 };
 const liveData=k=>{try{return LIVE[k].source.fetch()}catch(e){return null}};
-const liveBadge=()=>'<span class="mock-badge" style="color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)">LIVE (stub)</span>';
+const liveBadge=()=>(typeof supURL==='function'&&supURL())?'<span class="mock-badge" style="color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)">LIVE</span>':'<span class="mock-badge" style="color:var(--amber)">SAMPLE</span>';
 const LS_AUDIT='ywVaultAudit';
 function audit(entry){try{const a=JSON.parse(localStorage.getItem(LS_AUDIT)||'[]');a.unshift(Object.assign({ts:new Date().toISOString(),mode:mockOn?'MOCK':'LIVE(stub)'},entry));localStorage.setItem(LS_AUDIT,JSON.stringify(a.slice(0,200)))}catch(e){}}
 function auditList(){try{return JSON.parse(localStorage.getItem(LS_AUDIT)||'[]')}catch(e){return[]}}
@@ -487,30 +487,36 @@ const dsGet=()=>{try{return JSON.parse(localStorage.getItem(LS_DS)||'{}')||{}}ca
 const dsSet=p=>{const o=Object.assign(dsGet(),p);try{_lsSet.call(localStorage,LS_DS,JSON.stringify(o))}catch(e){}return o};
 const DSU={busy:false,msg:'',err:false,quiet:false};let dsTimer=null;
 const _lsSet=Storage.prototype.setItem;
-Storage.prototype.setItem=function(k,v){_lsSet.call(this,k,v);try{if(this===localStorage&&!DSU.quiet&&dsGet().linked&&(DS_KEYS.includes(k)||(k==='ywLlm'&&dsGet().xai)))dsQueue()}catch(e){}};
-function dsQueue(){clearTimeout(dsTimer);dsTimer=setTimeout(dsPush,1500)}
+const DS_SEC={ywConn:'conn',ywBusinesses:'biz',ywSms:'sms',ywA11y:'a11y',ywVoice:'voice',ywLlm:'xai'};
+const dsMod=()=>{try{return JSON.parse(localStorage.getItem('ywDsMod')||'{}')||{}}catch(e){return{}}};
+function dsTouch(sec,t){const m=dsMod();m[sec]=t||Date.now();_lsSet.call(localStorage,'ywDsMod',JSON.stringify(m))}
+Storage.prototype.setItem=function(k,v){const prev=this===localStorage&&DS_SEC[k]&&!DSU.quiet?this.getItem(k):null;_lsSet.call(this,k,v);try{if(this===localStorage&&!DSU.quiet&&DS_SEC[k]&&prev!==v){dsTouch(DS_SEC[k]);if(dsGet().linked&&(DS_KEYS.includes(k)||(k==='ywLlm'&&dsGet().xai)))dsQueue()}}catch(e){}};
+function dsQueue(){clearTimeout(dsTimer);dsTimer=setTimeout(()=>{dsTimer=null;dsPush()},1500)}
+function dsFlush(){if(!dsTimer)return;clearTimeout(dsTimer);dsTimer=null;const d=dsGet();if(!d.linked)return;try{fetch(d.url.replace(/\/+$/,'')+'/config',{method:'PUT',keepalive:true,headers:{Authorization:'Bearer '+d.token,'Content-Type':'application/json'},body:JSON.stringify({bundle:dsBundle(),baseRev:d.rev||0,force:true})})}catch(e){}}
+addEventListener('pagehide',dsFlush);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')dsFlush();else if(dsGet().linked)dsPullOnLoad()});
 function dsBundle(){const d=dsGet(),j=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
  const conn=j('ywConn')||{};const c2={};for(const[k,v]of Object.entries(conn)){c2[k]={type:v.type,url:v.url,live:!!v.live};if(v.tested)c2[k].tested=v.tested}
- const b={conn:c2,biz:j('ywBusinesses'),sms:j('ywSms'),a11y:j('ywA11y'),voice:j('ywVoice')};if(d.xai){const l=j('ywLlm');if(l)b.xai=l}return b}
+ const b={conn:c2,biz:j('ywBusinesses'),sms:j('ywSms'),a11y:j('ywA11y'),voice:j('ywVoice')};if(d.xai){const l=j('ywLlm');if(l)b.xai=l}b.mod=dsMod();return b}
 async function dsReq(method,body){const d=dsGet();const r=await fetch(d.url.replace(/\/+$/,'')+'/config',{method,headers:Object.assign({Authorization:'Bearer '+d.token},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});
  if(r.status===404)throw new Error('this server doesn’t support sync yet');if(r.status===401||r.status===403)throw new Error('token rejected');const j=await r.json().catch(()=>({}));if(!r.ok&&r.status!==409)throw new Error('HTTP '+r.status);return {status:r.status,j}}
-function dsApply(b){if(!b)return false;const d=dsGet();DSU.quiet=true;try{
+function dsApply(b0){if(!b0)return false;const d=dsGet(),lm=dsMod(),rm=b0.mod||{},b={};for(const k of Object.keys(b0)){if(k==='mod')continue;if(!lm[k]||(rm[k]||0)>lm[k])b[k]=b0[k]}DSU.quiet=true;try{
  if(b.conn){const local=connAll(),out={};for(const[k,v]of Object.entries(b.conn)){const L=local[k]||{};out[k]=Object.assign({},L,{type:v.type,url:v.url||'',live:!!v.live});
    const same=v.url&&v.url.replace(/\/+$/,'')===d.url.replace(/\/+$/,'');out[k].token=same?d.token:(L.token||'')}
   for(const[k,v]of Object.entries(local))if(!out[k])out[k]=v;_lsSet.call(localStorage,'ywConn',JSON.stringify(out))}
  if(b.biz&&Array.isArray(b.biz.businesses)&&b.biz.businesses.length)_lsSet.call(localStorage,'ywBusinesses',JSON.stringify(b.biz));
  if(b.sms)_lsSet.call(localStorage,'ywSms',JSON.stringify(b.sms));if(b.a11y)_lsSet.call(localStorage,'ywA11y',JSON.stringify(b.a11y));if(b.voice)_lsSet.call(localStorage,'ywVoice',JSON.stringify(b.voice));
- if(b.xai&&d.xai)_lsSet.call(localStorage,'ywLlm',JSON.stringify(b.xai))}finally{DSU.quiet=false}return true}
+ if(b.xai&&d.xai)_lsSet.call(localStorage,'ywLlm',JSON.stringify(b.xai));const nm=dsMod();for(const k of Object.keys(b))nm[k]=rm[k]||1;_lsSet.call(localStorage,'ywDsMod',JSON.stringify(nm))}finally{DSU.quiet=false}return Object.keys(b).length>0}
 async function dsPush(){const d=dsGet();if(!d.linked)return;DSU.busy=true;dsRender();
- try{let r=await dsReq('PUT',{bundle:dsBundle(),baseRev:d.rev||0});if(r.status===409)r=await dsReq('PUT',{bundle:dsBundle(),baseRev:r.j.rev});
-  dsSet({rev:r.j.rev,savedAt:r.j.savedAt,durable:r.j.durable});DSU.msg='';DSU.err=false}catch(e){DSU.msg='Sync error: '+String(e.message||e).slice(0,80);DSU.err=true}DSU.busy=false;dsRender()}
+ try{let r=await dsReq('PUT',{bundle:dsBundle(),baseRev:d.rev||0});if(r.status===409){if(r.j.bundle&&dsApply(r.j.bundle))dsLiveApply();r=await dsReq('PUT',{bundle:dsBundle(),baseRev:r.j.rev})}
+  dsSet({rev:r.j.rev,savedAt:r.j.savedAt,durable:r.j.durable});if(r.j.bundle&&dsApply(r.j.bundle))dsLiveApply();DSU.msg='';DSU.err=false}catch(e){DSU.msg='Sync error: '+String(e.message||e).slice(0,80);DSU.err=true}DSU.busy=false;dsRender()}
 async function dsConnect(){const url=($('#dsUrl').value||'').trim(),tok=($('#dsTok').value||'').trim()||dsGet().token||'';const xai=$('#dsXai').checked;
  if(!/^https:\/\/|^http:\/\/(127\.0\.0\.1|localhost)/.test(url)){DSU.msg='Enter the server URL (https://…)';DSU.err=true;return dsRender()}if(!tok){DSU.msg='Enter the site token';DSU.err=true;return dsRender()}
  dsSet({url,token:tok,xai,linked:false});DSU.busy=true;DSU.msg='Connecting… (a sleeping server can take ~30s)';DSU.err=false;dsRender();
  try{const {j}=await dsReq('GET');if(j.bundle){dsApply(j.bundle);dsSet({linked:true,rev:j.rev,savedAt:j.savedAt,durable:j.durable});DSU.msg='Synced. Reloading with your settings…';dsRender();setTimeout(()=>location.reload(),600);return}
   dsSet({linked:true,rev:j.rev||0});await dsPush();DSU.msg='Linked. This device’s settings were uploaded.';DSU.err=false}
  catch(e){dsSet({linked:false});DSU.msg='Couldn’t connect: '+String(e.message||e).slice(0,80);DSU.err=true}DSU.busy=false;dsRender()}
-async function dsPullOnLoad(){const d=dsGet();if(!d.linked)return;try{const {j}=await dsReq('GET');if(j.rev>(d.rev||0)&&j.bundle&&!sessionStorage.getItem('ywDsReloaded')){dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable});sessionStorage.setItem('ywDsReloaded','1');location.reload();return}
+function dsLiveApply(){try{loadBiz();refreshBizSelect();ensureAssignments();draw()}catch(e){}}
+async function dsPullOnLoad(){const d=dsGet();if(!d.linked)return;if(dsTimer){clearTimeout(dsTimer);dsTimer=null;await dsPush()}try{const {j}=await dsReq('GET');if(j.rev>(dsGet().rev||0)&&j.bundle){const ch=dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable});if(ch)dsLiveApply();{const lm=dsMod(),rm=j.bundle.mod||{};if(Object.keys(lm).some(k=>(lm[k]||0)>(rm[k]||0)))dsQueue()}}
  sessionStorage.removeItem('ywDsReloaded');dsSet({durable:j.durable});DSU.msg='';DSU.err=false}catch(e){DSU.msg='Sync error: '+String(e.message||e).slice(0,80);DSU.err=true}dsRender()}
 function dsRender(){const B=$('#syncBox');if(!B)return;const d=dsGet(),when=d.savedAt?new Date(d.savedAt).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
  const stat=DSU.busy?'Syncing…':DSU.msg?`<span class="${DSU.err?'cx-bad':''}">${esc(DSU.msg)}</span>`:d.linked?`<span class="cx-ok">Synced${when?' · '+esc(when):''}</span>${d.durable===false?' <span class="cx-bad">(server storage temporarily not durable)</span>':''}`:'Not synced. Settings stay on this device.';
@@ -798,7 +804,7 @@ function supModal(){let m=document.getElementById('supModal');const t=SUP.open;i
  if(!m){m=document.createElement('div');m.id='supModal';m.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px';document.body.appendChild(m)}
  m.innerHTML=`<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:14px;color:var(--txt);font-size:14px">
  <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(t.subject)}</b><button class="btn" data-supx="1">✕</button></div>
- <div class="mono" style="margin:4px 0 10px">${esc(t.id)} · ${esc(t.fromName||'')} &lt;${esc(t.from)}&gt; · ${esc(t.priority)} · ${supAge(t)} · ${supSla(t)} · ${esc(t.status)} ${mockOn?'· MOCK':SupportSource().name==='stub'?'· LIVE (stub)':'· LIVE'}</div>
+ <div class="mono" style="margin:4px 0 10px">${esc(t.id)} · ${esc(t.fromName||'')} &lt;${esc(t.from)}&gt; · ${esc(t.priority)} · ${supAge(t)} · ${supSla(t)} · ${esc(t.status)} ${mockOn?'· MOCK':SupportSource().name==='stub'?'· SAMPLE':'· LIVE'}</div>
  ${t.thread.map(x=>`<div style="margin:6px 0;display:flex;justify-content:${x.out?'flex-end':'flex-start'}"><div style="max-width:85%;padding:8px 10px;border-radius:12px;background:${x.out?'color-mix(in srgb,var(--ok) 22%,var(--panel))':'var(--field)'}"><div class="mono">${esc(x.from)} · ${new Date(x.at).toLocaleString()}</div>${esc(x.body).replace(/\n/g,'<br>')}</div></div>`).join('')}
  <div style="margin-top:10px"><b>Yorri's suggested reply</b> <span class="mono">${llmCfg().key?'Grok':'template'}</span></div>
  <textarea id="supDraft" rows="6" style="width:100%;box-sizing:border-box;margin-top:4px;font-size:14px" placeholder="Tap Draft with Yorri…">${esc(SUP.draft)}</textarea>
@@ -838,7 +844,7 @@ const LIVE_SUM={
 };
 const CMD_ROOMS=['Briefing','Finance','HR','Payroll','Legal','Support','Vault'];
 const CMD_DEFAULT_MULTI=['Finance','HR','Payroll','Legal','Support','Vault'];
-function cmdBody(name){if(name==='Support')return supTileHTML();if(!mockOn)return LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
+function cmdBody(name){if(name==='Support')return supTileHTML();if(!mockOn)return cmdState(name)!=='none'&&LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
 
 function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
@@ -884,7 +890,8 @@ const SAFE_RACK_SEED=()=>({id:'safe-rack',name:'Safe Rack',rooms:[
 ]});
 let bizStore=seedBusinesses();
 function loadBiz(){try{const raw=localStorage.getItem(LS_BIZ);if(!raw){saveBiz();return}const o=JSON.parse(raw);if(o&&Array.isArray(o.businesses)&&o.businesses.length){bizStore.businesses=o.businesses;bizStore.activeId=o.activeId||o.businesses[0].id;if(!localStorage.getItem('ywSeedSR')){localStorage.setItem('ywSeedSR','1');if(!o.businesses.some(b=>b.id==='safe-rack'||b.name==='Safe Rack')){bizStore.businesses.push(SAFE_RACK_SEED());saveBiz()}else if(!o.businesses.some(b=>(b.rooms||[]).some(r=>r.type==='maint'))){o.businesses.find(b=>b.id==='safe-rack'||b.name==='Safe Rack').rooms.unshift({id:'sr-maint',label:'Maintenance',type:'maint'});saveBiz()}}}}catch(e){}}
-function saveBiz(){try{localStorage.setItem(LS_BIZ,JSON.stringify(bizStore))}catch(e){}}
+function saveBiz(){try{localStorage.setItem(LS_BIZ,JSON.stringify(bizStore))}catch(e){}bizTilesRefresh()}
+let bizTilesT=0;function bizTilesRefresh(){clearTimeout(bizTilesT);bizTilesT=setTimeout(()=>{document.querySelectorAll('section.bizrow').forEach(el=>{const h=bizTilesHTML();if(h)el.outerHTML=h;else el.remove()});try{refreshBizSelect()}catch(e){}},0)}
 function activeBiz(){return bizStore.businesses.find(b=>b.id===bizStore.activeId)||bizStore.businesses[0]}
 
 let pageView=(params.get('view')==='apps')?'apps':'command';
@@ -977,7 +984,8 @@ function setScreenCount(n){
   if(!isSat){if(screenCount===1){Object.keys(pops).forEach(k=>{try{pops[k]&&pops[k].close()}catch(e){}});pops={};$('#popupWarn').classList.remove('show')}else reopenScreens()}
   draw();broadcast(Object.assign(snapshot(),{type:'state'}));
 }
-function cardHTML(title,body,keep){const live=mockOn?'● mock':(LIVE_RENDER[title]?'● LIVE (stub)':'○ live pending');return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} <span class="mono">${live}</span></h3>${body}</div>`}
+function cmdState(t){if(mockOn)return 'mock';if(t==='Support')return supURL()?'live':'sample';if(t==='Vault')return 'live';if(t==='Finance'&&LIVE.finance&&LIVE.finance.source&&LIVE.finance.source.name!=='stub')return 'live';return 'none'}
+function cardHTML(title,body,keep){return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} ${roomChip(cmdState(title))}</h3>${body}</div>`}
 function draw(){if(typeof dedupeQ==='function')dedupeQ();{const bn=$('#bizNav');if(bn)bn.innerHTML=bizNavHTML()}
   ensureAssignments();
   document.body.classList.toggle('view-apps',pageView==='apps');
@@ -1209,7 +1217,7 @@ const LANES={
 LANES['Command Board']=LANES.Briefing;
 const ASKY=/\b(summar\w*|analy\w*|what\w*|how|any|status|break\s*down|tell|due|risk\w*|overview|explain|review|vs|versus|compare|look\w*|check|update|report|show\s+me|where|which|who|pipeline|this\s+friday|\?)/i;
 function laneFor(t){for(const n of ['Payroll','Support','Legal','Vault','HR','Finance','Briefing'])if(LANES[n].re.test(t))return n;return null}
-function laneReply(n){if(!mockOn&&LIVE_SUM[n])return `<span class="tier t0">T0</span><b>LIVE (stub)</b> `+LIVE_SUM[n]();if(!mockOn&&n!=='Briefing')return `<span class="tier t0">T0</span>${esc(n)}: no live connector yet (mock off).`;return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}`+LANES[n].sum()}
+function laneReply(n){if(!mockOn&&LIVE_SUM[n]&&cmdState(n)!=='none')return `<span class="tier t0">T0</span><b>${cmdState(n)==='live'?'LIVE':'SAMPLE'}</b> `+LIVE_SUM[n]();if(!mockOn&&n!=='Briefing')return `<span class="tier t0">T0</span>${esc(n)}: no live connector yet (mock off).`;return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}`+LANES[n].sum()}
 function finSummary(){return laneReply('Finance')}
 function finCtx(){if(!mockOn)return ' LIVE(stub) data (label LIVE stub; no other figures exist): Support tickets '+JSON.stringify(liveData('support'))+'; Finance '+JSON.stringify(liveData('finance'));return mockOn?' MOCK demo lane data (use these numbers, label MOCK): '+['Finance','Payroll','HR','Legal','Support','Vault'].map(n=>LANES[n].ctx()).join(' ')+' Briefing = rollup of all lanes.':''}
 /* ---- Grok LLM (xAI OpenAI-compatible) ---- */
@@ -1370,7 +1378,7 @@ if($('#edSave'))$('#edSave').onclick=()=>saveEditor();
 if($('#edCancel'))$('#edCancel').onclick=()=>$('#editor').classList.remove('show');
 if($('#mockT'))$('#mockT').onchange=()=>{
   mockOn=$('#mockT').checked;saveMock();draw();broadcast({type:'mock',mock:mockOn});broadcast(snapshot());
-  say('Yorri',mockOn?'Mock data <b>ON</b> — demo KPIs and MOCK labels restored.':'Mock data <b>OFF</b> — Support & Finance show <b>LIVE (stub)</b> connectors; other rooms show Connect live.');
+  say('Yorri',mockOn?'Mock data <b>ON</b> — demo KPIs and MOCK labels restored.':'Mock data <b>OFF</b> — rooms show Live, Sample, or Not connected.');
 };
 if($('#carT'))$('#carT').onchange=()=>{
   carLayout=$('#carT').checked;saveCar();applyCarLayout();
