@@ -210,9 +210,42 @@ Legal:`<div class="row"><span>NDA · Acme Corp</span><span class="am">renews 9d<
 Support:`<div class="kpi"><div><b>7</b><small>open internal</small></div><div><b class="up">4m</b><small>median reply</small></div></div><div class="row"><span>"How do I file PTO?"</span><span class="up">auto-answered</span></div><div class="row"><span>Expense policy Q</span><span>drafted</span></div>`,
 Vault:`<div class="kpi"><div><b>1,284</b><small>docs</small></div><div><b class="up">AES-256</b><small>encrypted</small></div></div><div class="row"><span>W-9s</span><span>12</span></div><div class="row"><span>Contracts</span><span>87</span></div><div class="row"><span>Last indexed</span><span>6m ago</span></div>`
 };
+
+/* ==== LIVE connectors (pluggable). Mock lives only in CMD_MOCK/LANES; delete those to drop mock. ====
+   To go real: replace LIVE.support.source / LIVE.finance.source fetch() with an inbox/QuickBooks API call.
+   No secrets here — real connectors should call a server-side proxy. */
+const LIVE={
+ support:{source:{name:'stub',fetch:()=>({tickets:[
+   {id:'S-101',subj:'VPN access for new hire',pri:'high',ageH:26,slaH:24,from:'it@stub'},
+   {id:'S-102',subj:'Payroll portal login loop',pri:'high',ageH:5,slaH:24,from:'hr@stub'},
+   {id:'S-103',subj:'Expense policy question',pri:'medium',ageH:3,slaH:48,from:'ops@stub'}],closedWeek:0,medianReplyM:null})}},
+ finance:{source:{name:'stub',fetch:()=>({cash:null,burnMo:null,inMTD:null,outMTD:null,ap:[
+   {vendor:'Stub Vendor A',amt:null,due:'—'}],connected:false})}}
+};
+const liveData=k=>{try{return LIVE[k].source.fetch()}catch(e){return null}};
+const liveBadge=()=>'<span class="mock-badge" style="color:#5fd38d;border-color:#2c6b45">LIVE (stub)</span>';
+const LS_AUDIT='ywVaultAudit';
+function audit(entry){try{const a=JSON.parse(localStorage.getItem(LS_AUDIT)||'[]');a.unshift(Object.assign({ts:new Date().toISOString(),mode:mockOn?'MOCK':'LIVE(stub)'},entry));localStorage.setItem(LS_AUDIT,JSON.stringify(a.slice(0,200)))}catch(e){}}
+function auditList(){try{return JSON.parse(localStorage.getItem(LS_AUDIT)||'[]')}catch(e){return[]}}
+const slaOf=t=>t.ageH>=t.slaH?'<span class="dn">BREACH</span>':`<span class="up">${t.slaH-t.ageH}h left</span>`;
+const LIVE_RENDER={
+ Support:()=>{const d=liveData('support');if(!d)return emptyState('Support');const ts=d.tickets||[];
+  return `<div class="kpi"><div><b>${ts.length}</b><small>open</small></div><div><b class="dn">${ts.filter(t=>t.ageH>=t.slaH).length}</b><small>SLA breach</small></div><div><b>${d.medianReplyM==null?'—':d.medianReplyM+'m'}</b><small>median reply</small></div></div>`+
+  ts.map(t=>`<div class="row"><span>${esc(t.id)} · ${esc(t.subj)} <span class="mono">${esc(t.pri)} · ${t.ageH}h</span></span><span>${slaOf(t)} <button class="btn" data-sup="${esc(t.id)}" style="padding:2px 6px;font-size:10px">Propose reply</button></span></div>`).join('')+
+  `<div style="margin-top:8px">${liveBadge()} <span class="mono">source: ${esc(LIVE.support.source.name)}</span></div>`},
+ Finance:()=>{const d=liveData('finance');if(!d)return emptyState('Finance');const v=x=>x==null?'—':k$(x);
+  return `<div class="kpi"><div><b>${v(d.cash)}</b><small>cash</small></div><div><b>${v(d.burnMo)}</b><small>burn / mo</small></div><div><b>${d.cash&&d.burnMo?(d.cash/d.burnMo).toFixed(1)+' mo':'—'}</b><small>runway</small></div></div><div class="row"><span>MTD in / out</span><span>${v(d.inMTD)} / ${v(d.outMTD)}</span></div>`+
+  (d.ap||[]).map(b=>`<div class="row"><span>AP · ${esc(b.vendor)}</span><span>${v(b.amt)} · due ${esc(b.due)}</span></div>`).join('')+
+  `<div class="row"><span>Connector</span><span class="am">${d.connected?'connected':'not connected'}</span></div><div style="margin-top:8px">${liveBadge()} <span class="mono">source: ${esc(LIVE.finance.source.name)}</span></div>`},
+ Vault:()=>{const a=auditList().slice(0,6);return `<div class="kpi"><div><b>${auditList().length}</b><small>audit entries</small></div></div>`+(a.length?a.map(e=>`<div class="row"><span>${esc(e.decision)} · ${esc(e.title)}</span><span class="mono">${esc(e.lane||'')} · ${esc(e.ts.slice(5,16).replace('T',' '))}</span></div>`).join(''):'<div class="row"><span>No decisions logged yet</span></div>')+`<div style="margin-top:8px">${liveBadge()} <span class="mono">audit · local</span></div>`}
+};
+const LIVE_SUM={
+ Support:()=>{const d=liveData('support')||{tickets:[]};const ts=d.tickets;const br=ts.filter(t=>t.ageH>=t.slaH);return `Support (stub source): <b>${ts.length} open</b> — ${ts.filter(t=>t.pri==='high').length} high. ${br.length?'<b>SLA breach:</b> '+br.map(t=>esc(t.id+' '+t.subj)).join(', '):'No SLA breaches.'} Real inbox not connected yet.`},
+ Finance:()=>`Finance (stub source): no live connector yet — cash, burn and AP show “—” until QuickBooks/bank is wired. Not inventing numbers.`
+};
 const CMD_ROOMS=['Briefing','Finance','HR','Payroll','Legal','Support','Vault'];
 const CMD_DEFAULT_MULTI=['Finance','HR','Payroll','Legal','Support','Vault'];
-function cmdBody(name){if(!mockOn)return emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
+function cmdBody(name){if(!mockOn)return LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
 
 function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
@@ -338,7 +371,7 @@ function setScreenCount(n){
   if(!isSat){if(screenCount===1){Object.keys(pops).forEach(k=>{try{pops[k]&&pops[k].close()}catch(e){}});pops={};$('#popupWarn').classList.remove('show')}else reopenScreens()}
   draw();broadcast(Object.assign(snapshot(),{type:'state'}));
 }
-function cardHTML(title,body,keep){const live=mockOn?'● mock':'○ live pending';return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} <span class="mono">${live}</span></h3>${body}</div>`}
+function cardHTML(title,body,keep){const live=mockOn?'● mock':(LIVE_RENDER[title]?'● LIVE (stub)':'○ live pending');return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} <span class="mono">${live}</span></h3>${body}</div>`}
 function draw(){if(typeof dedupeQ==='function')dedupeQ();
   ensureAssignments();
   document.body.classList.toggle('view-apps',pageView==='apps');
@@ -528,9 +561,9 @@ const LANES={
 LANES['Command Board']=LANES.Briefing;
 const ASKY=/\b(summar\w*|analy\w*|what\w*|how|any|status|break\s*down|tell|due|risk\w*|overview|explain|review|vs|versus|compare|look\w*|check|update|report|show\s+me|where|which|who|pipeline|this\s+friday|\?)/i;
 function laneFor(t){for(const n of ['Payroll','Support','Legal','Vault','HR','Finance','Briefing'])if(LANES[n].re.test(t))return n;return null}
-function laneReply(n){return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}`+LANES[n].sum()}
+function laneReply(n){if(!mockOn&&LIVE_SUM[n])return `<span class="tier t0">T0</span><b>LIVE (stub)</b> `+LIVE_SUM[n]();if(!mockOn&&n!=='Briefing')return `<span class="tier t0">T0</span>${esc(n)}: no live connector yet (mock off).`;return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}`+LANES[n].sum()}
 function finSummary(){return laneReply('Finance')}
-function finCtx(){return mockOn?' MOCK demo lane data (use these numbers, label MOCK): '+['Finance','Payroll','HR','Legal','Support','Vault'].map(n=>LANES[n].ctx()).join(' ')+' Briefing = rollup of all lanes.':''}
+function finCtx(){if(!mockOn)return ' LIVE(stub) data (label LIVE stub; no other figures exist): Support tickets '+JSON.stringify(liveData('support'))+'; Finance '+JSON.stringify(liveData('finance'));return mockOn?' MOCK demo lane data (use these numbers, label MOCK): '+['Finance','Payroll','HR','Legal','Support','Vault'].map(n=>LANES[n].ctx()).join(' ')+' Briefing = rollup of all lanes.':''}
 /* ---- Grok LLM (xAI OpenAI-compatible) ---- */
 const LS_LLM='ywLlm',LLM_DEF={key:'',base:'https://api.x.ai/v1',model:'grok-4'};
 function llmCfg(){try{return Object.assign({},LLM_DEF,JSON.parse(localStorage.getItem(LS_LLM)||'{}'))}catch(e){return Object.assign({},LLM_DEF)}}
@@ -552,6 +585,7 @@ say('Yorri',h||'(no reply)');if(added){draw();broadcast(snapshot())}return true}
 catch(e){const net=e instanceof TypeError;say('Yorri',`<span class="mono">AI offline (${esc(net?'network/CORS blocked — set a proxy Base URL':e.message).slice(0,140)}) — using built-in.</span>`);return false}}
 function llmUI(){const c=llmCfg();if(!$('#llmKey'))return;$('#llmKey').value=c.key;$('#llmBase').value=c.base;$('#llmModel').value=c.model;$('#llmStat').textContent=c.key?'Grok on':'No key — built-in mode'}
 function llmRead(){return{key:$('#llmKey').value.trim(),base:$('#llmBase').value.trim()||LLM_DEF.base,model:$('#llmModel').value.trim()||LLM_DEF.model}}
+document.addEventListener('click',e=>{const sid=e.target&&e.target.dataset&&e.target.dataset.sup;if(!sid)return;const t=((liveData('support')||{}).tickets||[]).find(x=>x.id===sid);if(!t)return;const a={t:['t1','T1'],title:'Reply to '+t.id+': '+t.subj,why:'Support LIVE (stub) · '+t.pri+' · '+t.ageH+'h',lane:'Support'};if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')});
 document.addEventListener('click',async e=>{const id=e.target.id;
 if(id==='llmBtn'){const p=$('#llmPanel');p.style.display=p.style.display==='none'?'block':'none';llmUI()}
 else if(id==='llmSave'){llmSaveCfg(llmRead());llmUI();$('#llmStat').textContent='Saved'}
@@ -587,7 +621,7 @@ const APPROVE_RE=/^(?:hey\s+)?(?:yorri\s+)?(?:i\s+)?(approve|approved|approving|
 function decide(i,ok){
   const a=queue.splice(i,1)[0];if(!a)return;
   if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.')){queue.splice(i,0,a);draw();return}
-  decided[qKey(a)]=Date.now();queue=queue.filter(x=>qKey(x)!==qKey(a));
+  decided[qKey(a)]=Date.now();audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
   say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
   draw();broadcast(snapshot());
 }
@@ -689,7 +723,7 @@ if($('#edSave'))$('#edSave').onclick=()=>saveEditor();
 if($('#edCancel'))$('#edCancel').onclick=()=>$('#editor').classList.remove('show');
 if($('#mockT'))$('#mockT').onchange=()=>{
   mockOn=$('#mockT').checked;saveMock();draw();broadcast({type:'mock',mock:mockOn});broadcast(snapshot());
-  say('Yorri',mockOn?'Mock data <b>ON</b> — demo KPIs and MOCK labels restored.':'Mock data <b>OFF</b> — all boards show Connect live empty states.');
+  say('Yorri',mockOn?'Mock data <b>ON</b> — demo KPIs and MOCK labels restored.':'Mock data <b>OFF</b> — Support & Finance show <b>LIVE (stub)</b> connectors; other rooms show Connect live.');
 };
 if($('#carT'))$('#carT').onchange=()=>{
   carLayout=$('#carT').checked;saveCar();applyCarLayout();
