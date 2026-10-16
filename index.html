@@ -149,6 +149,24 @@ html.a11y-contrast .bz-tab{border-width:1.5px}.og-b.danger{color:var(--red)}
 .og-add{padding:8px 12px 10px 20px;border-top:1px solid var(--line)}
 html.a11y-contrast .og-b,html.a11y-contrast .og-sel{border-width:1.5px}
 @media (hover:none){.og-h{display:none}}
+.sm-card{border:1px solid var(--line);border-radius:10px;background:var(--field);padding:12px;display:grid;grid-template-columns:max-content 1fr;gap:10px 12px;align-items:center}
+.sm-card label.sm-l{color:var(--mut);font-size:.9em}
+.sm-card input[type=tel],.sm-card input[type=time],.sm-row input[type=time],.sm-row select{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:inherit}
+.sm-stat .cx-st{flex-basis:100%;padding-left:16px}
+.sm-stat{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;color:var(--txt);font-size:.9em}
+.sm-hdr{margin:14px 0 4px;font-size:.78em;letter-spacing:1px;text-transform:uppercase;color:var(--mut);font-weight:700}
+.sm-row{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.sm-row .sm-x{grid-column:2;color:var(--mut);font-size:.85em}.sm-row .sm-t{grid-column:3;grid-row:1}
+.sm-row .sm-sub{grid-column:2/-1}.sm-row .sm-sub summary{cursor:pointer;color:var(--teal);font-size:.85em}
+.sm-sub .sm-fl{display:flex;flex-wrap:wrap;gap:8px 14px;padding:6px 0;color:var(--mut);font-size:.85em}
+.sm-sw{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;cursor:pointer;margin:0;flex:0 0 38px;transition:background .15s}
+.sm-sw::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--txt);transition:left .15s}
+.sm-sw:checked{background:var(--teal)}.sm-sw:checked::after{left:19px;background:var(--ink)}
+.sm-sw:focus-visible{outline:2px solid var(--teal);outline-offset:2px}.sm-sw:disabled{cursor:not-allowed}
+.sm-off .sm-cats{opacity:.5}
+.sm-hint{color:var(--mut);font-size:.85em;margin-top:10px}
+html.a11y-contrast .sm-card,html.a11y-contrast .sm-sw{border:1.5px solid var(--line)}
+@media (max-width:560px){.sm-card{grid-template-columns:1fr}.sm-row{grid-template-columns:auto 1fr}.sm-row .sm-t{grid-column:2;grid-row:auto;justify-self:start}}
 .cx-biz{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--panel)}
 .cx-biz>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 12px;font-weight:600;color:var(--txt)}
 .cx-biz>summary::-webkit-details-marker,.cx-room>summary::-webkit-details-marker{display:none}
@@ -173,6 +191,8 @@ html.a11y-contrast .cx-biz,html.a11y-contrast .cx-form input,html.a11y-contrast 
 #setPage .wrap{max-width:760px;margin:0 auto}
 #setPage h2{margin:0 0 4px;color:var(--teal);font-size:20px}
 #setPage section{border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0;background:var(--panel)}
+#setPage .sgrp+.sgrp{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+#setPage h5{margin:0 0 8px;font-size:12px;font-weight:700;color:var(--txt)}
 #setPage h4{margin:0 0 10px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--teal)}
 #setPage .opts{display:flex;gap:8px;flex-wrap:wrap}
 #setPage .opts button,#setPage .sbt{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-height:44px;cursor:pointer;font:inherit}
@@ -243,12 +263,9 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <div id="setPage" role="dialog" aria-label="Settings"><div class="wrap">
 <div style="display:flex;align-items:center;gap:10px"><h2>Settings</h2><button type="button" class="sbt" id="setClose" style="margin-left:auto">✕ Close</button></div>
 <p class="tip">Saved in this browser and synced to pop-out screens. Say "open Settings" / "close Settings".</p>
-<section><h4>Text size</h4><div class="opts" id="optScale" role="group" aria-label="Text size"></div><span class="ex">Scales the whole board, Yorri and pop-outs (max 175% with Larger text).</span>
-<div class="opts" style="margin-top:10px"><button type="button" id="optLarge" aria-pressed="false">Larger text (+15%)</button></div><span class="ex">Adds 15% on top of the size above and lets labels wrap instead of clipping.</span></section>
-<section><h4>Color theme</h4><div class="opts" id="optTheme" role="group" aria-label="Color theme"></div><span class="ex">System follows your device's light/dark setting.</span></section>
-<section><h4>High contrast</h4><div class="opts" id="optContrast" role="group" aria-label="High contrast"></div><span class="ex">Brighter text and thicker borders on top of any theme. System follows your device's contrast setting.</span></section>
-<section><h4>Reduce motion</h4><div class="opts" id="optMotion" role="group" aria-label="Reduce motion"></div><span class="ex">Turns off glow, scanning lines and animations. System follows your device setting.</span></section>
-<section><h4>Softer flashes</h4><div class="opts"><button type="button" id="optSoft" aria-pressed="false">Softer flashes</button></div><span class="ex">Keeps pulses and glows, but at 45% strength.</span></section>
+<section aria-labelledby="appH"><h4 id="appH">Appearance</h4><div class="sgrp"><h5>Text size</h5><div class="opts" id="optScale" role="group" aria-label="Text size"></div><span class="ex">Scales the whole board, Yorri and pop-outs (max 175% with Larger text).</span>
+</div><div class="sgrp"><h5>Color theme</h5><div class="opts" id="optTheme" role="group" aria-label="Color theme"></div><span class="ex">System follows your device's light/dark setting.</span></div></section>
+<section aria-labelledby="accH"><h4 id="accH">Accessibility</h4><div class="sgrp"><h5>Larger text</h5><div class="opts"><button type="button" id="optLarge" aria-pressed="false">Larger text (+15%)</button></div><span class="ex">Adds 15% on top of the size above and lets labels wrap instead of clipping.</span></div><div class="sgrp"><h5>High contrast</h5><div class="opts" id="optContrast" role="group" aria-label="High contrast"></div><span class="ex">Brighter text and thicker borders on top of any theme. System follows your device's contrast setting.</span></div><div class="sgrp"><h5>Reduce motion</h5><div class="opts" id="optMotion" role="group" aria-label="Reduce motion"></div><span class="ex">Turns off glow, scanning lines and animations. System follows your device setting.</span></div><div class="sgrp"><h5>Softer flashes</h5><div class="opts"><button type="button" id="optSoft" aria-pressed="false">Softer flashes</button></div><span class="ex">Keeps pulses and glows, but at 45% strength.</span></div></section>
 <section><h4>Yorri &amp; layout</h4><div class="opts">
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
@@ -256,7 +273,8 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 </div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
 <section aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
 <section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="connList"></div></section>
-<section><h4>Reset</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div></section>
+<section aria-labelledby="smsH"><h4 id="smsH">Text Alerts</h4><div id="smsBox"></div></section>
+<section aria-labelledby="advH"><h4 id="advH">Advanced</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div><span class="ex">Restores text size, theme, contrast and motion. Layout reset is under Organize → Advanced; config export under Connections → Advanced.</span></section>
 </div></div>
 <nav class="rooms" id="nav"></nav>
 <div class="car-ctl" id="carCtl"><label title="Ask Yorri on top + decisions under it. Auto-on in Tesla; use this to test on phone/laptop."><input type="checkbox" id="carT"> Car layout</label></div>
@@ -382,6 +400,47 @@ const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,op
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
+/* ---- Text Alerts (ywSms). No SMS backend yet: nothing is ever sent from here. Optional sync with support server /alerts/settings. ---- */
+const LS_SMS='ywSms';
+const SMS_CATS=[['Approvals',[['wr','eMaint work requests needing approval','Text when a maintenance request is waiting for your OK.',true],['dec','Command Center decisions awaiting approval','Text when Yorri has a plan in your decision queue.']]],
+ ['Operations',[['sup','New Support tickets','Text when a new customer email arrives in Support.'],['room','Room on/off confirmations','Text when a room is switched Live or back to Sample.']]],
+ ['System',[['sys','Server or connection problems','Text when a connector fails its check or a server goes down.']]],
+ ['Summaries',[['digest','Daily digest','One text a day with tickets, work orders and decisions.']]]];
+function smsDefault(){return{phone:'',all:false,quiet:{on:false,start:'22:00',end:'07:00'},cats:{wr:{on:true,pri:'any',biz:''},dec:{on:true},sup:{on:false},room:{on:false},sys:{on:true},digest:{on:false,time:'07:30'}},updatedAt:0}}
+function smsGet(){let o={};try{o=JSON.parse(localStorage.getItem(LS_SMS)||'{}')||{}}catch(e){}const d=smsDefault();return Object.assign(d,o,{quiet:Object.assign(d.quiet,o.quiet||{}),cats:Object.fromEntries(Object.keys(d.cats).map(k=>[k,Object.assign(d.cats[k],(o.cats||{})[k]||{})]))})}
+const SMS={sync:'',edit:false,live:false};let smsTimer=null;
+function smsSave(o,push){o.updatedAt=Date.now();try{localStorage.setItem(LS_SMS,JSON.stringify(o))}catch(e){}if(push!==false){clearTimeout(smsTimer);smsTimer=setTimeout(()=>smsSync('put'),600)}}
+function smsMask(p){const d=(p||'').replace(/\D/g,'');return d.length<4?'':'•••• ••• '+d.slice(-4)}
+function smsServer(){const c=connGet(SUP_KEY());return c.url&&c.token?{url:c.url.replace(/\/+$/,''),token:c.token}:null}
+async function smsSync(mode){const sv=smsServer();if(!sv){SMS.sync='local';smsRender();return}
+ try{const o=smsGet();const r=await fetch(sv.url+'/alerts/settings',mode==='put'?{method:'PUT',headers:{Authorization:'Bearer '+sv.token,'Content-Type':'application/json'},body:JSON.stringify(o)}:{headers:{Authorization:'Bearer '+sv.token}});
+  if(r.status===404){SMS.sync='nosupport'}else if(!r.ok){SMS.sync='error:HTTP '+r.status}else{const j=await r.json();SMS.live=!!j.smsLive;if(mode!=='put'&&j.settings&&j.settings.updatedAt>(o.updatedAt||0))smsSave(Object.assign(smsGet(),j.settings),false);SMS.sync='saved'}}
+ catch(e){SMS.sync='error:can’t reach server'}smsRender()}
+function smsRender(){const B=$('#smsBox');if(!B)return;const o=smsGet(),off=!o.all;
+ const syncTxt=SMS.sync==='saved'?'<span class="cx-ok">Saved to server</span>':SMS.sync==='nosupport'?'Saved in this browser. The server doesn’t support alerts yet.':SMS.sync.startsWith('error:')?`<span class="cx-bad">Sync error (${esc(SMS.sync.slice(6))}). Saved in this browser.</span>`:'Saved in this browser.';
+ const tip='Texts aren’t live yet. The alert server isn’t connected.';
+ const sw=(id,on,lab,dis)=>`<input type="checkbox" role="switch" class="sm-sw" id="${id}"${on?' checked':''}${dis?' disabled':''} aria-label="${esc(lab)}">`;
+ B.className=off?'sm-off':'';
+ B.innerHTML=`<div class="sm-card">
+  <label class="sm-l" for="smPhone">Phone</label><div>${o.phone&&!SMS.edit?`<span aria-label="Phone ending ${esc(o.phone.replace(/\D/g,'').slice(-4))}">${smsMask(o.phone)}</span> <button type="button" class="og-b" id="smEdit">Change</button>`:`<input type="tel" id="smPhone" autocomplete="tel" inputmode="tel" placeholder="+1 555 123 4567" aria-describedby="smPhH"> <button type="button" class="og-b" id="smPhSave">Save</button>`}<div class="cx-st" id="smPhH" style="margin-top:4px">Stored in this browser only for now.</div></div>
+  <label class="sm-l" for="smAll">All texts</label><div style="display:flex;align-items:center;gap:8px">${sw('smAll',o.all,'All texts')}<span class="cx-st">${o.all?'On':'Off. Categories below are kept but paused.'}</span></div>
+  <label class="sm-l" for="smQ">Quiet hours</label><div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">${sw('smQ',o.quiet.on,'Quiet hours')}<label class="cx-st">from <input type="time" id="smQs" value="${esc(o.quiet.start)}" aria-label="Quiet hours start"${o.quiet.on?'':' disabled'}></label><label class="cx-st">to <input type="time" id="smQe" value="${esc(o.quiet.end)}" aria-label="Quiet hours end"${o.quiet.on?'':' disabled'}></label></div>
+  <div class="sm-stat" role="status" aria-live="polite"><span class="cx-dot ${SMS.live?'live':'err'}" aria-hidden="true"></span>${SMS.live?'Alert server connected.':'Not connected. Texts won’t send until the alert server is live.'} <span class="cx-st">${syncTxt}</span></div></div>
+ <div class="sm-cats">${SMS_CATS.map(([h,rows])=>`<div class="sm-hdr" role="heading" aria-level="5">${h}</div>${rows.map(([k,lab,ex,sub])=>{const c=o.cats[k];return `<div class="sm-row">${sw('smc_'+k,c.on,lab,off)}<label for="smc_${k}">${esc(lab)}</label><span class="sm-x">${esc(ex)}</span>
+   <span class="sm-t" title="${esc(tip)}"><button type="button" class="og-b" disabled aria-disabled="true" aria-label="Send test for ${esc(lab)}. ${esc(tip)}">Send test</button></span>
+   ${sub?`<details class="sm-sub"><summary>Filters</summary><div class="sm-fl"><label>Priority <select id="smPri" aria-label="Minimum priority"><option value="any"${c.pri==='any'?' selected':''}>Any</option><option value="2"${c.pri==='2'?' selected':''}>P2 and higher</option><option value="1"${c.pri==='1'?' selected':''}>P1 only</option></select></label><label>Business <select id="smBiz" aria-label="Only this business"><option value="">All businesses</option>${bizOrdered().map(b=>`<option value="${esc(b.id)}"${c.biz===b.id?' selected':''}>${esc(b.name)}</option>`).join('')}</select></label></div></details>`:''}
+   ${k==='digest'?`<label class="sm-sub cx-st">Send at <input type="time" id="smDt" value="${esc(c.time)}" aria-label="Digest time"></label>`:''}</div>`}).join('')}`).join('')}</div>
+ <p class="sm-hint">Reply OFF/ON &lt;category&gt; once texting is live.</p>`}
+function smsOpen(){const B=$('#smsBox');if(B)B.closest('section').scrollIntoView({block:'start'})}
+document.addEventListener('change',e=>{const t=e.target;if(!t.closest||!t.closest('#smsBox'))return;const o=smsGet();
+ if(t.id==='smAll')o.all=t.checked;else if(t.id==='smQ')o.quiet.on=t.checked;else if(t.id==='smQs')o.quiet.start=t.value;else if(t.id==='smQe')o.quiet.end=t.value;
+ else if(t.id.startsWith('smc_'))o.cats[t.id.slice(4)].on=t.checked;else if(t.id==='smPri')o.cats.wr.pri=t.value;else if(t.id==='smBiz')o.cats.wr.biz=t.value;else if(t.id==='smDt')o.cats.digest.time=t.value;else return;
+ smsSave(o);const id=t.id;smsRender();const n=document.getElementById(id);if(n)n.focus()});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#smEdit,#smPhSave');if(!t)return;
+ if(t.id==='smEdit'){SMS.edit=true;smsRender();$('#smPhone').focus();return}
+ const v=($('#smPhone').value||'').trim(),d=v.replace(/\D/g,'');if(v&&(d.length<7||d.length>15)){$('#smPhH').textContent='That doesn’t look like a phone number.';return}
+ const o=smsGet();o.phone=v?(v.startsWith('+')?'+':'')+d:'';SMS.edit=false;smsSave(o);smsRender()});
+
 /* nesting: one level. bizParent() ignores stale/invalid parents so data never breaks */
 function bizParent(b){const p=b&&b.parent&&bizStore.businesses.find(x=>x.id===b.parent);return p&&!p.parent&&p!==b?p.id:null}
 const bizTop=()=>bizStore.businesses.filter(b=>!bizParent(b));
@@ -882,6 +941,7 @@ function tryVoiceCommand(raw){
     if(!queue.length){say('Yorri','Nothing pending to decline.');return true}
     say('You',raw);decide(0,0);return true;
   }
+  if(/\b(open|go\s+to|show)\s+(the\s+)?(text|sms)\s*alerts?\b/.test(t)){say('You',raw);ywSettings(true);smsOpen();say('Yorri','Opened <b>Text Alerts</b> in Settings. Texts aren’t live yet.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(organi[sz]e|organizer)\b/.test(t)){say('You',raw);ywSettings(true);orgOpen();say('Yorri','Opened <b>Organize</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?connections?\b/.test(t)){say('You',raw);ywSettings(true);connOpen();say('Yorri','Opened <b>Connections</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(true);say('Yorri','Opened <b>Settings</b>.');return true}
@@ -1203,7 +1263,7 @@ function a11yUI(){const o=a11yGet();const sc=$('#optScale');if(!sc)return;
  const sp=$('#setSpk');if(sp)sp.textContent=(typeof yorriSpeak!=='undefined'&&!yorriSpeak)?'🔇 Yorri voice: off':'🔊 Yorri voice: on';
  const ca=$('#setCar'),ct=$('#carT');if(ca&&ct)ca.textContent='🚗 Car layout: '+(ct.checked?'on':'off');
  const mo=$('#setMock'),mt=$('#mockT');if(mo&&mt)mo.textContent='Mock data: '+(mt.checked?'on':'off')}
-function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();connRender();orgRender();const f=$('#setClose');if(f)f.focus()}}
+function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();connRender();orgRender();smsRender();smsSync('get');const f=$('#setClose');if(f)f.focus()}}
 window.ywSettings=ywSettings;
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#navSettings,#setClose,[data-scale],[data-theme-set],[data-contrast],[data-motion],#optLarge,#optSoft,[data-proxy],#setAI,#setReset');if(!t)return;
  if(t.id==='navSettings')return ywSettings(!document.body.classList.contains('view-settings'));
