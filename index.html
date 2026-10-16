@@ -314,6 +314,74 @@ const SUP_STUB={name:'stub',
 const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,opt={})=>{const r=await fetch(base+path,Object.assign({},opt,{headers:Object.assign({'Authorization':'Bearer '+supTok()},opt.body?{'Content-Type':'application/json'}:{})}));if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (check token)':''));return r.json()};
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
+/*MAINT*/
+/* ==== MAINTENANCE (Safe Rack · eMaint X4). MaintSource {name, workorders(), workorder(id), pms(), requests(), parts(), act(kind,payload)}
+   Stub = clearly labeled SAMPLE data, nothing leaves the browser. Remote = our server's /maint/* (eMaint creds live on the server only).
+   Every action: propose → approve in queue → server call → Vault log. */
+const LS_MTURL='ywMaintURL',LS_MTTOK='ywMaintToken';
+const mtURL=()=>{try{return (localStorage.getItem(LS_MTURL)||'').trim()}catch(e){return ''}};
+const mtTok=()=>{try{return (localStorage.getItem(LS_MTTOK)||'').trim()}catch(e){return ''}};
+const MD=864e5,MN=Date.now();
+const MT_SEED={wos:[{id:'WO-5012',title:'Upright damage · aisle 14 bay 3',status:'OPEN',type:'CM',asset:'RACK-A14',priority:'1',assignee:'J. Ortiz',openedAt:MN-6*MD,dueAt:MN-2*MD},
+ {id:'WO-5019',title:'Replace beam safety clips · zone B',status:'IN PROGRESS',type:'CM',asset:'RACK-B07',priority:'2',assignee:'M. Lee',openedAt:MN-3*MD,dueAt:MN+2*MD},
+ {id:'WO-5023',title:'Forklift guard rail re-anchor',status:'OPEN',type:'CM',asset:'GUARD-03',priority:'3',assignee:'',openedAt:MN-1*MD,dueAt:MN+5*MD}],
+ pms:[{id:'PM-220',title:'Monthly rack inspection · Warehouse 1',status:'OPEN',type:'PM',asset:'WH1',dueAt:MN-1*MD},{id:'PM-231',title:'Dock leveler service',status:'OPEN',type:'PM',asset:'DOCK-2',dueAt:MN+3*MD}],
+ reqs:[{id:'R-88',title:'Bent upright reported by night shift',requester:'NIGHTLEAD',status:'open',at:MN-8*36e5},{id:'R-91',title:'Add load signage aisle 9',requester:'SAFETY',status:'open',at:MN-30*36e5}],
+ parts:[{id:'P-BC10',name:'Beam safety clip',onHand:12,reorderAt:50,low:true},{id:'P-AB58',name:'Anchor bolt 5/8"',onHand:4,reorderAt:20,low:true},{id:'P-UP96',name:'Upright frame 96"',onHand:6,reorderAt:2,low:false}]};
+const MT_STUB={name:'sample',workorders:async()=>MT_SEED.wos.filter(w=>w.status!=='COMPLETE').map(w=>Object.assign({},w,{overdue:w.dueAt<Date.now()})),workorder:async id=>MT_SEED.wos.find(w=>w.id===id)||MT_SEED.pms.find(w=>w.id===id),
+ pms:async()=>MT_SEED.pms.map(w=>Object.assign({},w,{overdue:w.dueAt<Date.now()})),requests:async()=>MT_SEED.reqs.filter(r=>r.status==='open'),parts:async()=>MT_SEED.parts,
+ act:async(k,p)=>{if(k==='close'){const w=MT_SEED.wos.find(x=>x.id===p.id)||MT_SEED.pms.find(x=>x.id===p.id);if(w)w.status='COMPLETE';MT_SEED.pms=MT_SEED.pms.filter(x=>x.status!=='COMPLETE')}
+  if(k==='approve'||k==='reject'){const r=MT_SEED.reqs.find(x=>x.id===p.id);if(r)r.status=k==='approve'?'approved':'rejected';if(k==='approve'&&r)MT_SEED.wos.push({id:'WO-'+(5100+MT_SEED.wos.length),title:r.title,status:'OPEN',type:'CM',asset:'',priority:'3',assignee:'',openedAt:Date.now(),dueAt:Date.now()+7*MD})}
+  if(k==='create')MT_SEED.wos.push({id:'WO-'+(5100+MT_SEED.wos.length),title:p.title,status:'OPEN',type:'CM',asset:p.assetId||'',priority:'3',assignee:'',openedAt:Date.now(),dueAt:Date.now()+7*MD});return{ok:true,stub:true}}};
+const MT_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,opt={})=>{const r=await fetch(base+path,Object.assign({},opt,{headers:Object.assign({'Authorization':'Bearer '+mtTok()},opt.body?{'Content-Type':'application/json'}:{})}));if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (check token)':''));return r.json()};
+ const post=(p,b)=>req(p,{method:'POST',body:JSON.stringify(Object.assign({approved:true},b))});
+ return {name:'server',workorders:()=>req('/maint/workorders'),workorder:id=>req('/maint/workorders/'+encodeURIComponent(id)),pms:()=>req('/maint/pms'),requests:()=>req('/maint/requests'),parts:()=>req('/maint/parts'),
+  /* only called from maintOnDecide (approve action) */
+  act:(k,p)=>k==='close'?post('/maint/workorders/'+encodeURIComponent(p.id)+'/close',{}):k==='approve'||k==='reject'?post('/maint/requests/'+encodeURIComponent(p.id)+'/'+k,{contactId:p.contactId,reason:p.reason}):post('/maint/workorders',{title:p.title,assetId:p.assetId})}};
+const MaintSource=()=>mtURL()?MT_REMOTE(mtURL()):MT_STUB;
+const MT={wos:[],pms:[],reqs:[],parts:[],status:'Sample',err:'',loaded:false,cfgOpen:false,newOpen:false};
+async function maintRefresh(){const src=MaintSource();try{const [a,b,c,d]=await Promise.all([src.workorders(),src.pms(),src.requests(),src.parts()]);Object.assign(MT,{wos:a||[],pms:b||[],reqs:c||[],parts:d||[],status:src.name==='sample'?'Sample':'Connected',err:''})}catch(e){Object.assign(MT,{wos:[],pms:[],reqs:[],parts:[],status:'Error',err:String(e.message||e).slice(0,100)})}MT.loaded=true;if(typeof draw==='function')draw()}
+const maintReady=()=>MT.loaded?Promise.resolve():maintRefresh();
+const mtDue=w=>{if(!w.dueAt)return '<span class="mono">no due date</span>';const d=Math.round((w.dueAt-Date.now())/MD);return d<0?`<span class="dn">OVERDUE ${-d}d</span>`:`<span class="up">due ${d?d+'d':'today'}</span>`};
+function mtChip(){const c={Sample:'var(--amber)',Connected:'var(--ok)',Error:'var(--red)'}[MT.status];return `<span class="mock-badge" title="${esc(MT.err)}" style="color:${c};border-color:${c}">● ${MT.status==='Sample'?'SAMPLE data':MT.status}</span>`}
+function maintSummary(){const od=MT.wos.filter(w=>w.overdue),pd=MT.pms.filter(w=>w.overdue),low=MT.parts.filter(p=>p.low);const tag=MT.status==='Sample'?' <span class="mono">(SAMPLE data)</span>':'';
+ if(MT.status==='Error')return 'Maintenance connector error: '+esc(MT.err);
+ return `Safe Rack maintenance${tag}: <b>${MT.wos.length} open work orders</b>${od.length?`, <b class="dn">${od.length} overdue</b> (${od.map(w=>esc(w.id+' '+w.title)).join('; ')})`:', none overdue'}. ${MT.pms.length} PMs due${pd.length?` (${pd.length} past due)`:''}. ${MT.reqs.length} pending requests. ${low.length?`Low stock: ${low.map(p=>esc(p.name)+' '+p.onHand+'/'+p.reorderAt).join(', ')}.`:'Parts stock OK.'}${od.length?` Suggest tackling ${esc(od[0].id)} first.`:''}`}
+function maintPMSummary(){const tag=MT.status==='Sample'?' <span class="mono">(SAMPLE data)</span>':'';if(!MT.pms.length)return 'No PMs due'+tag+'.';return 'PMs due'+tag+': '+MT.pms.slice().sort((a,b)=>(a.dueAt||0)-(b.dueAt||0)).map(w=>`<b>${esc(w.id)}</b> ${esc(w.title)} · ${mtDue(w)}`).join('; ')+'.'}
+function maintRender(){if(!MT.loaded){maintRefresh();return '<div class="empty"><b>LOADING</b>Fetching maintenance data…</div>'}
+ const btn=(a,l)=>`<button class="btn" ${a} style="padding:2px 6px;font-size:10px">${l}</button>`;
+ const pend=queue.map((a,i)=>[a,i]).filter(([a])=>a.maint);
+ const pq=pend.length?`<div style="margin:8px 0"><b>Awaiting your approval</b>${pend.map(([a,i])=>`<div class="row"><span>${esc(a.title)}</span><span><button class="btn" data-mtok="${i}">Approve</button> <button class="btn" data-mtno="${i}">Decline</button></span></div>`).join('')}</div>`:'';
+ const sec=(h,rows,empty)=>`<div style="margin-top:10px"><b>${h}</b>${rows.length?rows.join(''):`<div class="empty" style="padding:6px">${empty}</div>`}</div>`;
+ const head=`<div class="kpi"><div><b>${MT.wos.length}</b><small>open WOs</small></div><div><b class="dn">${MT.wos.filter(w=>w.overdue).length}</b><small>overdue</small></div><div><b class="am">${MT.pms.length}</b><small>PMs due</small></div><div><b>${MT.reqs.length}</b><small>requests</small></div><div><b class="dn">${MT.parts.filter(p=>p.low).length}</b><small>low stock</small></div></div>`;
+ const body=MT.status==='Error'?`<div class="empty"><b>CONNECTOR ERROR</b>${esc(MT.err)} — check URL/token below, or clear the URL to use sample data.</div>`:
+ `<div class="tip" style="margin-top:6px"><b>Yorri:</b> ${maintSummary()}</div>
+ <div style="margin-top:6px">${btn('data-mtnew="1"','＋ New work order')} ${btn('data-mtr="1"','↻')}</div>
+ ${MT.newOpen?`<div style="margin-top:6px"><input id="mtTitle" placeholder="What needs fixing?" style="width:100%"><input id="mtAsset" placeholder="Asset ID (optional)" style="width:100%;margin-top:4px"><button class="btn" data-mtcreate="1" style="margin-top:4px">Propose create (T1)</button></div>`:''}
+ ${sec('Open work orders',MT.wos.slice().sort((a,b)=>(b.overdue-a.overdue)||((a.dueAt||9e15)-(b.dueAt||9e15))).map(w=>`<div class="row"><span>${esc(w.id)} — ${esc(w.title)}<br><span class="mono">${esc(w.asset||'')} · ${esc(w.status)} · P${esc(w.priority||'-')} · ${esc(w.assignee||'unassigned')}</span></span><span>${mtDue(w)} ${btn(`data-mtclose="${esc(w.id)}"`,'Close')}</span></div>`),'No open work orders.')}
+ ${sec('PMs due',MT.pms.map(w=>`<div class="row"><span>${esc(w.id)} — ${esc(w.title)}<br><span class="mono">${esc(w.asset||'')}</span></span><span>${mtDue(w)} ${btn(`data-mtclose="${esc(w.id)}"`,'Close')}</span></div>`),'No PMs due.')}
+ ${sec('Pending work requests',MT.reqs.map(r=>`<div class="row"><span>${esc(r.id)} — ${esc(r.title)}<br><span class="mono">from ${esc(r.requester||'?')}</span></span><span>${btn(`data-mtappr="${esc(r.id)}"`,'Approve…')} ${btn(`data-mtrej="${esc(r.id)}"`,'Reject…')}</span></div>`),'No pending requests.')}
+ ${sec('Low-stock parts',MT.parts.filter(p=>p.low).map(p=>`<div class="row"><span>${esc(p.id)} — ${esc(p.name)}</span><span class="dn">${p.onHand} on hand / reorder at ${p.reorderAt}</span></div>`),'All parts above reorder point.')}`;
+ return head+pq+body+`<div style="margin-top:8px">${mtChip()} <span class="mono">source: ${esc(MaintSource().name)} · eMaint X4</span></div>`+
+ `<details id="mtCfg" style="margin-top:10px"${MT.cfgOpen?' open':''}><summary>Maintenance connector settings</summary><label style="display:block;margin-top:6px">Connector URL <input id="mtUrl" value="${esc(mtURL())}" placeholder="empty = SAMPLE data" style="width:100%"></label><label style="display:block;margin-top:6px">Access token <input id="mtTok" type="password" autocomplete="off" placeholder="${mtTok()?'saved — type to replace':'bearer token'}" style="width:100%"></label><div style="margin-top:6px"><button type="button" class="btn" id="mtSave">Save connector</button> <button type="button" class="btn" id="mtTokClear">Clear token</button> ${mtChip()}</div><p class="tip">Saved only in this browser. eMaint username/password live on the server, never here.</p></details>`}
+function maintGo(){const b=bizStore.businesses.find(x=>x.id==='safe-rack'||x.name==='Safe Rack');if(b){bizStore.activeId=b.id;saveBiz()}setPageView('apps');roomView='Maintenance';draw()}
+function maintPropose(a){a.lane='Maintenance';if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Approve it in the Maintenance room or say "approved T1".`);draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
+async function maintOnDecide(a,ok){if(!ok){say('Yorri','Maintenance action discarded: '+esc(a.title));return}
+ try{const r=await MaintSource().act(a.maint.kind,a.maint);audit({decision:'EXECUTED'+(r&&r.stub?' (sample)':''),tier:'T1',title:a.title,lane:'Maintenance'});say('Yorri',`${esc(a.title)} — ${r&&r.stub?'done in SAMPLE data (nothing sent to eMaint)':'done in eMaint'}. Logged to Vault.`)}
+ catch(e){audit({decision:'ACTION FAILED',tier:'T1',title:a.title,lane:'Maintenance'});say('Yorri','Failed: '+esc(String(e.message||e)))}
+ maintRefresh()}
+document.addEventListener('toggle',e=>{if(e.target.id==='mtCfg')MT.cfgOpen=e.target.open},true);
+document.addEventListener('click',e=>{const el=e.target.closest&&e.target.closest('[data-mtok],[data-mtno],[data-mtr],[data-mtnew],[data-mtcreate],[data-mtclose],[data-mtappr],[data-mtrej],#mtSave,#mtTokClear');if(!el)return;const d=el.dataset;
+ if(d.mtok!==undefined||d.mtno!==undefined){decide(+(d.mtok??d.mtno),d.mtok!==undefined);return}
+ if(el.id==='mtSave'){try{localStorage.setItem(LS_MTURL,$('#mtUrl').value.trim());const tk=$('#mtTok').value.trim();if(tk)localStorage.setItem(LS_MTTOK,tk)}catch(x){}maintRefresh();return}
+ if(el.id==='mtTokClear'){try{localStorage.removeItem(LS_MTTOK)}catch(x){}maintRefresh();return}
+ if(d.mtr){maintRefresh();return}if(d.mtnew){MT.newOpen=!MT.newOpen;draw();return}
+ if(d.mtcreate){const t=($('#mtTitle').value||'').trim(),as=($('#mtAsset').value||'').trim();if(!t){say('Yorri','Add a work order description first.');return}MT.newOpen=false;maintPropose({t:['t1','T1'],title:'Create work order: '+t.slice(0,80),why:'Maintenance · eMaint'+(as?' · asset '+as:''),maint:{kind:'create',title:t,assetId:as}});return}
+ if(d.mtclose){const w=MT.wos.concat(MT.pms).find(x=>x.id===d.mtclose);maintPropose({t:['t1','T1'],title:'Close work order '+d.mtclose+(w?': '+w.title:''),why:'Maintenance · eMaint closeWorkOrder',maint:{kind:'close',id:d.mtclose}});return}
+ if(d.mtappr||d.mtrej){const id=d.mtappr||d.mtrej,r=MT.reqs.find(x=>x.id===id)||{},rej=!!d.mtrej;const reason=rej?(prompt('Reason for rejecting '+id+'?','No resources at this time')||''):'';if(rej&&!reason)return;
+  maintPropose({t:['t1','T1'],title:(rej?'Reject':'Approve')+' work request '+id+(r.title?': '+r.title:''),why:'Maintenance · eMaint '+(rej?'rejectRequest':'approveRequest'),maint:{kind:rej?'reject':'approve',id,contactId:r.requester||'',reason}})}});
+window.addEventListener('storage',e=>{if(e.key===LS_MTURL||e.key===LS_MTTOK)maintRefresh()});
+
 const SupportSource=()=>supURL()?SUP_REMOTE(supURL()):SUP_STUB;
 const SUP={tickets:[],status:'Stub',err:'',filter:'all',sort:'sla',open:null,draft:'',loading:false};
 async function supRefresh(){SUP.loading=true;const src=SupportSource();try{SUP.tickets=(await src.list())||[];SUP.status=src.name==='stub'?'Stub':'Connected';SUP.err=''}catch(e){SUP.tickets=[];SUP.status='Error';SUP.err=String(e.message||e).slice(0,100)}SUP.loading=false;if(typeof draw==='function')draw();supModal()}
@@ -385,6 +453,7 @@ function cmdBody(name){if(name==='Support')return supTileHTML();if(!mockOn)retur
 function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
   if(t==='tickets'&&label==='Support'&&bizName==='Your World Apps')return supRender();
+  if(t==='maint')return maintRender();
   if(!mockOn)return emptyState(label);
   if(t==='metrics')return `<div class="kpi"><div><b class="up">${esc(room.kpiA||'—')}</b><small>${esc(room.kpiALabel||'metric A')}</small></div><div><b>${esc(room.kpiB||'—')}</b><small>${esc(room.kpiBLabel||'metric B')}</small></div><div><b class="am">${esc(room.kpiC||'—')}</b><small>${esc(room.kpiCLabel||'metric C')}</small></div></div><div class="row"><span>${esc(bizName)}</span><span class="up">layout · metrics</span></div>`+mockBadgeWrap();
   if(t==='tickets'){const rows=(room.tickets||['Open ticket A','Open ticket B']).map(x=>`<div class="row"><span>${esc(x)}</span><span class="am">open</span></div>`).join('');return `<div class="kpi"><div><b>${(room.tickets||[]).length||2}</b><small>open</small></div></div>${rows}`+mockBadgeWrap()}
@@ -410,10 +479,20 @@ function seedBusinesses(){return{activeId:'yw-apps',businesses:[
 {id:uid(),label:'Seasons',type:'pipeline',stages:[{n:'Scout',v:'18'},{n:'Booked',v:'7'},{n:'Done',v:'3'}]},
 {id:uid(),label:'Tickets',type:'tickets',tickets:['GPS drift report','Offline pack fail']},
 {id:uid(),label:'KPIs',type:'metrics',kpiA:'1.1k',kpiALabel:'hunters',kpiB:'22',kpiBLabel:'guides',kpiC:'4.8',kpiCLabel:'rating'}
+]},
+{id:'safe-rack',name:'Safe Rack',rooms:[
+{id:'sr-maint',label:'Maintenance',type:'maint'},
+{id:'sr-ov',label:'Overview',type:'metrics',kpiA:'—',kpiALabel:'sites',kpiB:'—',kpiBLabel:'uptime',kpiC:'—',kpiCLabel:'incidents'},
+{id:'sr-safety',label:'Safety',type:'custom',rows:[{l:'Rack inspections',v:'Set in editor'},{l:'Incidents (30d)',v:'—'}]}
 ]}
 ]}}
+const SAFE_RACK_SEED=()=>({id:'safe-rack',name:'Safe Rack',rooms:[
+{id:'sr-maint',label:'Maintenance',type:'maint'},
+{id:'sr-ov',label:'Overview',type:'metrics',kpiA:'—',kpiALabel:'sites',kpiB:'—',kpiBLabel:'uptime',kpiC:'—',kpiCLabel:'incidents'},
+{id:'sr-safety',label:'Safety',type:'custom',rows:[{l:'Rack inspections',v:'Set in editor'},{l:'Incidents (30d)',v:'—'}]}
+]});
 let bizStore=seedBusinesses();
-function loadBiz(){try{const raw=localStorage.getItem(LS_BIZ);if(!raw){saveBiz();return}const o=JSON.parse(raw);if(o&&Array.isArray(o.businesses)&&o.businesses.length){bizStore.businesses=o.businesses;bizStore.activeId=o.activeId||o.businesses[0].id}}catch(e){}}
+function loadBiz(){try{const raw=localStorage.getItem(LS_BIZ);if(!raw){saveBiz();return}const o=JSON.parse(raw);if(o&&Array.isArray(o.businesses)&&o.businesses.length){bizStore.businesses=o.businesses;bizStore.activeId=o.activeId||o.businesses[0].id;if(!o.businesses.some(b=>b.id==='safe-rack'||b.name==='Safe Rack')){bizStore.businesses.push(SAFE_RACK_SEED());saveBiz()}else{const sr=o.businesses.find(b=>b.id==='safe-rack'||b.name==='Safe Rack');if(!sr.rooms.some(r=>r.type==='maint')){sr.rooms.unshift({id:'sr-maint',label:'Maintenance',type:'maint'});saveBiz()}}}}catch(e){}}
 function saveBiz(){try{localStorage.setItem(LS_BIZ,JSON.stringify(bizStore))}catch(e){}}
 function activeBiz(){return bizStore.businesses.find(b=>b.id===bizStore.activeId)||bizStore.businesses[0]}
 
@@ -626,6 +705,11 @@ function tryVoiceCommand(raw){
       return true;
     }
   }
+  if(/\b(summar\w*|status|analy\w*|overview|list|show|how\s+many)\b.*\b(work\s*orders?|wos?)\b|\bwhat\s+pms?\b|\bpms?\s+(are\s+)?due\b|\b(open|go\s+to|show)\s+(the\s+)?maint(enance)?\b/.test(t)){
+    say('You',raw);maintGo();const pm=/\bpms?\b/.test(t)&&!/work\s*orders?/.test(t);
+    if(/\b(open|go\s+to|show)\s+(the\s+)?maint(enance)?\b/.test(t)&&!/\b(summar|analy|what|how|work\s*orders?|pms?)\b/.test(t.replace(/maint\w*/,''))){say('Yorri','Opened <b>Maintenance</b> · Safe Rack.');return true}
+    maintReady().then(()=>say('Yorri',pm?maintPMSummary():maintSummary()));return true;
+  }
   // open business by name on Apps
   for(const b of bizStore.businesses){
     const bn=normVoice(b.name);
@@ -759,7 +843,7 @@ const APPROVE_RE=/^(?:hey\s+)?(?:yorri\s+)?(?:i\s+)?(approve|approved|approving|
 function decide(i,ok){
   const a=queue.splice(i,1)[0];if(!a)return;
   if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.')){queue.splice(i,0,a);draw();return}
-  decided[qKey(a)]=Date.now();if(a.sup)supOnDecide(a,ok);audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
+  decided[qKey(a)]=Date.now();if(a.sup)supOnDecide(a,ok);if(a.maint)maintOnDecide(a,ok);audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
   say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
   draw();broadcast(snapshot());
 }
