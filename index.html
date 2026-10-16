@@ -161,7 +161,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <div class="card" id="dq"><h3>Awaiting your decision</h3><div id="queue"><p style="color:var(--mut)">Nothing pending. Yorri is watching.</p></div>
 <p class="tip">Voice test: say <b>Yorri approve</b> or <b>Yorri decline</b> for the top item. Nav: <b>open Apps</b> · <b>open Command Center</b> · <b>open Finance</b>.</p></div>
 <div class="card" id="askCard"><h3>Ask Yorri <span class="mono">chief of staff</span><span class="biz-tag" id="yorriBizTag"></span><button type="button" id="spkT" class="spk-t" title="Yorri voice replies on/off">🔊 Voice on</button><button type="button" id="llmBtn" class="spk-t" title="AI settings">⚙ AI</button></h3>
-<div id="llmPanel" style="display:none;padding:8px 0;font-size:13px"><label>xAI API key <input id="llmKey" type="password" autocomplete="off" style="width:100%"></label><label>Base URL <input id="llmBase" style="width:100%"></label><label>Model <input id="llmModel" style="width:100%"></label><div style="margin-top:6px"><button type="button" id="llmSave">Save</button> <button type="button" id="llmTest">Test</button> <button type="button" id="llmClear">Clear key</button> <span id="llmStat" class="mono"></span></div><p class="tip">Key stays in this browser only (localStorage). If Test fails with a network/CORS error, put a CORS proxy URL in Base URL (see README).</p></div>
+<div id="llmPanel" style="display:none;padding:8px 0;font-size:13px"><label>xAI API key <input id="llmKey" type="password" autocomplete="off" style="width:100%"></label><label>Base URL <input id="llmBase" style="width:100%"></label><label>Model <input id="llmModel" style="width:100%"></label><div style="margin-top:6px"><button type="button" id="llmSave">Save</button> <button type="button" id="llmTest">Test</button> <button type="button" id="llmClear">Clear key</button> <span id="llmStat" class="mono"></span></div><label style="display:block;margin-top:8px">Support connector URL <input id="supUrl" placeholder="empty = stub (future Worker URL)" style="width:100%"></label><button type="button" id="supUrlSave">Save connector</button> <span id="supUrlStat" class="mono"></span><p class="tip">Key stays in this browser only (localStorage). If Test fails with a network/CORS error, put a CORS proxy URL in Base URL (see README).</p></div>
 <p class="vmsg" id="ttsNote" style="display:none"></p>
 <div id="log"><p class="y">Yorri: Good afternoon, Aaron. Board's green except two items. Ask me anything — I propose, you approve, I report. Say <b>open Apps</b>, <b>Yorri approve</b>, or a room name anytime.</p></div>
 <div class="ask"><button class="mic" id="mic" type="button" title="Hey Yorri / voice">🎙</button><input id="q" placeholder="e.g. hire 5 engineers, open Apps, Yorri approve…" autocomplete="off"><button class="send" id="send" type="button">Send</button></div>
@@ -215,10 +215,7 @@ Vault:`<div class="kpi"><div><b>1,284</b><small>docs</small></div><div><b class=
    To go real: replace LIVE.support.source / LIVE.finance.source fetch() with an inbox/QuickBooks API call.
    No secrets here — real connectors should call a server-side proxy. */
 const LIVE={
- support:{source:{name:'stub',fetch:()=>({tickets:[
-   {id:'S-101',subj:'VPN access for new hire',pri:'high',ageH:26,slaH:24,from:'it@stub'},
-   {id:'S-102',subj:'Payroll portal login loop',pri:'high',ageH:5,slaH:24,from:'hr@stub'},
-   {id:'S-103',subj:'Expense policy question',pri:'medium',ageH:3,slaH:48,from:'ops@stub'}],closedWeek:0,medianReplyM:null})}},
+ support:{source:{get name(){return SupportSource().name},fetch:()=>({tickets:SUP.tickets.filter(t=>t.status!=='closed').map(t=>({id:t.id,subj:t.subject,pri:t.priority,ageH:Math.round(supAgeH(t)),slaH:t.slaH,from:t.from})),closedWeek:0,medianReplyM:null})}},
  finance:{source:{name:'stub',fetch:()=>({cash:null,burnMo:null,inMTD:null,outMTD:null,ap:[
    {vendor:'Stub Vendor A',amt:null,due:'—'}],connected:false})}}
 };
@@ -239,13 +236,94 @@ const LIVE_RENDER={
   `<div class="row"><span>Connector</span><span class="am">${d.connected?'connected':'not connected'}</span></div><div style="margin-top:8px">${liveBadge()} <span class="mono">source: ${esc(LIVE.finance.source.name)}</span></div>`},
  Vault:()=>{const a=auditList().slice(0,6);return `<div class="kpi"><div><b>${auditList().length}</b><small>audit entries</small></div></div>`+(a.length?a.map(e=>`<div class="row"><span>${esc(e.decision)} · ${esc(e.title)}</span><span class="mono">${esc(e.lane||'')} · ${esc(e.ts.slice(5,16).replace('T',' '))}</span></div>`).join(''):'<div class="row"><span>No decisions logged yet</span></div>')+`<div style="margin-top:8px">${liveBadge()} <span class="mono">audit · local</span></div>`}
 };
+/* ==== SUPPORT INBOX (website side). One interface: SupportSource {name, list(), get(id), send(id,body)} ====
+   Implementation today: SUP_STUB (local fake inbox, NO real email ever sent).
+   FUTURE: set "Support connector URL" in ⚙ → SUP_REMOTE placeholder calls a server-side Worker (NOT built yet).
+   Never put inbox passwords/API keys in this file; the Worker holds them. */
+const LS_SUPURL='ywSupportURL',LS_SUPST='ywSupportState';
+const supURL=()=>{try{return (localStorage.getItem(LS_SUPURL)||'').trim()}catch(e){return ''}};
+const supSt=()=>{try{return JSON.parse(localStorage.getItem(LS_SUPST)||'{}')}catch(e){return{}}};
+const supSave=s=>{try{localStorage.setItem(LS_SUPST,JSON.stringify(s))}catch(e){}};
+const SUP_H=3600e3,NOW0=Date.now();
+const SUP_SEED=[
+ {id:'S-101',from:'it@stub.local',fromName:'IT Desk',subject:'VPN access for new hire',priority:'high',slaH:24,receivedAt:NOW0-26*SUP_H,
+  thread:[{from:'it@stub.local',at:NOW0-26*SUP_H,body:'Hi, J. Ruiz starts Monday and still has no VPN access. Can someone approve the account request today?'}]},
+ {id:'S-102',from:'hr@stub.local',fromName:'HR Team',subject:'Payroll portal login loop',priority:'high',slaH:24,receivedAt:NOW0-5*SUP_H,
+  thread:[{from:'hr@stub.local',at:NOW0-5*SUP_H,body:'Several employees report the payroll portal redirects back to login after entering their password.'},{from:'hr@stub.local',at:NOW0-3*SUP_H,body:'Update: happens on Safari and Chrome. Clearing cookies did not help.'}]},
+ {id:'S-103',from:'ops@stub.local',fromName:'Ops',subject:'Expense policy question',priority:'medium',slaH:48,receivedAt:NOW0-3*SUP_H,
+  thread:[{from:'ops@stub.local',at:NOW0-3*SUP_H,body:'Is a $180 client dinner covered under the current expense policy, or does it need pre-approval?'}]}];
+function supMerge(t){const s=supSt()[t.id]||{};const th=t.thread.concat(s.sent||[]);return Object.assign({},t,{status:s.status||t.status||'open',unread:s.read?false:(t.unread!==false),thread:th,snippet:(t.thread[t.thread.length-1]||{}).body||''})}
+const SUP_STUB={name:'stub',
+ list:async()=>SUP_SEED.map(supMerge),
+ get:async id=>{const t=SUP_SEED.find(x=>x.id===id);return t?supMerge(t):null},
+ send:async(id,body)=>{const s=supSt();const r=s[id]=s[id]||{};(r.sent=r.sent||[]).push({from:'you (stub — not emailed)',at:Date.now(),body,out:true});r.status='pending';r.read=true;supSave(s);return{ok:true,stub:true}}};
+/* PLACEHOLDER for the future Worker. Expected endpoints (to be built server-side later):
+   GET {url}/tickets → [ticket]; GET {url}/tickets/{id} → ticket; POST {url}/tickets/{id}/reply {body} → {ok}.
+   The access code would go in a header; no inbox credentials ever live in the browser. */
+const SUP_REMOTE=url=>({name:'worker',
+ list:async()=>{const r=await fetch(url.replace(/\/+$/,'')+'/tickets');if(!r.ok)throw new Error('HTTP '+r.status);return r.json()},
+ get:async id=>{const r=await fetch(url.replace(/\/+$/,'')+'/tickets/'+encodeURIComponent(id));if(!r.ok)throw new Error('HTTP '+r.status);return r.json()},
+ send:async()=>{throw new Error('Worker send not enabled yet')}});
+const SupportSource=()=>supURL()?SUP_REMOTE(supURL()):SUP_STUB;
+const SUP={tickets:[],status:'Stub',err:'',filter:'all',sort:'sla',open:null,draft:'',loading:false};
+async function supRefresh(){SUP.loading=true;const src=SupportSource();try{SUP.tickets=(await src.list())||[];SUP.status=src.name==='stub'?'Stub':'Connected';SUP.err=''}catch(e){SUP.tickets=[];SUP.status='Error';SUP.err=String(e.message||e).slice(0,100)}SUP.loading=false;if(typeof draw==='function')draw();supModal()}
+const supAgeH=t=>Math.max(0,(Date.now()-t.receivedAt)/SUP_H);
+const supAge=t=>{const h=supAgeH(t);return h<1?Math.round(h*60)+'m':h<48?Math.round(h)+'h':Math.round(h/24)+'d'};
+const supBreach=t=>t.status!=='closed'&&supAgeH(t)>=t.slaH;
+const supSla=t=>t.status==='closed'?'<span class="mono">closed</span>':supBreach(t)?'<span class="dn">BREACH</span>':`<span class="up">${Math.round(t.slaH-supAgeH(t))}h left</span>`;
+const PRI={high:0,medium:1,low:2};
+function supView(){let ts=SUP.tickets.slice();const f=SUP.filter;if(f==='open')ts=ts.filter(t=>t.status!=='closed');if(f==='high')ts=ts.filter(t=>t.priority==='high');if(f==='breach')ts=ts.filter(supBreach);
+ ts.sort(SUP.sort==='new'?(a,b)=>b.receivedAt-a.receivedAt:SUP.sort==='pri'?(a,b)=>(PRI[a.priority]??3)-(PRI[b.priority]??3):(a,b)=>(a.slaH-supAgeH(a))-(b.slaH-supAgeH(b)));return ts}
+function supChip(){const c={Stub:'#e0b341',Connected:'#5fd38d',Error:'#ff6b6b'}[SUP.status];return `<span class="mock-badge" title="${esc(SUP.err)}" style="color:${c};border-color:${c}">● ${SUP.status}</span>`}
+function supRender(){const ts=supView(),all=SUP.tickets;const b=(k,l)=>`<button class="btn" data-supf="${k}" style="padding:2px 6px;font-size:10px;${SUP.filter===k?'outline:1px solid #5fd38d':''}">${l}</button>`;
+ const head=`<div class="kpi"><div><b>${all.filter(t=>t.status!=='closed').length}</b><small>open</small></div><div><b class="am">${all.filter(t=>t.unread).length}</b><small>unread</small></div><div><b class="dn">${all.filter(supBreach).length}</b><small>SLA breach</small></div></div>
+ <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:6px 0">${b('all','All')}${b('open','Open')}${b('high','High')}${b('breach','Breach')}
+ <select data-sups style="font-size:10px"><option value="sla"${SUP.sort==='sla'?' selected':''}>Sort: SLA</option><option value="new"${SUP.sort==='new'?' selected':''}>Sort: newest</option><option value="pri"${SUP.sort==='pri'?' selected':''}>Sort: priority</option></select>
+ <button class="btn" data-supr="1" style="padding:2px 6px;font-size:10px">↻</button></div>`;
+ const rows=SUP.status==='Error'?`<div class="empty"><b>CONNECTOR ERROR</b>${esc(SUP.err)} — clear "Support connector URL" in ⚙ to use the stub.</div>`:
+  !ts.length?`<div class="empty"><b>${all.length?'NO MATCHES':'INBOX ZERO'}</b>${all.length?'No tickets match this filter.':'No tickets yet. They will appear here once the inbox is connected.'}</div>`:
+  ts.map(t=>`<div class="row" data-supo="${esc(t.id)}" style="cursor:pointer;${t.unread?'font-weight:600':''}"><span>${t.unread?'● ':''}${esc(t.fromName||t.from)} — ${esc(t.subject)}<br><span class="mono" style="font-weight:400">${esc(String(t.snippet).slice(0,70))}</span><br><span class="mono" style="font-weight:400">${esc(t.id)} · ${esc(t.priority)} · ${supAge(t)} · ${esc(t.status)}</span></span><span>${supSla(t)}</span></div>`).join('');
+ return head+rows+`<div style="margin-top:8px">${mockOn?mockBadgeWrap():liveBadge()} ${supChip()} <span class="mono">source: ${esc(SupportSource().name)}</span></div>`}
+function supTpl(t){const n=(t.fromName||t.from||'there').split(/[ @]/)[0];return `Hi ${n},\n\nThanks for flagging "${t.subject}". We're on it and will follow up shortly with next steps.\n\nBest,\nAaron`}
+async function supDraft(){const t=SUP.open;if(!t)return;const c=llmCfg();SUP.draft='Drafting…';supModal();
+ if(c.key){try{SUP.draft=(await llmCall([{role:'system',content:'You are Yorri drafting a concise, friendly support email reply signed "Aaron". Reply with the email body only.'},{role:'user',content:'Thread:\n'+t.thread.map(m=>m.from+': '+m.body).join('\n')}],c)).trim();supModal();return}catch(e){}}
+ SUP.draft=supTpl(t);supModal()}
+function supModal(){let m=document.getElementById('supModal');const t=SUP.open;if(!t){if(m)m.remove();return}
+ if(!m){m=document.createElement('div');m.id='supModal';m.style.cssText='position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px';document.body.appendChild(m)}
+ m.innerHTML=`<div style="background:#0d1418;border:1px solid #2c3b44;border-radius:12px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:14px;color:#e6edf3;font-size:14px">
+ <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(t.subject)}</b><button class="btn" data-supx="1">✕</button></div>
+ <div class="mono" style="margin:4px 0 10px">${esc(t.id)} · ${esc(t.fromName||'')} &lt;${esc(t.from)}&gt; · ${esc(t.priority)} · ${supAge(t)} · ${supSla(t)} · ${esc(t.status)} ${mockOn?'· MOCK':'· LIVE (stub)'}</div>
+ ${t.thread.map(x=>`<div style="margin:6px 0;display:flex;justify-content:${x.out?'flex-end':'flex-start'}"><div style="max-width:85%;padding:8px 10px;border-radius:12px;background:${x.out?'#1d4b33':'#1b252c'}"><div class="mono">${esc(x.from)} · ${new Date(x.at).toLocaleString()}</div>${esc(x.body).replace(/\n/g,'<br>')}</div></div>`).join('')}
+ <div style="margin-top:10px"><b>Yorri's suggested reply</b> <span class="mono">${llmCfg().key?'Grok':'template'}</span></div>
+ <textarea id="supDraft" rows="6" style="width:100%;box-sizing:border-box;margin-top:4px;font-size:14px" placeholder="Tap Draft with Yorri…">${esc(SUP.draft)}</textarea>
+ <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><button class="btn" data-supd="1">✨ Draft with Yorri</button><button class="btn" data-supp="1">Propose send (T1)</button>
+ <button class="btn" data-supc="${t.status==='closed'?'open':'closed'}">${t.status==='closed'?'Reopen':'Close ticket'}</button></div>
+ <p class="tip">Approve in the decision queue to send. Stub connector: nothing is emailed; the reply is marked sent and logged to Vault.</p></div>`}
+async function supOpen(id){const s=supSt();(s[id]=s[id]||{}).read=true;supSave(s);try{SUP.open=await SupportSource().get(id)}catch(e){SUP.open=null;SUP.status='Error';SUP.err=String(e.message||e)}SUP.draft='';supModal();supRefresh()}
+async function supOnDecide(a,ok){if(!a||!a.sup)return;if(!ok){say('Yorri',`Draft for ${esc(a.sup.id)} discarded.`);return}
+ try{const r=await SupportSource().send(a.sup.id,a.sup.body);audit({decision:'SENT'+(r&&r.stub?' (stub)':''),tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Reply to ${esc(a.sup.id)} ${r&&r.stub?'marked sent (stub — no real email)':'sent'}. Logged to Vault.`)}
+ catch(e){SUP.status='Error';SUP.err=String(e.message||e);audit({decision:'SEND FAILED',tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Send failed for ${esc(a.sup.id)}: ${esc(SUP.err)}`)}
+ if(SUP.open&&SUP.open.id===a.sup.id)SUP.open=await SupportSource().get(a.sup.id).catch(()=>null);supRefresh()}
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.sups!==undefined){SUP.sort=e.target.value;draw()}});
+document.addEventListener('input',e=>{if(e.target.id==='supDraft')SUP.draft=e.target.value});
+document.addEventListener('click',async e=>{const el=e.target.closest&&e.target.closest('[data-supf],[data-supr],[data-supo],[data-supx],[data-supd],[data-supp],[data-supc],#supModal,#supUrlSave');if(!el)return;const d=el.dataset;
+ if(el.id==='supModal'){if(e.target===el){SUP.open=null;supModal()}return}
+ if(el.id==='supUrlSave'){try{localStorage.setItem(LS_SUPURL,$('#supUrl').value.trim())}catch(x){}$('#supUrlStat').textContent=supURL()?'Saved — trying connector':'Empty = stub';supRefresh();return}
+ if(d.supf){SUP.filter=d.supf;draw()}else if(d.supr)supRefresh();else if(d.supo)supOpen(d.supo);else if(d.supx){SUP.open=null;supModal()}
+ else if(d.supd)supDraft();
+ else if(d.supc){const s=supSt();(s[SUP.open.id]=s[SUP.open.id]||{}).status=d.supc;supSave(s);audit({decision:d.supc==='closed'?'CLOSED':'REOPENED',tier:'T0',title:SUP.open.id,lane:'Support'});SUP.open=await SupportSource().get(SUP.open.id);supModal();supRefresh()}
+ else if(d.supp){const t=SUP.open,body=($('#supDraft')&&$('#supDraft').value.trim())||'';if(!body){say('Yorri','Draft a reply first.');return}
+  const a={t:['t1','T1'],title:'Send reply to '+t.id+': '+t.subject,why:'Support · '+t.priority+' · to '+t.from+' · "'+body.slice(0,60)+'…"',lane:'Support',sup:{id:t.id,body}};
+  if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);SUP.open=null;supModal();draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}});
+window.addEventListener('storage',e=>{if(e.key===LS_SUPST||e.key===LS_SUPURL)supRefresh()});
+setTimeout(supRefresh,0);setInterval(()=>{if(!SUP.open)draw()},60e3);
 const LIVE_SUM={
  Support:()=>{const d=liveData('support')||{tickets:[]};const ts=d.tickets;const br=ts.filter(t=>t.ageH>=t.slaH);return `Support (stub source): <b>${ts.length} open</b> — ${ts.filter(t=>t.pri==='high').length} high. ${br.length?'<b>SLA breach:</b> '+br.map(t=>esc(t.id+' '+t.subj)).join(', '):'No SLA breaches.'} Real inbox not connected yet.`},
  Finance:()=>`Finance (stub source): no live connector yet — cash, burn and AP show “—” until QuickBooks/bank is wired. Not inventing numbers.`
 };
 const CMD_ROOMS=['Briefing','Finance','HR','Payroll','Legal','Support','Vault'];
 const CMD_DEFAULT_MULTI=['Finance','HR','Payroll','Legal','Support','Vault'];
-function cmdBody(name){if(!mockOn)return LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
+function cmdBody(name){if(name==='Support')return supRender();if(!mockOn)return LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
 
 function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
@@ -583,9 +661,8 @@ const isDecision=APPROVE_RE.test(normVoice(t));let added=0;
 if(!isDecision)acts.forEach(a=>{if(a.t&&pushQ(a)){added++;h+=`<br>Plan ready → <span class="tier ${a.t[0]}">${a.t[1]}</span>${esc(a.title)}. Waiting on your decision.`}});
 say('Yorri',h||'(no reply)');if(added){draw();broadcast(snapshot())}return true}
 catch(e){const net=e instanceof TypeError;say('Yorri',`<span class="mono">AI offline (${esc(net?'network/CORS blocked — set a proxy Base URL':e.message).slice(0,140)}) — using built-in.</span>`);return false}}
-function llmUI(){const c=llmCfg();if(!$('#llmKey'))return;$('#llmKey').value=c.key;$('#llmBase').value=c.base;$('#llmModel').value=c.model;$('#llmStat').textContent=c.key?'Grok on':'No key — built-in mode'}
+function llmUI(){const c=llmCfg();if(!$('#llmKey'))return;$('#llmKey').value=c.key;$('#llmBase').value=c.base;$('#llmModel').value=c.model;$('#llmStat').textContent=c.key?'Grok on':'No key — built-in mode';if($('#supUrl'))$('#supUrl').value=supURL()}
 function llmRead(){return{key:$('#llmKey').value.trim(),base:$('#llmBase').value.trim()||LLM_DEF.base,model:$('#llmModel').value.trim()||LLM_DEF.model}}
-document.addEventListener('click',e=>{const sid=e.target&&e.target.dataset&&e.target.dataset.sup;if(!sid)return;const t=((liveData('support')||{}).tickets||[]).find(x=>x.id===sid);if(!t)return;const a={t:['t1','T1'],title:'Reply to '+t.id+': '+t.subj,why:'Support LIVE (stub) · '+t.pri+' · '+t.ageH+'h',lane:'Support'};if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')});
 document.addEventListener('click',async e=>{const id=e.target.id;
 if(id==='llmBtn'){const p=$('#llmPanel');p.style.display=p.style.display==='none'?'block':'none';llmUI()}
 else if(id==='llmSave'){llmSaveCfg(llmRead());llmUI();$('#llmStat').textContent='Saved'}
@@ -621,7 +698,7 @@ const APPROVE_RE=/^(?:hey\s+)?(?:yorri\s+)?(?:i\s+)?(approve|approved|approving|
 function decide(i,ok){
   const a=queue.splice(i,1)[0];if(!a)return;
   if(ok&&a.t[1]=='T3'&&!confirm('Biometric check (simulated): confirm it\'s you, Aaron.')){queue.splice(i,0,a);draw();return}
-  decided[qKey(a)]=Date.now();audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
+  decided[qKey(a)]=Date.now();if(a.sup)supOnDecide(a,ok);audit({decision:ok?'APPROVED':'DECLINED',tier:a.t[1],title:a.title,lane:a.lane||''});queue=queue.filter(x=>qKey(x)!==qKey(a));
   say('Yorri',ok?`Done: ${esc(a.title)}. Report filed to Vault.`:`Declined: ${esc(a.title)}. Nothing executed.`);
   draw();broadcast(snapshot());
 }
