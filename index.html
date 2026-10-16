@@ -251,7 +251,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <select id="bizSelect"></select>
 <button type="button" class="sbtn" id="addBiz">+ Add business</button>
 <button type="button" class="sbtn" id="editRooms">Edit rooms</button>
-<span class="chip" id="bizHint">Per-business layouts · not mixed with Command Center</span>
+
 </div>
 <div id="editor">
 <h3>Room editor · <span id="edBizName"></span></h3>
@@ -403,43 +403,73 @@ const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,op
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
+/* ---- Business room cards read ywConn per room ---- */
+function roomState(b,room){const k=connKey(b.id,room.id),c=connGet(k),live=!!(c.live&&c.url);
+ if(live){const er=(c.type==='emailbox'||(c.type==='emaint'&&room.type!=='maint'))?mmS(k).status==='Error'||mmS(k).status==='Not configured':c.result&&!c.result.ok;return {k,c,st:er?'err':'live'}}
+ if(room.role==='support'||room.type==='maint')return {k,c,st:'sample'};
+ if(c.type!=='none'&&c.url)return {k,c,st:'sample'};return {k,c,st:mockOn?'mock':'none'}}
+function roomChip(st,k){const L={live:['live','● Live'],err:['err','● Error'],sample:['sample','● Sample'],mock:['sample','● mock'],none:['','○ Not connected']}[st];return `<span class="mono"><span class="cx-dot ${L[0]}" aria-hidden="true" style="display:inline-block;vertical-align:middle"></span> ${L[1].slice(2)}</span>`}
+function roomOpenBtn(room){return `<div style="margin-top:8px"><button type="button" class="btn" data-roomopen="${esc(room.label)}" aria-label="Open ${esc(room.label)}">Open →</button></div>`}
+function roomNotConnected(k){return `<div class="empty" style="padding:10px"><b>NOT CONNECTED</b><button type="button" class="bz-link" data-cxgo="${esc(k)}">Set up in Connections</button></div>`}
+function sampleWrap(room,bizName){const m=mockOn;mockOn=true;let h;try{h=layoutHTML(Object.assign({},room,{_noConn:true}),bizName)}finally{mockOn=m}return '<div class="mono" style="color:var(--amber);margin-bottom:4px">SAMPLE data</div>'+h}
+function mailPreview(k,room){const M=mmS(k);if(!M.loaded){mmRefresh(k);return '<div class="empty"><b>LOADING</b>Checking inbox…</div>'}
+ if(M.status!=='Live')return `<div class="tip" style="margin-top:0">${mmSummary(k)}</div>`+roomOpenBtn(room);
+ const ap=M.items.filter(m=>m.info&&m.info.needsApproval).length,u=M.items.filter(m=>m.unread).length;
+ return `<div class="kpi"><div><b>${M.items.length}</b><small>emails</small></div><div><b class="am">${u}</b><small>unread</small></div><div><b class="dn">${ap}</b><small>need approval</small></div></div>${M.items.slice(0,2).map(x=>`<div class="row"><span>${x.unread?'● ':''}${esc(x.subject)}</span></div>`).join('')}`+roomOpenBtn(room)}
+function roomBody(b,room,board){const {k,c,st}=roomState(b,room),live=st==='live'||st==='err';
+ const mailType=c.type==='emailbox'||(c.type==='emaint'&&room.type!=='maint');
+ if(live&&mailType)return board?mailPreview(k,room):mmRender(k);
+ if(room.role==='support'){if(!board)return supRender();const a=SUP.tickets;if(!SUP.loaded0){SUP.loaded0=1;supRefresh()}return `<div class="kpi"><div><b>${a.filter(t=>t.status!=='closed').length}</b><small>open</small></div><div><b class="am">${a.filter(t=>t.unread).length}</b><small>unread</small></div><div><b class="dn">${a.filter(supBreach).length}</b><small>SLA breach</small></div></div>${a.slice(0,2).map(t=>`<div class="row"><span>${t.unread?'● ':''}${esc(t.subject)}</span></div>`).join('')}${supChip()}`+roomOpenBtn(room)}
+ if(room.type==='maint'){if(!board)return maintRender();if(!MT.loaded)maintRefresh();return `<div class="tip" style="margin-top:0">${maintSummary()}</div>`+roomOpenBtn(room)}
+ if(live&&c.type==='rest')return genRender(k,room.label)+(board?roomOpenBtn(room):'');
+ if(live&&c.type==='support')return `<div class="tip" style="margin-top:0">Connected to a support mail server. Open the Support room (Your World Apps) for tickets.</div>`+roomOpenBtn(room);
+ if(st==='sample')return sampleWrap(room,b.name);
+ if(st==='mock')return layoutHTML(Object.assign({},room,{_noConn:true}),b.name);
+ return roomNotConnected(k)}
+function bizCard(b,label,room,keep,board){if(!room)return cardHTML(label+' · '+b.name,roomNotConnected(''),keep);const {st,k}=roomState(b,room);
+ return `<div class="card ${keep?'keep':''}"><h3>${esc(label)} · ${esc(b.name)} ${roomChip(st,k)}</h3>${roomBody(b,room,board)}</div>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-roomopen],[data-cxgo]');if(!t)return;
+ if(t.dataset.roomopen){roomView=t.dataset.roomopen;draw();window.scrollTo({top:0});return}
+ const k=t.dataset.cxgo;if(!k){ywSettings(true);connOpen();return}const bid=k.split('/')[0];CX.open[bid]=true;CX.roomOpen[k]=true;const bb=ogB(bid);if(bb&&bb.parent)CX.open[bb.parent]=true;ywSettings(true);connRender();
+ setTimeout(()=>{const el=document.querySelector(`#connList details[data-cxr="${CSS.escape(k)}"]`);if(el){el.open=true;el.scrollIntoView({block:'center'});const f=el.querySelector('select,input');if(f)f.focus()}},50)});
+
 /* ---- eMaint notification emails (read-only) in Safe Rack › Maintenance ---- */
-const MM={items:[],status:'Sample',err:'',loaded:false,open:null};
+const MMS={};const mmS=k=>MMS[k]||(MMS[k]={items:[],status:'Sample',err:'',loaded:false,open:null});
 const LS_MMACK='ywMtMailAck';const mmAck=()=>{try{return JSON.parse(localStorage.getItem(LS_MMACK)||'[]')}catch(e){return[]}};
 const MMH=36e5,MMN=Date.now();
 const MM_SEED=[{id:'M-s1',fromName:'eMaint',from:'notifications@emaint.com',subject:'New Work Request #1042 submitted: approval required',date:MMN-2*MMH,unread:true,snippet:'Request No: 1042 · Asset ID: RACK-A14 · Priority: 1 - Emergency',body:'Request No: 1042\nAsset ID: RACK-A14\nPriority: 1 - Emergency\nStatus: Pending Approval\nBent upright reported by night shift.',info:{parsed:true,kind:'request',requestNo:'1042',asset:'RACK-A14',priority:'1',status:'Pending Approval',needsApproval:true}},
  {id:'M-s2',fromName:'eMaint X4',from:'noreply@emaint.com',subject:'Work Order 5012 assigned to J. Ortiz',date:MMN-6*MMH,unread:false,snippet:'Work Order #5012 · Status: OPEN',body:'Work Order #5012\nAsset ID: RACK-A14\nStatus: OPEN\nAssigned: J. Ortiz',info:{parsed:true,kind:'workorder',workOrderNo:'5012',asset:'RACK-A14',priority:'',status:'OPEN',needsApproval:false}},
  {id:'M-s3',fromName:'eMaint X4',from:'noreply@emaint.com',subject:'PM due: Monthly rack inspection · Warehouse 1',date:MMN-26*MMH,unread:false,snippet:'Preventive maintenance PM-220 due',body:'Preventive maintenance PM-220 is due.\nAsset ID: WH1',info:{parsed:true,kind:'pm',asset:'WH1',priority:'',status:'',needsApproval:false}}];
-function mmConn(){const c=connGet(MT_KEY());return c.live&&c.url&&(c.type==='emailbox'||c.type==='emaint')?c:null}
-async function mmRefresh(){const c=mmConn();if(!c){MM.items=MM_SEED.map(x=>Object.assign({},x));MM.status='Sample';MM.err=''}else{
- try{const r=await fetch(c.url.replace(/\/+$/,'')+'/maint/mail',{headers:{Authorization:'Bearer '+c.token}});if(r.status===503){MM.items=[];MM.status='Not configured';MM.err=''}else if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (check token)':''));else{MM.items=await r.json();MM.status='Live';MM.err='';mmSurface()}}
+function mmConn(k){const c=connGet(k);return c.live&&c.url&&(c.type==='emailbox'||c.type==='emaint')?c:null}
+async function mmRefresh(k){const MM=mmS(k),c=mmConn(k);if(!c){MM.items=MM_SEED.map(x=>Object.assign({},x));MM.status='Sample';MM.err=''}else{
+ try{const r=await fetch(c.url.replace(/\/+$/,'')+'/maint/mail',{headers:{Authorization:'Bearer '+c.token}});if(r.status===503){MM.items=[];MM.status='Not configured';MM.err=''}else if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (check token)':''));else{MM.items=await r.json();MM.status='Live';MM.err='';mmSurface(k)}}
  catch(e){MM.items=[];MM.status='Error';MM.err=String(e.message||e).slice(0,90)}}MM.loaded=true;if(typeof draw==='function')draw()}
-const mmReady=()=>MM.loaded?Promise.resolve():mmRefresh();
-function mmSurface(){const ack=mmAck();let n=0;for(const m of MM.items){const i=m.info||{};if(!i.needsApproval||ack.includes(m.id))continue;
+const mmReady=k=>mmS(k).loaded?Promise.resolve():mmRefresh(k);
+function mmSurface(k){const MM=mmS(k),ack=mmAck();let n=0;for(const m of MM.items){const i=m.info||{};if(!i.needsApproval||ack.includes(m.id))continue;
  const a={t:['t1','T1'],title:'Work request #'+(i.requestNo||'?')+' needs approval (from email: approve in eMaint)',why:'Maintenance · '+(i.asset?'asset '+i.asset+' · ':'')+(i.priority?'P'+i.priority+' · ':'')+'parsed from email',lane:'Maintenance',mtmail:m.id};if(pushQ(a))n++}
  if(n){say('Yorri',`${n} eMaint work request${n>1?'s':''} from email need${n>1?'':'s'} approval. Approve in eMaint; tapping Approve here only records that you handled it.`);try{broadcast(snapshot())}catch(e){}}}
 function mmOnDecide(a,ok){const ack=mmAck();if(!ack.includes(a.mtmail)){ack.push(a.mtmail);try{localStorage.setItem(LS_MMACK,JSON.stringify(ack.slice(-300)))}catch(e){}}
  say('Yorri',ok?'Noted. Approve it in eMaint itself; nothing was sent from here. Logged to Vault.':'Dismissed. Nothing changed in eMaint.')}
-function mmChip(){const c={Sample:'var(--amber)',Live:'var(--ok)',Error:'var(--red)','Not configured':'var(--mut)'}[MM.status];return `<span class="mock-badge" title="${esc(MM.err)}" style="color:${c};border-color:${c}">● ${MM.status==='Sample'?'SAMPLE emails':MM.status}</span>`}
-function mmTabs(){const t=MT.tab||'wo',u=MM.items.filter(m=>m.unread).length;return `<div class="mm-tabs" role="tablist" aria-label="Maintenance views"><button type="button" role="tab" class="bz-tab${t==='wo'?' act':''}" aria-selected="${t==='wo'}" data-mmtab="wo">Work orders</button><button type="button" role="tab" class="bz-tab${t==='mail'?' act':''}" aria-selected="${t==='mail'}" data-mmtab="mail">eMaint emails${u?' · '+u:''}</button></div>`}
-function mmSummary(){if(MM.status==='Error')return 'Maintenance inbox error: '+esc(MM.err);if(MM.status==='Not configured')return 'The maintenance email inbox isn’t set up on the server yet (MAINT_GMAIL_* in Render).';
+function mmChip(k){const MM=mmS(k);const c={Sample:'var(--amber)',Live:'var(--ok)',Error:'var(--red)','Not configured':'var(--mut)'}[MM.status];return `<span class="mock-badge" title="${esc(MM.err)}" style="color:${c};border-color:${c}">● ${MM.status==='Sample'?'SAMPLE emails':MM.status}</span>`}
+function mmTabs(k){const MM=mmS(k),t=MT.tab||'wo',u=MM.items.filter(m=>m.unread).length;return `<div class="mm-tabs" role="tablist" aria-label="Maintenance views"><button type="button" role="tab" class="bz-tab${t==='wo'?' act':''}" aria-selected="${t==='wo'}" data-mmtab="wo">Work orders</button><button type="button" role="tab" class="bz-tab${t==='mail'?' act':''}" aria-selected="${t==='mail'}" data-mmtab="mail">eMaint emails${u?' · '+u:''}</button></div>`}
+function mmSummary(k){const MM=mmS(k);if(MM.status==='Error')return 'Maintenance inbox error: '+esc(MM.err);if(MM.status==='Not configured')return 'The maintenance email inbox isn’t set up on the server yet (MAINT_GMAIL_* in Render).';
  const tag=MM.status==='Sample'?' <span class="mono">(SAMPLE emails)</span>':'';const ap=MM.items.filter(m=>m.info&&m.info.needsApproval);
  return `eMaint emails${tag}: <b>${MM.items.length}</b>, ${MM.items.filter(m=>m.unread).length} unread. ${ap.length?`<b>${ap.length} work request${ap.length>1?'s need':' needs'} approval</b> (${ap.map(m=>'#'+esc(m.info.requestNo||'?')).join(', ')}). Approve in eMaint.`:'No requests waiting.'} Details are parsed from email and may be incomplete.`}
 function mmInfo(i){return i?`<div class="mm-info"><span>parsed from email:</span>${i.kind&&i.kind!=='other'?`<span class="mm-tag">${esc(i.kind)}</span>`:''}${i.requestNo?`<span class="mm-tag">Req #${esc(i.requestNo)}</span>`:''}${i.workOrderNo?`<span class="mm-tag">WO ${esc(i.workOrderNo)}</span>`:''}${i.asset?`<span class="mm-tag">${esc(i.asset)}</span>`:''}${i.priority?`<span class="mm-tag">P${esc(i.priority)}</span>`:''}${i.status?`<span class="mm-tag">${esc(i.status)}</span>`:''}${i.needsApproval?'<span class="mm-tag ap">needs approval</span>':''}</div>`:''}
-function mmRender(){if(!MM.loaded){mmRefresh();return '<div class="empty"><b>LOADING</b>Fetching eMaint emails…</div>'}
+function mmRender(k){const MM=mmS(k);if(!MM.loaded){mmRefresh(k);return '<div class="empty"><b>LOADING</b>Fetching eMaint emails…</div>'}
  const m=MM.open&&MM.items.find(x=>x.id===MM.open);
- const head=`<div class="tip" style="margin-top:0"><b>Yorri:</b> ${mmSummary()}</div><div style="margin:6px 0"><button class="btn" data-mmr="1" style="padding:2px 6px;font-size:10px" aria-label="Refresh emails">↻</button> ${mmChip()} <span class="mono">read-only · nothing is sent from this inbox</span></div>`;
+ const head=`<div class="tip" style="margin-top:0"><b>Yorri:</b> ${mmSummary(k)}</div><div style="margin:6px 0"><button class="btn" data-mmr="${esc(k)}" style="padding:2px 6px;font-size:10px" aria-label="Refresh emails">↻</button> ${mmChip(k)} <span class="mono">read-only · nothing is sent from this inbox</span></div>`;
  if(MM.status==='Error')return head+`<div class="empty"><b>CONNECTOR ERROR</b>${esc(MM.err)}. Check Safe Rack › Maintenance in Settings → Connections.</div>`;
  if(MM.status==='Not configured')return head+'<div class="empty"><b>NOT CONFIGURED</b>Add MAINT_GMAIL_USER and MAINT_GMAIL_APP_PASSWORD in Render → Environment.</div>';
- if(m)return head+`<div style="border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--field)"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(m.subject)}</b><button class="btn" data-mmx="1" aria-label="Back to email list">← List</button></div><div class="mono" style="margin:4px 0">${esc(m.fromName||'')} &lt;${esc(m.from)}&gt; · ${new Date(m.date).toLocaleString()}</div>${mmInfo(m.info)}<div style="margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.body||m.snippet||'')}</div></div>`;
+ if(m)return head+`<div style="border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--field)"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(m.subject)}</b><button class="btn" data-mmx="${esc(k)}" aria-label="Back to email list">← List</button></div><div class="mono" style="margin:4px 0">${esc(m.fromName||'')} &lt;${esc(m.from)}&gt; · ${new Date(m.date).toLocaleString()}</div>${mmInfo(m.info)}<div style="margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere">${esc(m.body||m.snippet||'')}</div></div>`;
  if(!MM.items.length)return head+'<div class="empty"><b>INBOX ZERO</b>No eMaint emails yet.</div>';
- return head+MM.items.map(x=>`<div class="row" data-mmo="${esc(x.id)}" role="button" tabindex="0" aria-label="${esc((x.unread?'Unread: ':'')+x.subject)}" style="cursor:pointer;${x.unread?'font-weight:600':''}"><span>${x.unread?'● ':''}${esc(x.subject)}<br><span class="mono" style="font-weight:400">${esc(x.fromName||x.from)} · ${new Date(x.date).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>${mmInfo(x.info)}</span></div>`).join('')}
-async function mmOpen(id){MM.open=id;const c=mmConn(),x=MM.items.find(i=>i.id===id);if(c&&x&&!x.body){try{const r=await fetch(c.url.replace(/\/+$/,'')+'/maint/mail/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+c.token}});if(r.ok)Object.assign(x,await r.json())}catch(e){}}if(x)x.unread=false;draw()}
+ return head+MM.items.map(x=>`<div class="row" data-mmo="${esc(x.id)}" data-mmk="${esc(k)}" role="button" tabindex="0" aria-label="${esc((x.unread?'Unread: ':'')+x.subject)}" style="cursor:pointer;${x.unread?'font-weight:600':''}"><span>${x.unread?'● ':''}${esc(x.subject)}<br><span class="mono" style="font-weight:400">${esc(x.fromName||x.from)} · ${new Date(x.date).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>${mmInfo(x.info)}</span></div>`).join('')}
+async function mmOpen(k,id){const MM=mmS(k);MM.open=id;const c=mmConn(k),x=MM.items.find(i=>i.id===id);if(c&&x&&!x.body){try{const r=await fetch(c.url.replace(/\/+$/,'')+'/maint/mail/'+encodeURIComponent(id),{headers:{Authorization:'Bearer '+c.token}});if(r.ok)Object.assign(x,await r.json())}catch(e){}}if(x)x.unread=false;draw()}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-mmtab],[data-mmo],[data-mmx],[data-mmr]');if(!t)return;const d=t.dataset;
- if(d.mmtab){MT.tab=d.mmtab;if(d.mmtab==='mail')mmReady();draw();return}if(d.mmo){mmOpen(d.mmo);return}if(d.mmx){MM.open=null;draw();return}if(d.mmr){MM.loaded=false;mmRefresh()}});
-document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.mmo){e.preventDefault();mmOpen(e.target.dataset.mmo)}});
-window.addEventListener('storage',e=>{if(e.key===LS_CONN)MM.loaded=false});
-setTimeout(()=>{if(mmConn())mmRefresh()},1500);
+ if(d.mmtab){MT.tab=d.mmtab;if(d.mmtab==='mail')mmReady(MT_KEY());draw();return}if(d.mmo){mmOpen(d.mmk,d.mmo);return}if(d.mmx){mmS(d.mmx).open=null;draw();return}if(d.mmr){mmS(d.mmr).loaded=false;mmRefresh(d.mmr)}});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.mmo){e.preventDefault();mmOpen(e.target.dataset.mmk,e.target.dataset.mmo)}});
+window.addEventListener('storage',e=>{if(e.key===LS_CONN)Object.values(MMS).forEach(m=>m.loaded=false)});
+setTimeout(()=>{try{bizStore.businesses.forEach(b=>(b.rooms||[]).forEach(r=>{const k=connKey(b.id,r.id);if(mmConn(k))mmRefresh(k)}))}catch(e){}},1500);
 
 /* ---- Sync this device (ywDevSync): pull/push the settings bundle via {server}/config. Only the site token is used; no mailbox/eMaint passwords. */
 const LS_DS='ywDevSync',DS_DEF_URL='https://yw-business-server.onrender.com';
@@ -635,7 +665,7 @@ function connRender(){const L=$('#connList');if(!L)return;L.querySelectorAll('de
   <button type="button" class="sbt" id="cxImport">Import config</button><input type="file" id="cxFile" accept="application/json,.json" hidden aria-label="Choose config file"></div>
   <span class="ex" id="cxMsg" role="status" aria-live="polite"></span></details>`}
 function connOpen(){const L=$('#connList');if(L)L.closest('section').scrollIntoView({block:'start'})}
-function connAfter(k){if(k===SUP_KEY())supRefresh();if(k===MT_KEY()){maintRefresh();MM.loaded=false;mmRefresh()}delete GEN[k];connRender();draw()}
+function connAfter(k){if(k===SUP_KEY())supRefresh();if(k===MT_KEY())maintRefresh();mmS(k).loaded=false;if(mmConn(k))mmRefresh(k);delete GEN[k];connRender();draw()}
 document.addEventListener('toggle',e=>{const d=e.target.dataset||{};if(d.cxb)CX.open[d.cxb]=e.target.open;if(d.cxr)CX.roomOpen[d.cxr]=e.target.open},true);
 document.addEventListener('change',e=>{const el=e.target,k=el.dataset&&el.dataset.cxk,f=el.dataset&&el.dataset.cxf;
  if(k&&f){const v=f==='live'?el.checked:el.value.trim();if(f==='token'&&!v)return;const p={[f]:v};if(f==='url'||f==='type'||f==='token')p.result=null;if(f==='url'&&!v)p.live=false;if(f==='url'&&v&&!connGet(k).url)p.live=true;connSet(k,p);el.type==='password'&&(el.value='');connAfter(k);return}
@@ -693,7 +723,7 @@ function maintSummary(){const od=MT.wos.filter(w=>w.overdue),pd=MT.pms.filter(w=
  if(MT.status==='Error')return 'Maintenance connector error: '+esc(MT.err);
  return `Safe Rack maintenance${tag}: <b>${MT.wos.length} open work orders</b>${od.length?`, <b class="dn">${od.length} overdue</b> (${od.map(w=>esc(w.id+' '+w.title)).join('; ')})`:', none overdue'}. ${MT.pms.length} PMs due${pd.length?` (${pd.length} past due)`:''}. ${MT.reqs.length} pending requests. ${low.length?`Low stock: ${low.map(p=>esc(p.name)+' '+p.onHand+'/'+p.reorderAt).join(', ')}.`:'Parts stock OK.'}${od.length?` Suggest tackling ${esc(od[0].id)} first.`:''}`}
 function maintPMSummary(){const tag=MT.status==='Sample'?' <span class="mono">(SAMPLE data)</span>':'';if(!MT.pms.length)return 'No PMs due'+tag+'.';return 'PMs due'+tag+': '+MT.pms.slice().sort((a,b)=>(a.dueAt||0)-(b.dueAt||0)).map(w=>`<b>${esc(w.id)}</b> ${esc(w.title)} · ${mtDue(w)}`).join('; ')+'.'}
-function maintRender(){const tabs=mmTabs();if(MT.tab==='mail')return tabs+mmRender();if(!MT.loaded){maintRefresh();return tabs+'<div class="empty"><b>LOADING</b>Fetching maintenance data…</div>'}
+function maintRender(){const mk=MT_KEY(),tabs=mmTabs(mk);if(MT.tab==='mail')return tabs+mmRender(mk);if(!MT.loaded){maintRefresh();return tabs+'<div class="empty"><b>LOADING</b>Fetching maintenance data…</div>'}
  const btn=(a,l)=>`<button class="btn" ${a} style="padding:2px 6px;font-size:10px">${l}</button>`;
  const pend=queue.map((a,i)=>[a,i]).filter(([a])=>a.maint);
  const pq=pend.length?`<div style="margin:8px 0"><b>Awaiting your approval</b>${pend.map(([a,i])=>`<div class="row"><span>${esc(a.title)}</span><span><button class="btn" data-mtok="${i}">Approve</button> <button class="btn" data-mtno="${i}">Decline</button></span></div>`).join('')}</div>`:'';
@@ -799,7 +829,7 @@ function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
   if(room.role==='support')return supRender();
   if(t==='maint')return maintRender();
-  {const ck=connKey(activeBiz().id,room.id),c=connGet(ck);if(c.type==='rest'&&c.live&&c.url&&!mockOn)return genRender(ck,label)}
+
   if(!mockOn)return emptyState(label);
   if(t==='metrics')return `<div class="kpi"><div><b class="up">${esc(room.kpiA||'—')}</b><small>${esc(room.kpiALabel||'metric A')}</small></div><div><b>${esc(room.kpiB||'—')}</b><small>${esc(room.kpiBLabel||'metric B')}</small></div><div><b class="am">${esc(room.kpiC||'—')}</b><small>${esc(room.kpiCLabel||'metric C')}</small></div></div><div class="row"><span>${esc(bizName)}</span><span class="up">layout · metrics</span></div>`+mockBadgeWrap();
   if(t==='tickets'){const rows=(room.tickets||['Open ticket A','Open ticket B']).map(x=>`<div class="row"><span>${esc(x)}</span><span class="am">open</span></div>`).join('');return `<div class="kpi"><div><b>${(room.tickets||[]).length||2}</b><small>open</small></div></div>${rows}`+mockBadgeWrap()}
@@ -977,7 +1007,7 @@ function draw(){if(typeof dedupeQ==='function')dedupeQ();{const bn=$('#bizNav');
       else list=(b.rooms||[]).map(r=>({label:r.label,room:r}));
     }else{const room=(b.rooms||[]).find(x=>x.label===roomView);list=[{label:roomView,room}]}
     if(!list.length)html=cardHTML(b.name,`<div class="empty"><b>NO ROOMS YET</b>Click <b>Edit rooms</b> to build this business’s board.</div>`,true);
-    else html=list.map(({label,room})=>cardHTML(label+' · '+b.name,room?layoutHTML(room,b.name):emptyState(label),isSat)).join('');
+    else html=list.map(({label,room})=>bizCard(b,label,room,isSat,roomView==='Business Board'&&!isSat&&list.length>1)).join('');
   }
   $('#board').innerHTML=html;
   if($('#pend'))$('#pend').textContent=queue.length+' AWAITING YOUR DECISION';
@@ -1054,7 +1084,7 @@ function tryVoiceCommand(raw){
       return true;
     }
   }
-  if(/\b(maint(enance)?|emaint)\s+e?-?mails?\b|\bemaint\s+inbox\b/.test(t)){say('You',raw);maintGo();MT.tab='mail';draw();mmReady().then(()=>say('Yorri',mmSummary()));return true}
+  if(/\b(maint(enance)?|emaint)\s+e?-?mails?\b|\bemaint\s+inbox\b/.test(t)){say('You',raw);{const f=roomFind(r=>{const b=bizStore.businesses.find(x=>(x.rooms||[]).includes(r));const c=b&&connGet(connKey(b.id,r.id));return c&&c.type==='emailbox'})||roomFind(r=>r.type==='maint');const k=f?connKey(f.b.id,f.r.id):MT_KEY();if(f){bizStore.activeId=f.b.id;saveBiz();setPageView('apps');roomView=f.r.label}else maintGo();if(f&&f.r.type==='maint')MT.tab='mail';draw();mmReady(k).then(()=>say('Yorri',mmSummary(k)))}return true}
   if(/\b(summar\w*|status|analy\w*|overview|list|show|how\s+many)\b.*\b(work\s*orders?|wos?)\b|\bwhat\s+pms?\b|\bpms?\s+(are\s+)?due\b|\b(open|go\s+to|show)\s+(the\s+)?maint(enance)?\b/.test(t)){
     say('You',raw);maintGo();const pm=/\bpms?\b/.test(t)&&!/work\s*orders?/.test(t);
     if(/\b(open|go\s+to|show)\s+(the\s+)?maint(enance)?\b/.test(t)&&!/\b(summar|analy|what|how|work\s*orders?|pms?)\b/.test(t.replace(/maint\w*/,''))){say('Yorri','Opened <b>Maintenance</b> · Safe Rack.');return true}
