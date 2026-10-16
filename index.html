@@ -130,8 +130,20 @@ body.view-settings #setPage{display:block}
 .og-row.drop,.cx-biz.drop{outline:2px dashed var(--teal);outline-offset:-2px}
 .og-row .og-name,.cx-biz>summary .og-name{flex:1 1 120px;min-width:0;overflow-wrap:anywhere}
 .og-h{cursor:grab;color:var(--mut);user-select:none;padding:0 4px;font-size:1.1em}
-.og-b{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font:inherit;font-size:.85em;cursor:pointer;min-width:30px}
-.og-b:hover:not(:disabled){border-color:var(--teal)}.og-b:disabled{opacity:.35;cursor:default}.og-b.danger{color:var(--red)}
+.og-b{background:var(--field);color:var(--txt);border:1px solid color-mix(in srgb,var(--txt) 40%,var(--line));border-radius:6px;padding:3px 8px;font:inherit;font-size:.85em;font-weight:600;cursor:pointer;min-width:32px;min-height:28px}
+.og-b:hover:not(:disabled){border-color:var(--teal);color:var(--teal)}.og-b:disabled{background:transparent;color:var(--mut);border-style:dashed;border-color:var(--line);cursor:not-allowed}
+.og-child{margin:6px 10px 6px 22px;border-left:3px solid var(--teal)}
+.og-lab{display:inline-flex;align-items:center;gap:6px;color:var(--mut);font-size:.85em}
+.og-nest{display:none;margin:6px 10px 10px 22px;padding:10px;border:2px dashed var(--line);border-radius:8px;color:var(--mut);font-size:.85em;text-align:center}
+#orgList.dragging-biz .og-nest{display:block}.og-nest.drop{border-color:var(--teal);color:var(--teal)}
+.bz-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.bz-nav:empty{display:none}
+.bz-crumb{color:var(--mut);display:flex;gap:6px;align-items:center}.bz-crumb [aria-current]{color:var(--txt);font-weight:600}
+.bz-link{background:none;border:0;color:var(--teal);cursor:pointer;font:inherit;padding:2px;text-decoration:underline}
+.bz-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.bz-tab{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;font:inherit;font-size:12px}
+.bz-tab.act{color:var(--ink);background:var(--teal);border-color:var(--teal);font-weight:700}.bz-tab:not(.act):hover{color:var(--teal)}
+.bz-tab:focus-visible,.bz-link:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+html.a11y-contrast .bz-tab{border-width:1.5px}.og-b.danger{color:var(--red)}
 .og-b:focus-visible,.og-sel:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
 .og-sel{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:3px 6px;font:inherit;font-size:.85em;max-width:150px}
 .og-add{padding:8px 12px 10px 20px;border-top:1px solid var(--line)}
@@ -211,6 +223,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 </div>
 <div class="appsbar" id="appsBar">
 <button type="button" class="sbtn" id="backCmd" aria-label="Back to Command Center">← Command Center</button>
+<div id="bizNav" class="bz-nav"></div>
 <label for="bizSelect">Business</label>
 <select id="bizSelect"></select>
 <button type="button" class="sbtn" id="addBiz">+ Add business</button>
@@ -369,6 +382,19 @@ const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,op
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
+/* nesting: one level. bizParent() ignores stale/invalid parents so data never breaks */
+function bizParent(b){const p=b&&b.parent&&bizStore.businesses.find(x=>x.id===b.parent);return p&&!p.parent&&p!==b?p.id:null}
+const bizTop=()=>bizStore.businesses.filter(b=>!bizParent(b));
+const bizKids=id=>bizStore.businesses.filter(b=>bizParent(b)===id);
+function bizOrdered(){const o=[];bizTop().forEach(b=>{o.push(b);bizKids(b.id).forEach(c=>o.push(c))});return o}
+function bizCount(b){const n=(b.rooms||[]).length,k=bizKids(b.id).length;return n+' room'+(n===1?'':'s')+(k?' · '+k+' app'+(k===1?'':'s'):'')}
+function bizGoId(id){bizStore.activeId=id;saveBiz();roomView='Business Board';setPageView('apps');ensureAssignments();draw()}
+function bizNavHTML(){const a=activeBiz();if(!a)return '';const top=bizParent(a)?ogB(bizParent(a)):a,kids=bizKids(top.id);
+ const crumb=bizParent(a)?`<nav class="bz-crumb" aria-label="Breadcrumb"><button type="button" class="bz-link" data-bznav="${esc(top.id)}">${esc(top.name)}</button> <span aria-hidden="true">›</span> <span aria-current="page">${esc(a.name)}</span></nav>`:'';
+ const tabs=kids.length?`<div class="bz-tabs" role="tablist" aria-label="${esc(top.name)} apps">${[top,...kids].map(x=>`<button type="button" role="tab" aria-selected="${x===a}" class="bz-tab${x===a?' act':''}" data-bznav="${esc(x.id)}">${x===top?esc(top.name)+' rooms':esc(x.name)}</button>`).join('')}</div>`:'';
+ return crumb+tabs}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-bznav]');if(t)bizGoId(t.dataset.bznav)});
+
 /* ---- Organize: reorder / move / rename / add / delete businesses & rooms ---- */
 const OG={open:{}};
 function orgCommit(msg){saveBiz();refreshBizSelect();ensureAssignments();try{saveLayout()}catch(e){}if(!activeBiz().rooms.find(r=>r.label===roomView)&&pageView==='apps')roomView='Business Board';draw();try{broadcast({type:'biz',bizStore})}catch(e){}orgRender();connRender();supRefresh();maintRefresh();if(msg){const m=$('#ogMsg');if(m)m.textContent=msg}}
@@ -377,51 +403,58 @@ function orgMoveRoom(fromId,rid,toId,idx){const A=bizStore.businesses.find(b=>b.
  if(A!==B&&B.rooms.some(x=>x.label===r.label)){let n=2;while(B.rooms.some(x=>x.label===r.label+' '+n))n++;r.label=r.label+' '+n}
  if(idx==null||idx>B.rooms.length)idx=B.rooms.length;B.rooms.splice(idx,0,r);OG.force=B.id;if(A!==B)orgMoveConn(A.id,B.id,r.id);orgCommit(A===B?'Moved '+r.label+'.':'Moved '+r.label+' to '+B.name+'.')}
 function orgRender(){const L=$('#orgList');if(!L)return;const keep=Object.assign({},OG.open);L.querySelectorAll('details[data-ogb]').forEach(d=>OG.open[d.dataset.ogb]=d.open||keep[d.dataset.ogb]===true&&OG.force===d.dataset.ogb);if(OG.force){OG.open[OG.force]=true;OG.force=null}const bs=bizStore.businesses;
- L.innerHTML=bs.map((b,bi)=>`<details class="cx-biz" data-ogb="${esc(b.id)}"${OG.open[b.id]?' open':''} draggable="true">
-  <summary aria-label="${esc(b.name)}, ${b.rooms.length} rooms"><span class="og-h" aria-hidden="true" title="Drag to reorder">⠿</span><span class="og-name">${esc(b.name)}</span> <span class="cx-n">${b.rooms.length} room${b.rooms.length===1?'':'s'}</span>
-   <button type="button" class="og-b" data-og="bup" data-b="${esc(b.id)}" aria-label="Move ${esc(b.name)} up"${bi?'':' disabled'}>↑</button><button type="button" class="og-b" data-og="bdn" data-b="${esc(b.id)}" aria-label="Move ${esc(b.name)} down"${bi<bs.length-1?'':' disabled'}>↓</button></summary>
-  <div class="og-row" style="padding-left:12px"><button type="button" class="og-b" data-og="bren" data-b="${esc(b.id)}">Rename</button><button type="button" class="og-b" data-og="blay" data-b="${esc(b.id)}">Edit room layouts…</button><button type="button" class="og-b danger" data-og="bdel" data-b="${esc(b.id)}"${bs.length>1?'':' disabled title="Can’t delete the last business"'}>Delete business</button></div>
+ L.innerHTML=bizTop().map((b,bi,sibs)=>ogGroup(b,bi,sibs)).join('')+
+ `<div class="opts" style="margin-top:8px"><button type="button" class="sbt" data-og="badd">＋ Add business</button></div><span class="ex" id="ogMsg" role="status" aria-live="polite"></span>
+ <details class="cx-adv"><summary>Advanced</summary><div class="opts"><button type="button" class="sbt" data-og="reset">Reset to default layout</button></div><span class="ex">Restores the original businesses and rooms. Connections for rooms that no longer exist are removed.</span></details>`}
+function ogGroup(b,bi,sibs){const bs=bizStore.businesses;return `<details class="cx-biz${b.parent?' og-child':''}" data-ogb="${esc(b.id)}"${OG.open[b.id]?' open':''} draggable="true">
+  <summary aria-label="${esc(b.name)}, ${bizCount(b)}"><span class="og-h" aria-hidden="true" title="Drag to reorder">⠿</span><span class="og-name">${esc(b.name)}</span> <span class="cx-n">${bizCount(b)}</span>
+   <button type="button" class="og-b" data-og="bup" data-b="${esc(b.id)}" aria-label="Move ${esc(b.name)} up"${bi?'':' disabled'}>↑</button><button type="button" class="og-b" data-og="bdn" data-b="${esc(b.id)}" aria-label="Move ${esc(b.name)} down"${bi<sibs.length-1?'':' disabled'}>↓</button></summary>
+  <div class="og-row" style="padding-left:12px"><button type="button" class="og-b" data-og="bren" data-b="${esc(b.id)}">Rename</button><button type="button" class="og-b" data-og="blay" data-b="${esc(b.id)}">Edit room layouts…</button><button type="button" class="og-b danger" data-og="bdel" data-b="${esc(b.id)}"${bs.length>1?'':' disabled title="Can’t delete the last business"'}>Delete business</button><label class="og-lab">Move under <select class="og-sel" data-og="bnest" data-b="${esc(b.id)}" aria-label="Move ${esc(b.name)} under another business"${bizKids(b.id).length?' disabled title="Has sub-businesses; move those out first"':''}><option value="">Top level</option>${bizTop().filter(x=>x!==b).map(x=>`<option value="${esc(x.id)}"${b.parent===x.id?' selected':''}>${esc(x.name)}</option>`).join('')}</select></label></div>
   ${b.rooms.map((r,ri)=>`<div class="og-row" draggable="true" data-ogr="${esc(r.id)}" data-b="${esc(b.id)}"><span class="og-h" aria-hidden="true" title="Drag to reorder or move">⠿</span><span class="og-name">${esc(r.label)}</span>
    <button type="button" class="og-b" data-og="rup" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Move ${esc(r.label)} up"${ri?'':' disabled'}>↑</button><button type="button" class="og-b" data-og="rdn" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Move ${esc(r.label)} down"${ri<b.rooms.length-1?'':' disabled'}>↓</button>
    ${bs.length>1?`<select class="og-sel" data-og="rmove" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Move ${esc(r.label)} to another business"><option value="">Move to…</option>${bs.filter(x=>x!==b).map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select>`:''}
    <button type="button" class="og-b" data-og="rren" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Rename ${esc(r.label)}">Rename</button><button type="button" class="og-b danger" data-og="rdel" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Delete ${esc(r.label)}">Delete</button></div>`).join('')}
-  <div class="og-add"><button type="button" class="og-b" data-og="radd" data-b="${esc(b.id)}">＋ Add room</button></div></details>`).join('')+
- `<div class="opts" style="margin-top:8px"><button type="button" class="sbt" data-og="badd">＋ Add business</button></div><span class="ex" id="ogMsg" role="status" aria-live="polite"></span>
- <details class="cx-adv"><summary>Advanced</summary><div class="opts"><button type="button" class="sbt" data-og="reset">Reset to default layout</button></div><span class="ex">Restores the original businesses and rooms. Connections for rooms that no longer exist are removed.</span></details>`}
+  <div class="og-add"><button type="button" class="og-b" data-og="radd" data-b="${esc(b.id)}">＋ Add room</button></div>${b.parent?'':`${bizKids(b.id).map((c,ci,cs)=>ogGroup(c,ci,cs)).join('')}<div class="og-nest" data-ognest="${esc(b.id)}">Drop a business here to put it under ${esc(b.name)}</div>`}</details>`}
 function orgOpen(){const L=$('#orgList');if(L)L.closest('section').scrollIntoView({block:'start'})}
 const ogB=id=>bizStore.businesses.find(b=>b.id===id);
+function bizSwapSib(b,dir){const bs=bizStore.businesses,sib=bs.filter(x=>bizParent(x)===bizParent(b)),i=sib.indexOf(b),o=sib[i+dir];if(!o)return false;const a=bs.indexOf(b),c=bs.indexOf(o);[bs[a],bs[c]]=[bs[c],bs[a]];return true}
+function bizNest(b,pid){if(pid){const P=ogB(pid);if(!P||P===b||bizParent(P)||bizKids(b.id).length)return false;b.parent=pid}else delete b.parent;return true}
 function orgFocus(sel){setTimeout(()=>{const e=document.querySelector(sel);if(e&&!e.disabled)e.focus()},0)}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#orgList [data-og]');if(!t||t.tagName==='SELECT')return;const a=t.dataset.og,b=ogB(t.dataset.b),bs=bizStore.businesses;
  if(t.closest('summary'))e.preventDefault();
- if(a==='bup'||a==='bdn'){const i=bs.indexOf(b),j=i+(a==='bup'?-1:1);if(j<0||j>=bs.length)return;[bs[i],bs[j]]=[bs[j],bs[i]];orgCommit('Moved '+b.name+(a==='bup'?' up.':' down.'));orgFocus(`[data-og="${a}"][data-b="${CSS.escape(b.id)}"]`);return}
+ if(a==='bup'||a==='bdn'){if(!bizSwapSib(b,a==='bup'?-1:1))return;orgCommit('Moved '+b.name+(a==='bup'?' up.':' down.'));orgFocus(`[data-og="${a}"][data-b="${CSS.escape(b.id)}"]`);return}
  if(a==='rup'||a==='rdn'){const i=b.rooms.findIndex(r=>r.id===t.dataset.r),j=i+(a==='rup'?-1:1);if(j<0||j>=b.rooms.length)return;[b.rooms[i],b.rooms[j]]=[b.rooms[j],b.rooms[i]];orgCommit('Moved '+b.rooms[j].label+(a==='rup'?' up.':' down.'));orgFocus(`[data-og="${a}"][data-r="${CSS.escape(t.dataset.r)}"]`);return}
  if(a==='bren'){const n=(prompt('Rename business',b.name)||'').trim();if(n&&n!==b.name){b.name=n;orgCommit('Renamed to '+n+'.')}return}
  if(a==='rren'){const r=b.rooms.find(r=>r.id===t.dataset.r),n=(prompt('Rename room',r.label)||'').trim();if(!n||n===r.label)return;if(b.rooms.some(x=>x!==r&&x.label.toLowerCase()===n.toLowerCase())){alert('That business already has a room called '+n+'.');return}const old=r.label;r.label=n;if(roomView===old)roomView=n;orgCommit('Renamed room to '+n+'.');return}
  if(a==='radd'){const n=(prompt('New room name','New room')||'').trim();if(!n)return;if(b.rooms.some(x=>x.label.toLowerCase()===n.toLowerCase())){alert('That business already has a room called '+n+'.');return}b.rooms.push({id:uid(),label:n,type:'custom',rows:[{l:'Custom field',v:'Set in editor'}]});OG.force=b.id;orgCommit('Added room '+n+'.');return}
  if(a==='badd'){const n=(prompt('New business name','New Business')||'').trim();if(!n)return;const id='biz-'+Date.now().toString(36);bs.push({id,name:n,rooms:[{id:uid(),label:'Overview',type:'metrics',kpiA:'—',kpiALabel:'KPI 1',kpiB:'—',kpiBLabel:'KPI 2',kpiC:'—',kpiCLabel:'KPI 3'}]});OG.force=id;orgCommit('Added business '+n+'.');return}
  if(a==='rdel'){const r=b.rooms.find(r=>r.id===t.dataset.r);if(!confirm('Delete room "'+r.label+'" from '+b.name+'? Its connection settings are removed too.'))return;b.rooms=b.rooms.filter(x=>x!==r);const o=connAll();delete o[connKey(b.id,r.id)];connSave(o);orgCommit('Deleted room '+r.label+'.');return}
- if(a==='bdel'){if(bs.length<2)return;const others=bs.filter(x=>x!==b);let moveTo=null;
+ if(a==='bdel'){if(bs.length<2)return;const kids=bizKids(b.id);
+  if(kids.length){const mv=confirm(`"${b.name}" has ${kids.length} sub-business(es): ${kids.map(k=>k.name).join(', ')}.\nOK = move them to top level · Cancel = delete them too`);
+   if(mv)kids.forEach(k=>delete k.parent);else{if(!confirm('Delete '+b.name+' AND its sub-businesses '+kids.map(k=>k.name).join(', ')+' with all their rooms? This can’t be undone.'))return;const o=connAll();kids.forEach(k=>k.rooms.forEach(r=>delete o[connKey(k.id,r.id)]));connSave(o);bizStore.businesses=bs.filter(x=>!kids.includes(x));if(kids.some(k=>k.id===bizStore.activeId))bizStore.activeId=b.id}}
+  const bs2=bizStore.businesses;if(bs2.length<2){orgCommit('Can’t delete the last business.');return}const others=bs2.filter(x=>x!==b&&x.parent!==b.id);let moveTo=null;
   if(b.rooms.length){const names=others.map((x,i)=>(i+1)+'. '+x.name).join('\n');const ans=prompt(`"${b.name}" has ${b.rooms.length} room(s).\nType a number to MOVE them to that business, or type DELETE to delete them too:\n${names}`,'1');if(ans==null)return;
    if(/^delete$/i.test(ans.trim())){if(!confirm('Delete '+b.name+' and all '+b.rooms.length+' rooms? This can’t be undone.'))return}else{moveTo=others[(+ans||0)-1];if(!moveTo){alert('No business with that number.');return}}}
   else if(!confirm('Delete business "'+b.name+'"?'))return;
   const o=connAll();for(const r of b.rooms.slice()){if(moveTo){let lab=r.label,n=2;while(moveTo.rooms.some(x=>x.label===lab))lab=r.label+' '+n++;r.label=lab;moveTo.rooms.push(r);o[connKey(moveTo.id,r.id)]=o[connKey(b.id,r.id)];if(!o[connKey(moveTo.id,r.id)])delete o[connKey(moveTo.id,r.id)]}delete o[connKey(b.id,r.id)]}connSave(o);
-  bizStore.businesses=others;if(bizStore.activeId===b.id)bizStore.activeId=(moveTo||others[0]).id;orgCommit('Deleted '+b.name+(moveTo?'; rooms moved to '+moveTo.name:'')+'.');return}
+  bizStore.businesses=bizStore.businesses.filter(x=>x!==b);if(bizStore.activeId===b.id)bizStore.activeId=(moveTo||others[0]).id;orgCommit('Deleted '+b.name+(moveTo?'; rooms moved to '+moveTo.name:'')+'.');return}
  if(a==='blay'){ywSettings(false);bizStore.activeId=b.id;saveBiz();setPageView('apps');roomView='Business Board';draw();openEditor();return}
  if(a==='reset'){if(!confirm('Reset all businesses and rooms to the default layout? Your custom businesses and rooms will be removed.'))return;const fresh=seedBusinesses();bizStore.businesses=fresh.businesses;bizStore.activeId=fresh.activeId;
   const ok=new Set();bizStore.businesses.forEach(x=>x.rooms.forEach(r=>ok.add(connKey(x.id,r.id))));const o=connAll();Object.keys(o).forEach(k=>{if(!ok.has(k))delete o[k]});connSave(o);connMigrate();roomView=pageView==='apps'?'Business Board':roomView;orgCommit('Reset to default layout.')}});
-document.addEventListener('change',e=>{const t=e.target;if(!(t.dataset&&t.dataset.og==='rmove')||!t.value)return;orgMoveRoom(t.dataset.b,t.dataset.r,t.value,null)});
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.og==='bnest'){const b=ogB(t.dataset.b);if(!bizNest(b,t.value)){orgRender();return}if(t.value)OG.force=t.value;orgCommit(t.value?'Moved '+b.name+' under '+ogB(t.value).name+'.':'Moved '+b.name+' to top level.');return}
+ if(!(t.dataset&&t.dataset.og==='rmove')||!t.value)return;orgMoveRoom(t.dataset.b,t.dataset.r,t.value,null)});
 // drag & drop (desktop). Rows: reorder/move rooms. Groups: reorder businesses, or drop a room onto a group to move it there.
 let OGD=null;
-document.addEventListener('dragstart',e=>{const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(r){OGD={kind:'room',b:r.dataset.b,r:r.dataset.ogr};e.stopPropagation()}else if(g)OGD={kind:'biz',b:g.dataset.ogb};else return;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','og')}catch(x){}});
-document.addEventListener('dragover',e=>{if(!OGD)return;const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(!r&&!g)return;e.preventDefault();document.querySelectorAll('#orgList .drop').forEach(x=>x.classList.remove('drop'));((OGD.kind==='room'&&r)||g).classList.add('drop')});
-document.addEventListener('dragend',()=>{OGD=null;document.querySelectorAll('#orgList .drop').forEach(x=>x.classList.remove('drop'))});
-document.addEventListener('drop',e=>{if(!OGD)return;const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(!g){OGD=null;return}e.preventDefault();const d=OGD;OGD=null;
- if(d.kind==='biz'){const bs=bizStore.businesses,i=bs.findIndex(x=>x.id===d.b),j=bs.findIndex(x=>x.id===g.dataset.ogb);if(i<0||j<0||i===j)return orgRender();const [x]=bs.splice(i,1);bs.splice(j,0,x);orgCommit('Moved '+x.name+'.');return}
+document.addEventListener('dragstart',e=>{const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(r){OGD={kind:'room',b:r.dataset.b,r:r.dataset.ogr};e.stopPropagation()}else if(g){OGD={kind:'biz',b:g.dataset.ogb};$('#orgList').classList.add('dragging-biz')}else return;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','og')}catch(x){}});
+document.addEventListener('dragover',e=>{if(!OGD)return;const nz=e.target.closest&&e.target.closest('#orgList [data-ognest]'),r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(!r&&!g&&!nz)return;e.preventDefault();document.querySelectorAll('#orgList .drop').forEach(x=>x.classList.remove('drop'));((OGD.kind==='biz'&&nz)||(OGD.kind==='room'&&r)||g).classList.add('drop')});
+document.addEventListener('dragend',()=>{OGD=null;$('#orgList')&&$('#orgList').classList.remove('dragging-biz');document.querySelectorAll('#orgList .drop').forEach(x=>x.classList.remove('drop'))});
+document.addEventListener('drop',e=>{if(!OGD)return;const nz=e.target.closest&&e.target.closest('#orgList [data-ognest]');if(nz&&OGD.kind==='biz'){e.preventDefault();const b=ogB(OGD.b);OGD=null;if(bizNest(b,nz.dataset.ognest)){OG.force=nz.dataset.ognest;orgCommit('Moved '+b.name+' under '+ogB(nz.dataset.ognest).name+'.')}else{const m=$('#ogMsg');orgRender();if($('#ogMsg'))$('#ogMsg').textContent='Can’t nest that business (only one level; move its sub-businesses out first).'}return}const r=e.target.closest&&e.target.closest('#orgList [data-ogr]'),g=e.target.closest&&e.target.closest('#orgList details[data-ogb]');if(!g){OGD=null;return}e.preventDefault();const d=OGD;OGD=null;
+ if(d.kind==='biz'){const bs=bizStore.businesses,i=bs.findIndex(x=>x.id===d.b),j=bs.findIndex(x=>x.id===g.dataset.ogb);if(i<0||j<0||i===j)return orgRender();if(bizParent(bs[i])!==bizParent(bs[j])){const g2=bizParent(bs[j])?null:bs[j];if(g2&&bizNest(bs[i],g2.id)){OG.force=g2.id;orgCommit('Moved '+bs[i].name+' under '+g2.name+'.')}else orgRender();return}const [x]=bs.splice(i,1);bs.splice(j,0,x);orgCommit('Moved '+x.name+'.');return}
  const to=g.dataset.ogb,B=ogB(to);let idx=r?B.rooms.findIndex(x=>x.id===r.dataset.ogr):B.rooms.length;if(d.b===to){const from=B.rooms.findIndex(x=>x.id===d.r);if(from<idx)idx--}orgMoveRoom(d.b,d.r,to,idx)});
 
-function bizTilesHTML(){const bs=bizStore.businesses||[];if(!bs.length)return '';
+function bizTilesHTML(){const bs=bizTop();if(!bs.length)return '';
  return `<section class="bizrow" aria-label="Businesses"><h3>Businesses</h3>${bs.map(b=>{const rooms=b.rooms||[],live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
-  return `<button type="button" class="biztile" data-bizgo="${esc(b.id)}" aria-label="Open ${esc(b.name)}: ${rooms.length} rooms, ${live} live"><b>${esc(b.name)}</b><small><span class="cx-dot ${live?'live':''}" aria-hidden="true"></span>${rooms.length} room${rooms.length===1?'':'s'} · ${live?live+' live':'sample'}</small></button>`}).join('')}</section>`}
+  return `<button type="button" class="biztile" data-bizgo="${esc(b.id)}" aria-label="Open ${esc(b.name)}: ${bizCount(b)}, ${live} live"><b>${esc(b.name)}</b><small><span class="cx-dot ${live?'live':''}" aria-hidden="true"></span>${bizCount(b)} · ${live?live+' live':'sample'}</small></button>`}).join('')}</section>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-bizgo],#backCmd');if(!t)return;
  if(t.id==='backCmd'){setPageView('command');roomView='Command Board';draw();return}
  bizStore.activeId=t.dataset.bizgo;saveBiz();roomView='Business Board';setPageView('apps');ensureAssignments();draw();const bk=$('#backCmd');if(bk)bk.focus()});
@@ -436,8 +469,8 @@ function connMigrate(){if(!roomFind(supRoomPred)){const y=bizStore.businesses.fi
  const dflt=(k,type)=>{if(!o[k]){o[k]={type,url:'',token:'',live:false};ch=true}};dflt(SUP_KEY(),'support');dflt(MT_KEY(),'emaint');if(ch)connSave(o)}
 function connState(c){if(c.live&&c.url)return c.result&&!c.result.ok?['err','Error']:['live','Live'];return c.type==='none'?['','Not connected']:['sample','Sample']}
 function connRender(){const L=$('#connList');if(!L)return;L.querySelectorAll('details[data-cxb]').forEach(d=>CX.open[d.dataset.cxb]=d.open);L.querySelectorAll('details[data-cxr]').forEach(d=>CX.roomOpen[d.dataset.cxr]=d.open);const all=connAll();
- L.innerHTML=bizStore.businesses.map(b=>{const rooms=b.rooms||[];const live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
-  return `<details class="cx-biz" data-cxb="${esc(b.id)}"${CX.open[b.id]?' open':''}><summary aria-label="${esc(b.name)}, ${live} of ${rooms.length} rooms live">${esc(b.name)} <span class="cx-n">${live}/${rooms.length} live</span></summary>`+
+ L.innerHTML=bizOrdered().map(b=>{const rooms=b.rooms||[];const live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
+  return `<details class="cx-biz${bizParent(b)?' og-child':''}" data-cxb="${esc(b.id)}"${CX.open[b.id]?' open':''}><summary aria-label="${esc(b.name)}, ${live} of ${rooms.length} rooms live">${bizParent(b)?'<span class="cx-n" aria-hidden="true">'+esc(ogB(bizParent(b)).name)+' ›</span> ':''}${esc(b.name)} <span class="cx-n">${live}/${rooms.length} live</span></summary>`+
   (rooms.length?rooms.map(r=>{const k=connKey(b.id,r.id),c=connGet(k),[cls,lab]=connState(c),id='cx'+k.replace(/[^a-z0-9]/gi,'_');
    return `<details class="cx-room" data-cxr="${esc(k)}"${CX.roomOpen[k]?' open':''}><summary aria-label="${esc(r.label)}: ${lab}. Edit"><span class="cx-dot ${cls}" aria-hidden="true"></span>${esc(r.label)} <span class="cx-st">${lab}</span></summary>
    <div class="cx-form">
@@ -685,7 +718,7 @@ function yorriContext(){
   if(pageView==='apps'){const b=activeBiz();if(tag)tag.textContent='· '+b.name;if($('#q'))$('#q').placeholder='Ask about '+b.name+' · open Finance · Yorri approve…'}
   else{if(tag)tag.textContent='';if($('#q'))$('#q').placeholder='e.g. hire 5, open Apps, Yorri approve…'}
 }
-function refreshBizSelect(){const sel=$('#bizSelect');if(!sel)return;sel.innerHTML=bizStore.businesses.map(b=>`<option value="${b.id}" ${b.id===bizStore.activeId?'selected':''}>${esc(b.name)}</option>`).join('')}
+function refreshBizSelect(){const bn=$('#bizNav');if(bn)bn.innerHTML=bizNavHTML();const sel=$('#bizSelect');if(!sel)return;sel.innerHTML=bizOrdered().map(b=>`<option value="${b.id}" ${b.id===bizStore.activeId?'selected':''}>${bizParent(b)?'  › ':''}${esc(b.name)}</option>`).join('')}
 function ensureAssignments(){
   const pool=currentRoomPool();
   for(let i=2;i<=screenCount;i++){const k=String(i);if(!assignments[k]||!pool.includes(assignments[k]))assignments[k]=pool[(i-2)%Math.max(pool.length,1)]||pool[0]||'Finance'}
@@ -753,7 +786,7 @@ function setScreenCount(n){
   draw();broadcast(Object.assign(snapshot(),{type:'state'}));
 }
 function cardHTML(title,body,keep){const live=mockOn?'● mock':(LIVE_RENDER[title]?'● LIVE (stub)':'○ live pending');return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} <span class="mono">${live}</span></h3>${body}</div>`}
-function draw(){if(typeof dedupeQ==='function')dedupeQ();
+function draw(){if(typeof dedupeQ==='function')dedupeQ();{const bn=$('#bizNav');if(bn)bn.innerHTML=bizNavHTML()}
   ensureAssignments();
   document.body.classList.toggle('view-apps',pageView==='apps');
   document.body.classList.toggle('view-command',pageView!=='apps');
