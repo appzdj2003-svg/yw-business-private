@@ -27,7 +27,7 @@ nav.rooms button:not(.act):hover{color:var(--teal);box-shadow:0 0 12px color-mix
 html.a11y-contrast .biztile{border-width:1.5px}
 .appsbar{display:none;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);align-items:center;flex-wrap:wrap;background:var(--bar)}
 body.view-apps .appsbar{display:flex}
-.biz-tag{display:none;font-size:10px;color:var(--amber);margin-left:8px;letter-spacing:.08em}
+.biz-tag{display:none;font-size:10px;color:var(--amber);margin:0 8px;letter-spacing:.08em}
 body.view-apps #askCard .biz-tag{display:inline}
 main{display:grid;grid-template-columns:1fr 360px;gap:14px;padding:14px 18px}
 @media(max-width:1000px){main{grid-template-columns:1fr}}
@@ -399,7 +399,7 @@ const SUP_STUB={name:'stub',
 /* PLACEHOLDER for the future Worker. Expected endpoints (to be built server-side later):
    GET {url}/tickets → [ticket]; GET {url}/tickets/{id} → ticket; POST {url}/tickets/{id}/reply {body} → {ok}.
    The access code would go in a header; no inbox credentials ever live in the browser. */
-const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,opt={})=>{const r=await fetch(base+path,Object.assign({},opt,{headers:Object.assign({'Authorization':'Bearer '+supTok()},opt.body?{'Content-Type':'application/json'}:{})}));if(!r.ok)throw new Error('HTTP '+r.status+(r.status===401?' (check token)':''));return r.json()};
+const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,opt={})=>{const r=await fetch(base+path,Object.assign({},opt,{headers:Object.assign({'Authorization':'Bearer '+supTok()},opt.body?{'Content-Type':'application/json'}:{})}));if(!r.ok){let d='';try{d=(await r.json()).error||''}catch(x){}throw new Error('HTTP '+r.status+(r.status===401?' (check token)':'')+(d?': '+d:''))}return r.json()};
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
@@ -795,11 +795,17 @@ function supModal(){let m=document.getElementById('supModal');const t=SUP.open;i
  <textarea id="supDraft" rows="6" style="width:100%;box-sizing:border-box;margin-top:4px;font-size:14px" placeholder="Tap Draft with Yorri…">${esc(SUP.draft)}</textarea>
  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"><button class="btn" data-supd="1">✨ Draft with Yorri</button><button class="btn" data-supp="1">Propose send (T1)</button>
  <button class="btn" data-supc="${t.status==='closed'?'open':'closed'}">${t.status==='closed'?'Reopen':'Close ticket'}</button></div>
+${SUP.sendMsg&&SUP.sendMsg.id===t.id?`<p role="status" class="${SUP.sendMsg.ok?'cx-ok':'cx-bad'}" style="margin:8px 0 0">${esc(SUP.sendMsg.msg)}</p>`:''}
  <p class="tip">Approve in the decision queue to send. ${SupportSource().name==='stub'?'Stub connector: nothing is emailed; the reply is marked sent and logged to Vault.':'Connected: approving sends a real email and logs it to Vault.'}</p></div>`}
 async function supOpen(id){const s=supSt();(s[id]=s[id]||{}).read=true;supSave(s);try{SUP.open=await SupportSource().get(id)}catch(e){SUP.open=null;SUP.status='Error';SUP.err=String(e.message||e)}SUP.draft='';supModal();supRefresh()}
 async function supOnDecide(a,ok){if(!a||!a.sup)return;if(!ok){say('Yorri',`Draft for ${esc(a.sup.id)} discarded.`);return}
- try{const r=await SupportSource().send(a.sup.id,a.sup.body);audit({decision:'SENT'+(r&&r.stub?' (stub)':''),tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Reply to ${esc(a.sup.id)} ${r&&r.stub?'marked sent (stub — no real email)':'sent'}. Logged to Vault.`)}
- catch(e){SUP.status='Error';SUP.err=String(e.message||e);audit({decision:'SEND FAILED',tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Send failed for ${esc(a.sup.id)}: ${esc(SUP.err)}`)}
+ const src=SupportSource();
+ if(a.sup.src&&a.sup.src!==src.name){const m=`Not sent: this draft was made on ${a.sup.src==='stub'?'a SAMPLE ticket':'the live inbox'}, but Support is now ${src.name==='stub'?'on sample data':'live'}. Re-open the ticket and propose again.`;audit({decision:'NOT SENT (source changed)',tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',m);SUP.sendMsg={id:a.sup.id,ok:false,msg:m};supRefresh();return}
+ try{const r=await src.send(a.sup.id,a.sup.body);
+  if(r&&r.stub){const m='NOT emailed: this is a SAMPLE ticket (Support isn’t connected live). Connect it in Settings → Connections to send real replies.';audit({decision:'NOT SENT (sample ticket)',tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',esc(m));SUP.sendMsg={id:a.sup.id,ok:false,msg:m}}
+  else if(r&&r.ok&&r.messageId){const m='Sent · Gmail id '+r.messageId+(r.to?' · to '+r.to:'');audit({decision:'SENT · '+r.messageId+(r.to?' → '+r.to:''),tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Reply to ${esc(a.sup.id)} sent. ${esc(m)}. Check the Gmail Sent folder. Logged to Vault.`);SUP.sendMsg={id:a.sup.id,ok:true,msg:m}}
+  else throw new Error('server did not confirm the send (no message id)')}
+ catch(e){const er=String(e.message||e).slice(0,160);audit({decision:'SEND FAILED: '+er,tier:'T1',title:'Reply '+a.sup.id,lane:'Support'});say('Yorri',`Send failed for ${esc(a.sup.id)}: ${esc(er)}`);SUP.sendMsg={id:a.sup.id,ok:false,msg:'Send failed: '+er}}
  if(SUP.open&&SUP.open.id===a.sup.id)SUP.open=await SupportSource().get(a.sup.id).catch(()=>null);supRefresh()}
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.sups!==undefined){SUP.sort=e.target.value;draw()}});
 document.addEventListener('toggle',e=>{if(e.target.id==='supCfg')SUP.cfgOpen=e.target.open},true);
@@ -813,7 +819,7 @@ document.addEventListener('click',async e=>{const el=e.target.closest&&e.target.
  else if(d.supd)supDraft();
  else if(d.supc){const s=supSt();(s[SUP.open.id]=s[SUP.open.id]||{}).status=d.supc;supSave(s);audit({decision:d.supc==='closed'?'CLOSED':'REOPENED',tier:'T0',title:SUP.open.id,lane:'Support'});SUP.open=await SupportSource().get(SUP.open.id);supModal();supRefresh()}
  else if(d.supp){const t=SUP.open,body=($('#supDraft')&&$('#supDraft').value.trim())||'';if(!body){say('Yorri','Draft a reply first.');return}
-  const a={t:['t1','T1'],title:'Send reply to '+t.id+': '+t.subject,why:'Support · '+t.priority+' · to '+t.from+' · "'+body.slice(0,60)+'…"',lane:'Support',sup:{id:t.id,body}};
+  const a={t:['t1','T1'],title:'Send reply to '+t.id+': '+t.subject,why:'Support · '+t.priority+' · to '+t.from+' · "'+body.slice(0,60)+'…"',lane:'Support',sup:{id:t.id,body,src:SupportSource().name}};
   if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);SUP.open=null;supModal();draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}});
 window.addEventListener('storage',e=>{if(e.key===LS_SUPST||e.key===LS_CONN)supRefresh()});
 setTimeout(supRefresh,0);setInterval(()=>{if(!SUP.open)draw()},60e3);
