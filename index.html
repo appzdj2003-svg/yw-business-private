@@ -272,7 +272,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <button type="button" class="sbt" data-proxy="#mockT" id="setMock">Mock data</button>
 </div><span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
 <section aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
-<section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="connList"></div></section>
+<section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="syncBox"></div><div id="connList"></div></section>
 <section aria-labelledby="smsH"><h4 id="smsH">Text Alerts</h4><div id="smsBox"></div></section>
 <section aria-labelledby="advH"><h4 id="advH">Advanced</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div><span class="ex">Restores text size, theme, contrast and motion. Layout reset is under Organize → Advanced; config export under Connections → Advanced.</span></section>
 </div></div>
@@ -400,6 +400,53 @@ const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,op
  return {name:'server',list:()=>req('/tickets'),get:id=>req('/tickets/'+encodeURIComponent(id)),
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
+/* ---- Sync this device (ywDevSync): pull/push the settings bundle via {server}/config. Only the site token is used; no mailbox/eMaint passwords. */
+const LS_DS='ywDevSync',DS_DEF_URL='https://yw-business-server.onrender.com';
+const DS_KEYS=['ywConn','ywBusinesses','ywSms','ywA11y'];
+const dsGet=()=>{try{return JSON.parse(localStorage.getItem(LS_DS)||'{}')||{}}catch(e){return{}}};
+const dsSet=p=>{const o=Object.assign(dsGet(),p);try{_lsSet.call(localStorage,LS_DS,JSON.stringify(o))}catch(e){}return o};
+const DSU={busy:false,msg:'',err:false,quiet:false};let dsTimer=null;
+const _lsSet=Storage.prototype.setItem;
+Storage.prototype.setItem=function(k,v){_lsSet.call(this,k,v);try{if(this===localStorage&&!DSU.quiet&&dsGet().linked&&(DS_KEYS.includes(k)||(k==='ywLlm'&&dsGet().xai)))dsQueue()}catch(e){}};
+function dsQueue(){clearTimeout(dsTimer);dsTimer=setTimeout(dsPush,1500)}
+function dsBundle(){const d=dsGet(),j=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
+ const conn=j('ywConn')||{};const c2={};for(const[k,v]of Object.entries(conn)){c2[k]={type:v.type,url:v.url,live:!!v.live};if(v.tested)c2[k].tested=v.tested}
+ const b={conn:c2,biz:j('ywBusinesses'),sms:j('ywSms'),a11y:j('ywA11y')};if(d.xai){const l=j('ywLlm');if(l)b.xai=l}return b}
+async function dsReq(method,body){const d=dsGet();const r=await fetch(d.url.replace(/\/+$/,'')+'/config',{method,headers:Object.assign({Authorization:'Bearer '+d.token},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});
+ if(r.status===404)throw new Error('this server doesn’t support sync yet');if(r.status===401||r.status===403)throw new Error('token rejected');const j=await r.json().catch(()=>({}));if(!r.ok&&r.status!==409)throw new Error('HTTP '+r.status);return {status:r.status,j}}
+function dsApply(b){if(!b)return false;const d=dsGet();DSU.quiet=true;try{
+ if(b.conn){const local=connAll(),out={};for(const[k,v]of Object.entries(b.conn)){const L=local[k]||{};out[k]=Object.assign({},L,{type:v.type,url:v.url||'',live:!!v.live});
+   const same=v.url&&v.url.replace(/\/+$/,'')===d.url.replace(/\/+$/,'');out[k].token=same?d.token:(L.token||'')}
+  for(const[k,v]of Object.entries(local))if(!out[k])out[k]=v;_lsSet.call(localStorage,'ywConn',JSON.stringify(out))}
+ if(b.biz&&Array.isArray(b.biz.businesses)&&b.biz.businesses.length)_lsSet.call(localStorage,'ywBusinesses',JSON.stringify(b.biz));
+ if(b.sms)_lsSet.call(localStorage,'ywSms',JSON.stringify(b.sms));if(b.a11y)_lsSet.call(localStorage,'ywA11y',JSON.stringify(b.a11y));
+ if(b.xai&&d.xai)_lsSet.call(localStorage,'ywLlm',JSON.stringify(b.xai))}finally{DSU.quiet=false}return true}
+async function dsPush(){const d=dsGet();if(!d.linked)return;DSU.busy=true;dsRender();
+ try{let r=await dsReq('PUT',{bundle:dsBundle(),baseRev:d.rev||0});if(r.status===409)r=await dsReq('PUT',{bundle:dsBundle(),baseRev:r.j.rev});
+  dsSet({rev:r.j.rev,savedAt:r.j.savedAt,durable:r.j.durable});DSU.msg='';DSU.err=false}catch(e){DSU.msg='Sync error: '+String(e.message||e).slice(0,80);DSU.err=true}DSU.busy=false;dsRender()}
+async function dsConnect(){const url=($('#dsUrl').value||'').trim(),tok=($('#dsTok').value||'').trim()||dsGet().token||'';const xai=$('#dsXai').checked;
+ if(!/^https:\/\/|^http:\/\/(127\.0\.0\.1|localhost)/.test(url)){DSU.msg='Enter the server URL (https://…)';DSU.err=true;return dsRender()}if(!tok){DSU.msg='Enter the site token';DSU.err=true;return dsRender()}
+ dsSet({url,token:tok,xai,linked:false});DSU.busy=true;DSU.msg='Connecting… (a sleeping server can take ~30s)';DSU.err=false;dsRender();
+ try{const {j}=await dsReq('GET');if(j.bundle){dsApply(j.bundle);dsSet({linked:true,rev:j.rev,savedAt:j.savedAt,durable:j.durable});DSU.msg='Synced. Reloading with your settings…';dsRender();setTimeout(()=>location.reload(),600);return}
+  dsSet({linked:true,rev:j.rev||0});await dsPush();DSU.msg='Linked. This device’s settings were uploaded.';DSU.err=false}
+ catch(e){dsSet({linked:false});DSU.msg='Couldn’t connect: '+String(e.message||e).slice(0,80);DSU.err=true}DSU.busy=false;dsRender()}
+async function dsPullOnLoad(){const d=dsGet();if(!d.linked)return;try{const {j}=await dsReq('GET');if(j.rev>(d.rev||0)&&j.bundle&&!sessionStorage.getItem('ywDsReloaded')){dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable});sessionStorage.setItem('ywDsReloaded','1');location.reload();return}
+ sessionStorage.removeItem('ywDsReloaded');dsSet({durable:j.durable});DSU.msg='';DSU.err=false}catch(e){DSU.msg='Sync error: '+String(e.message||e).slice(0,80);DSU.err=true}dsRender()}
+function dsRender(){const B=$('#syncBox');if(!B)return;const d=dsGet(),when=d.savedAt?new Date(d.savedAt).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'';
+ const stat=DSU.busy?'Syncing…':DSU.msg?`<span class="${DSU.err?'cx-bad':''}">${esc(DSU.msg)}</span>`:d.linked?`<span class="cx-ok">Synced${when?' · '+esc(when):''}</span>${d.durable===false?' <span class="cx-bad">(server storage temporarily not durable)</span>':''}`:'Not synced. Settings stay on this device.';
+ B.innerHTML=`<details class="cx-biz" id="dsCard"${d.linked?'':' open'}><summary><span class="cx-dot ${d.linked?(DSU.err?'err':'live'):''}" aria-hidden="true"></span><span class="og-name">Sync this device</span> <span class="cx-n">${d.linked?'linked':'off'}</span></summary>
+ <div class="cx-form">
+  ${d.linked?`<span class="sm-l" style="color:var(--mut)">Server</span><span style="overflow-wrap:anywhere">${esc(d.url)}</span>`:`<label for="dsUrl">Server URL</label><input id="dsUrl" type="url" inputmode="url" autocomplete="off" value="${esc(d.url||DS_DEF_URL)}">
+  <label for="dsTok">Site token</label><input id="dsTok" type="password" autocomplete="off" placeholder="${d.token?'saved · type to replace':'SITE_TOKEN from Render'}" aria-describedby="dsTokH">
+  <p class="cx-help" id="dsTokH">Same site token as Connections. Never your Gmail or eMaint password.</p>`}
+  <span></span><label style="color:var(--txt)"><input type="checkbox" id="dsXai"${d.xai?' checked':''}> Also sync my Grok / xAI key</label>
+  <p class="cx-help">Off by default. If on, the key is stored (encrypted) on your server.</p>
+  <span></span><div class="cx-act">${d.linked?`<button type="button" class="sbt" id="dsNow">Sync now</button><button type="button" class="sbt" id="dsUnlink">Unlink device</button>`:`<button type="button" class="sbt" id="dsGo"${DSU.busy?' disabled':''}>Connect</button>`}<span role="status" aria-live="polite">${stat}</span></div>
+ </div></details>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#dsGo,#dsNow,#dsUnlink');if(!t)return;
+ if(t.id==='dsGo')dsConnect();else if(t.id==='dsNow')dsPush();else if(t.id==='dsUnlink'){if(!confirm('Unlink this device? Your settings stay here; they just stop syncing.'))return;const d=dsGet();try{localStorage.removeItem(LS_DS)}catch(x){}dsSet({url:d.url});DSU.msg='Unlinked. Settings stay on this device.';DSU.err=false;dsRender()}});
+document.addEventListener('change',e=>{if(e.target.id==='dsXai'&&dsGet().linked){dsSet({xai:e.target.checked});dsPush()}});
+
 /* ---- Text Alerts (ywSms). No SMS backend yet: nothing is ever sent from here. Optional sync with support server /alerts/settings. ---- */
 const LS_SMS='ywSms';
 const SMS_CATS=[['Approvals',[['wr','eMaint work requests needing approval','Text when a maintenance request is waiting for your OK.',true],['dec','Command Center decisions awaiting approval','Text when Yorri has a plan in your decision queue.']]],
@@ -1224,7 +1271,7 @@ if($('#satRoom'))$('#satRoom').onchange=()=>{
 };
 if($('#satSync'))$('#satSync').onclick=()=>broadcast({type:'hello'});
 
-loadMock();loadVoiceCodes();loadBiz();connMigrate();loadLayout();loadCar();
+loadMock();loadVoiceCodes();loadBiz();connMigrate();setTimeout(dsPullOnLoad,800);loadLayout();loadCar();
 if($('#mockT'))$('#mockT').checked=mockOn;
 applyCarLayout();
 if(IS_TESLA){setVmsg('Tesla detected — tap the ask box, use the steering-wheel mic, then Send. Car layout on (toggle under rooms if you want side panel).');if($('#mic'))$('#mic').title='Tesla: focus box + yoke mic'}
@@ -1263,7 +1310,7 @@ function a11yUI(){const o=a11yGet();const sc=$('#optScale');if(!sc)return;
  const sp=$('#setSpk');if(sp)sp.textContent=(typeof yorriSpeak!=='undefined'&&!yorriSpeak)?'🔇 Yorri voice: off':'🔊 Yorri voice: on';
  const ca=$('#setCar'),ct=$('#carT');if(ca&&ct)ca.textContent='🚗 Car layout: '+(ct.checked?'on':'off');
  const mo=$('#setMock'),mt=$('#mockT');if(mo&&mt)mo.textContent='Mock data: '+(mt.checked?'on':'off')}
-function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();connRender();orgRender();smsRender();smsSync('get');const f=$('#setClose');if(f)f.focus()}}
+function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();dsRender();connRender();orgRender();smsRender();smsSync('get');const f=$('#setClose');if(f)f.focus()}}
 window.ywSettings=ywSettings;
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#navSettings,#setClose,[data-scale],[data-theme-set],[data-contrast],[data-motion],#optLarge,#optSoft,[data-proxy],#setAI,#setReset');if(!t)return;
  if(t.id==='navSettings')return ywSettings(!document.body.classList.contains('view-settings'));
