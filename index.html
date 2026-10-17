@@ -250,6 +250,7 @@ html.a11y-contrast .cx-biz,html.a11y-contrast .cx-form input,html.a11y-contrast 
 .ds-it .cal-dot{margin-top:5px;width:10px;height:10px}.ds-it small{grid-column:3;color:var(--mut);font-size:.8em}.ds-t{font-size:.85em;color:var(--mut)}.ds-src{display:inline-block;font-size:.72em;border:1px solid var(--line);border-radius:8px;padding:0 6px;margin-left:4px}
 .ds-det h5{margin:4px 0 8px;font-size:1.1em}.ds-det dl{display:grid;grid-template-columns:6em 1fr;gap:4px 10px;margin:0 0 10px;font-size:.9em}.ds-det dt{color:var(--mut)}.ds-det dd{margin:0}.ds-acts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.ds-acts .og-b,.ds-acts a{min-height:40px;display:inline-flex;align-items:center}
 @media (max-width:640px){#daySheet{width:100vw;border-left:0}#dsScrim{display:none}}
+.yc-q{width:100%;max-width:420px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px;font:inherit;margin:6px 0}.yc-l{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}.yc-l li{display:flex;flex-direction:column;gap:2px;border-bottom:1px solid var(--line);padding-bottom:6px}.yc-l small{color:var(--mut)}.yc-ex{font:inherit;background:none;border:0;color:var(--teal);padding:2px 0;cursor:pointer;text-align:left}.yc-ex:hover{text-decoration:underline}.yc-ex:focus-visible{outline:2px solid var(--teal)}
 #tpScrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000}#tpScrim[hidden],#tpSheet[hidden]{display:none}
 #tpSheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(420px,100vw);max-height:92vh;overflow:auto;z-index:10001;background:var(--panel);color:var(--txt);border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.3);padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
 @media (min-width:641px){#tpSheet{bottom:auto;top:50%;transform:translate(-50%,-50%);border-radius:14px;border-bottom:1px solid var(--line)}}
@@ -360,6 +361,7 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <button type="button" id="vcPrev">▶ Preview</button>
 <span class="ex" id="vcNote">Each device lists its own voices (phone and PC differ). “Auto” picks the most natural one here. The AI voice costs about $15 per million characters on your xAI account; if it fails, Yorri falls back to the device voice.</span></div>
 </section>
+<section data-tab="general" aria-labelledby="ycH"><h4 id="ycH">Yorri commands</h4><span class="ex">Say these to Ask Yorri (mic), or type them — in a Tesla, tap the box, use the yoke mic, then Send. Tap one to try it. With a Grok key, other phrasings are mapped to these too.</span><input type="search" id="ycQ" class="yc-q" placeholder="Search commands (e.g. calendar, push, Hunt)" aria-label="Search Yorri commands"><div id="ycList"></div></section>
 <section data-tab="general" aria-labelledby="aiH"><h4 id="aiH">Yorri AI</h4><span class="ex">Your xAI (Grok) key and model. Stays in this browser unless you sync it.</span><div id="llmHome"></div></section>
 <section data-tab="organize" aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
 <section data-tab="connections" aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Sync, data sources, and each room’s server. Say "open connections".</span><div id="syncBox"></div><div id="cxGroups"></div><div id="connList"></div></section>
@@ -781,7 +783,7 @@ function qsRender(){const o=a11yGet(),t=$('#qsTheme'),sc=$('#qsScale');if(t)t.in
  const fd=$('#qsFs');if(fd)fd.checked=localStorage.getItem('ywFsDefault')==='1'}
 document.addEventListener('change',e=>{const id=e.target.id;if(id==='qsTheme'){const b=document.querySelector(`#optTheme [data-theme-set="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsScale'){const b=document.querySelector(`#optScale [data-scale="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsFs'){localStorage.setItem('ywFsDefault',e.target.checked?'1':'0')}});
 function llmHome(){const h=$('#llmHome'),p=$('#llmPanel');if(h&&p&&p.parentNode!==h){h.appendChild(p)}if(p){p.style.display='block';try{llmUI()}catch(e){}}}
-const SITE_BUILD='2026-10-17 · touch time/date picker';
+const SITE_BUILD='2026-10-17 · Yorri commands, touch pickers';
 async function advAbout(){const a=$('#advAbout');if(!a)return;let sv='not connected';const s=smsServer();if(s){try{const j=await (await fetch(s.url+'/healthz')).json();sv=j.build||'unknown'}catch(e){sv='unreachable'}}a.textContent=`Site build ${SITE_BUILD} · Server build ${sv}`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advLayout,#advUnlink');if(!t)return;
  if(t.id==='advLayout'){orgRender();const b=document.querySelector('[data-og="reset"]');if(b)b.click();return}
@@ -975,6 +977,7 @@ window.addEventListener('keydown',e=>{if(!TP.open)return;if(e.key==='Escape'){e.
 // Native inputs (desktop): open the browser picker on any click; a touch on a native field (touch laptop) gets the custom sheet instead.
 document.addEventListener('pointerdown',e=>{const i=e.target.closest&&e.target.closest('input[data-tpk]');if(!i||e.pointerType!=='touch')return;e.preventDefault();tpOpen(i.id,i.dataset.tpk,i)},true);
 document.addEventListener('click',e=>{const i=e.target.closest&&e.target.closest('input[data-tpk]');if(!i||TP.open)return;if(typeof i.showPicker==='function')try{i.showPicker()}catch(x){}});
+setTimeout(()=>{try{ycRender()}catch(e){}},0);
 setTimeout(()=>{const _d=draw;draw=function(){if(TP.open){TP.pend=true;return}return _d.apply(this,arguments)}},0);
 const calColor=x=>/^#[0-9a-f]{6}$/i.test(x.color||'')?x.color:`hsl(${bizHue(x.biz)} 70% 50%)`;
 const calSort=(a,b)=>(b.allDay?1:0)-(a.allDay?1:0)||a.date-b.date;
@@ -1762,7 +1765,8 @@ async function llmCall(msgs,c){const r=await fetch(c.base.replace(/\/+$/,'')+'/c
 if(!r.ok){let m='HTTP '+r.status;try{const j=await r.json();m+=': '+((j.error&&(j.error.message||j.error))||j.message||'')}catch(e){}throw new Error(m)}const j=await r.json();return (j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||''}
 const TIERS={T0:['t0','T0'],T1:['t1','T1'],T2:['t2','T2'],T3:['t3','T3']};
 async function llmAsk(t){const c=llmCfg();if(!c.key)return false;
-try{const out=await llmCall([{role:'system',content:llmSys()}].concat(llmHist.slice(-10),[{role:'user',content:t}]),c);
+try{const out=await llmCall([{role:'system',content:llmSys()+ycLLMHint()}].concat(llmHist.slice(-10),[{role:'user',content:t}]),c);
+const cm=out.match(/^\s*CMD:\s*(.+?)\s*$/m);if(cm&&ycRun(cm[1].replace(/^["“]|["”]$/g,''),{quiet:true})){llmHist.push({role:'user',content:t},{role:'assistant',content:out});return true}
 llmHist.push({role:'user',content:t},{role:'assistant',content:out});
 const acts=[];const body=out.split('\n').filter(l=>{const m=l.match(/^\s*ACTION:\s*(T[0-3])\s*\|\s*([^|]+)\|?\s*(.*)$/i);if(m){acts.push({t:TIERS[m[1].toUpperCase()],title:m[2].trim(),why:m[3].trim()});return false}return true}).join('\n').trim();
 let h=esc(body).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
@@ -1778,10 +1782,245 @@ else if(id==='llmSave'){llmSaveCfg(llmRead());llmUI();$('#llmStat').textContent=
 else if(id==='llmClear'){const c=llmRead();c.key='';llmSaveCfg(c);llmUI()}
 else if(id==='llmTest'){const c=llmRead();if(!c.key){$('#llmStat').textContent='Enter key';return}$('#llmStat').textContent='Testing…';
 try{const o=await llmCall([{role:'user',content:'Reply with: OK'}],c);$('#llmStat').textContent='✅ '+o.slice(0,40)}catch(x){$('#llmStat').textContent='❌ '+(x instanceof TypeError?'Network/CORS blocked — use proxy URL':x.message).slice(0,120)}}});
+/* ==== Yorri command registry ====
+   One place for every voice/text intent. Each feature adds its entry here in the same change:
+   {id, group, ex:[example phrases], help, cov:[coverage keys], match(raw,low)->truthy, run(match,raw,low)}.
+   Coverage keys: set:<Settings h4 id>, card:<Connections card id>, room:<Command room>, type:<room type>.
+   ycCoverage() lists anything in Settings/rooms with no entry (checked by the headless test). */
+const YC={list:[],pending:null};
+function ycAdd(c){YC.list.push(c);return c}
+const YC_GROUPS=['Calendar','KPIs','Finance','Support & eMaint','Alerts','Navigation','Voice & display','Decisions & lanes','Help'];
+function ycClean(t){return String(t||'').replace(/[“”]/g,'"').replace(/[’]/g,"'").replace(/^\s*(hey\s+|ok\s+)?yorri[\s,:]+/i,'').replace(/[.!?]+\s*$/,'').trim()}
+const YC_WD=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'],YC_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'],YC_MON='(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sept|sep|october|oct|november|nov|december|dec)';
+const ycMid=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
+const ycAddD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+function ycFmtT(min){return new Date(2000,0,1,Math.floor(min/60),min%60).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}
+function ycRel(d){const t0=ycMid(Date.now()).getTime(),n=Math.round((ycMid(d).getTime()-t0)/864e5);return n===0?'today':n===1?'tomorrow':n===-1?'yesterday':calDay(d)}
+// Time of day → {min, s, guess}. "3pm", "3:30 pm", "15:00", "at 3" (1–6 → PM, 7–11 → AM), noon, midnight. Relative "in 20 minutes" → {rel}.
+function ycTime(t){let m;
+ if(m=t.match(/\bin\s+(\d+|an?|half an?)\s*(minutes?|mins?|hours?|hrs?)\b/i)){const n=/^half/i.test(m[1])?0.5:/^an?$/i.test(m[1])?1:+m[1];return{rel:(/^h/i.test(m[2])?60:1)*n*60e3,s:m[0]}}
+ if(m=t.match(/\b(?:at\s+)?(noon|midday|midnight)\b/i))return{min:/midnight/i.test(m[1])?0:720,s:m[0]};
+ if(m=t.match(/\b(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*([ap])\.?\s?m\b\.?/i)){const h=+m[1]%12+(/p/i.test(m[3])?12:0),mi=+m[2]||0;if(+m[1]>12||mi>59)return null;return{min:h*60+mi,s:m[0]}}
+ if(m=t.match(/\b(?:at\s+)?([01]?\d|2[0-3]):([0-5]\d)\b/i)){let h=+m[1];const g=h>=1&&h<=12&&!/^0/.test(m[1]);if(g&&h<=6)h+=12;return{min:h*60+(+m[2]),s:m[0],guess:g}}
+ if(m=t.match(/\bat\s+(\d{1,2})(?:\s*o'?clock)?\b(?!\s*(?:min|minutes?|hours?|hrs?|days?|%|\/|:))/i)){let h=+m[1];if(h>23)return null;const g=h>=1&&h<=12;if(h>=1&&h<=6)h+=12;return{min:h*60,s:m[0],guess:g}}
+ return null}
+// Day / range → {d (midnight), end, s, label, range}
+function ycDay(t,now){now=now||Date.now();const base=ycMid(now);let m;const R=(d,n,s,label,range)=>({d,end:ycAddD(d,n),s,label:label||ycRel(d),range});
+ if(m=t.match(/\b(this|next)\s+week\b/i)){const dow=(base.getDay()+6)%7;const mon=ycAddD(base,-dow);if(/next/i.test(m[1])){const s=ycAddD(mon,7);return R(s,7,m[0],'next week',true)}return{d:base,end:ycAddD(mon,7),s:m[0],label:'this week',range:true}}
+ if(m=t.match(/\b(?:this\s+)?weekend\b/i)){const sat=ycAddD(base,(6-base.getDay()+7)%7);return R(base.getDay()===0?base:sat,base.getDay()===0?1:2,m[0],'this weekend',true)}
+ if(m=t.match(/\b(?:the\s+)?day\s+after\s+tomorrow\b/i))return R(ycAddD(base,2),1,m[0]);
+ if(m=t.match(/\b(today|tonight|this\s+(?:morning|afternoon|evening))\b/i))return R(base,1,m[0]);
+ if(m=t.match(/\btomorrow\b/i))return R(ycAddD(base,1),1,m[0]);
+ if(m=t.match(/\byesterday\b/i))return R(ycAddD(base,-1),1,m[0]);
+ if(m=t.match(new RegExp('\\b(?:(on|this|next|coming)\\s+)?('+YC_WD.join('|')+')s?\\b','i'))){const w=YC_WD.indexOf(m[2].toLowerCase());let n=(w-base.getDay()+7)%7;if(/next/i.test(m[1]||'')&&n===0)n=7;return R(ycAddD(base,n),1,m[0])}
+ if(m=t.match(new RegExp('\\b(?:on\\s+)?(?:the\\s+)?'+YC_MON+'\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b','i'))||(m=t.match(new RegExp('\\b(?:on\\s+)?(?:the\\s+)?(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?'+YC_MON+'\\b','i')))){const mo=YC_MO.indexOf((isNaN(+m[1])?m[1]:m[2]).slice(0,3).toLowerCase()),dd=+(isNaN(+m[1])?m[2]:m[1]);let d=new Date(base.getFullYear(),mo,dd);if(d<base)d=new Date(base.getFullYear()+1,mo,dd);return R(d,1,m[0])}
+ if(m=t.match(/\b(?:on\s+)?(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/)){let y=m[3]?+m[3]:base.getFullYear();if(y<100)y+=2000;let d=new Date(y,+m[1]-1,+m[2]);if(!m[3]&&d<base)d=new Date(y+1,+m[1]-1,+m[2]);return R(d,1,m[0])}
+ if(m=t.match(/\b(?:on\s+)?the\s+(\d{1,2})(?:st|nd|rd|th)\b/i)){let d=new Date(base.getFullYear(),base.getMonth(),+m[1]);if(d<base)d=new Date(base.getFullYear(),base.getMonth()+1,+m[1]);return R(d,1,m[0])}
+ return null}
+function ycDur(t){const m=t.match(/\bfor\s+(an?|one|half an?|\d+(?:\.\d+)?)\s*(hours?|hrs?|h|minutes?|mins?)\b(\s+and\s+a\s+half)?/i);if(!m)return null;const n=/^half/i.test(m[1])?0.5:/^(an?|one)$/i.test(m[1])?1:+m[1];return{ms:((/^h/i.test(m[2])?60:1)*n+(m[3]?30:0))*60e3,s:m[0]}}
+function ycStrip(s,parts){let o=' '+s+' ';parts.filter(Boolean).forEach(p=>{o=o.replace(p,' ')});return o.replace(/\s+/g,' ').trim()}
+function ycTitle(s){s=s.replace(/^(?:to|for|about|that|i need to|i have to|we need to)\s+/i,'').replace(/\s+(?:on|at|for|to|from)$/i,'').replace(/\b(?:on|to|in)\s+(?:my|the)\s+calendar\b/ig,'').replace(/\s+/g,' ').trim();return s?s.charAt(0).toUpperCase()+s.slice(1):''}
+function ycBizIn(s){const L=bizStore.businesses.slice().sort((a,b)=>b.name.length-a.name.length);for(const b of L){const re=new RegExp('\\b(?:for|in|under|to)\\s+(?:the\\s+)?'+b.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:\\s+calendar)?\\b','i');const m=s.match(re);if(m)return{b,s:m[0]}}return null}
+function ycChanTxt(ch){const c=ch||remDefCh();const L=[c.push&&'push',c.sms&&(SMS.live?'text':'text (waiting on Twilio)')].filter(Boolean);return L.length?L.join(' + '):'no channel (turn one on in Alerts → Calendar)'}
+function ycSaveLocal(ev){const o=calStore();o.events=o.events.filter(x=>x.id!==ev.id);o.events.push(ev);o.events=o.events.slice(-3000);calSave(o);try{draw()}catch(e){}}
+function ycWhen(start,end,allDay){const d=ycRel(start);return allDay?d+' (all day)':d+' at '+new Date(start).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+(end&&end>start?'–'+new Date(end).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'')}
+function ycProvTarget(s){const m=s.match(/\b(?:to|on|in)\s+(?:my\s+)?(google|outlook)(?:\s+calendar)?\b/i);if(!m)return null;const pv=/google/i.test(m[1])?'google':'ms';const W=calWritable().filter(c=>c.provider===pv);return{pv,cal:W[0]||null,s:m[0]}}
+function ycCreate(raw,isRem){
+ let s=raw.replace(isRem?/^(?:please\s+)?(?:set\s+a\s+reminder|remind\s+me|reminder)\s*(?:(?:to|that|about)\b\s*)?/i:/^(?:please\s+)?(?:add|schedule|create|book|put|set\s+up|make)\s+(?:an?\s+|my\s+)?(?:new\s+)?(?:appointment|appt|event|calendar\s+event|meeting\s+called)?\s*/i,'');
+ const pt=ycProvTarget(s),bz=ycBizIn(s),dy=ycDay(s),tm=ycTime(s),du=isRem?null:ycDur(s);
+ let title=ycTitle(ycStrip(s,[pt&&pt.s,bz&&bz.s,dy&&dy.s,tm&&tm.s,du&&du.s]));if(!title)title=isRem?'Reminder':'Appointment';
+ const now=Date.now();let start,allDay=false;
+ if(tm&&tm.rel!=null){start=now+tm.rel}
+ else if(tm){const d=dy?dy.d:ycMid(now);start=d.getTime()+tm.min*60e3;if(!dy&&start<now-60e3)start+=864e5}
+ else if(dy){if(isRem){start=dy.d.getTime()+9*3600e3}else{start=dy.d.getTime();allDay=true}}
+ else return say('Yorri',isRem?'What time? Say, for example, <b>remind me at 3 to call Safe Rack</b> or <b>remind me tomorrow at 9 to pay rent</b>.':'When? Say, for example, <b>add appointment tomorrow 10am dentist for 1 hour</b>.');
+ const end=isRem?null:allDay?ycAddD(new Date(start),1).getTime():start+(du?du.ms:3600e3),tz=Intl.DateTimeFormat().resolvedOptions().timeZone,ch=remDefCh();
+ if(pt){if(!pt.cal)return say('Yorri',`I can’t write to ${PVN[pt.pv]} — it isn’t connected or no calendar there allows edits (Settings → Connections → Calendars). Say it again without “${esc(pt.s.trim())}” to save it in Your World.`);
+  const pe={title,start,end:end||start,allDay,startDate:allDay?dayKey(start):undefined,endDate:allDay?dayKey(end):undefined,notes:'',tz};
+  return calWrite('POST',{provider:pt.pv,calendarId:pt.cal.id,event:pe},`Added <b>${esc(title)}</b> to ${esc(PVN[pt.pv])} · ${esc(pt.cal.name)} — ${esc(ycWhen(start,end,allDay))}.`,r=>isRem&&r&&r.pid?svReq('POST','/calendar/reminder',{pid:r.pid,title,start,allDay,tz,offsets:[0],channels:ch}):null)}
+ const ev={id:'e'+Date.now().toString(36),title:title.slice(0,120),start,allDay,biz:bz?bz.b.id:'cmd',room:'',end,kind:isRem?'reminder':undefined,notes:'',remind:isRem?[0]:null,channels:isRem?ch:undefined,tz};
+ ycSaveLocal(ev);YC.last={id:ev.id};
+ say('Yorri',isRem?`Reminder set: <b>${esc(ev.title)}</b> — ${esc(ycWhen(start,null,false))}. I’ll alert you at that time by ${esc(ycChanTxt(ch))}. Say <b>cancel ${esc(ev.title.toLowerCase())}</b> to remove it.`
+  :`Added <b>${esc(ev.title)}</b> — ${esc(ycWhen(start,end,allDay))}${bz?' · '+esc(bz.b.name):''}. Say <b>move ${esc(ev.title.toLowerCase())} to …</b> or <b>cancel ${esc(ev.title.toLowerCase())}</b> to change it.`)}
+// Find editable calendar items from a spoken reference ("my 3pm", "the dentist tomorrow").
+const YC_STOP=new Set('my the a an appointment appt event meeting reminder on at for today tomorrow yesterday this next to with please call'.split(' '));
+function ycFind(q){const dy=ycDay(q),tm=ycTime(q);const rest=ycStrip(q,[dy&&dy.s,tm&&tm.s]).toLowerCase().replace(/[^\w\s]/g,' ');const words=rest.split(/\s+/).filter(w=>w&&!YC_STOP.has(w));
+ const now=Date.now(),from=dy?dy.d.getTime():ycMid(now).getTime(),to=dy?dy.end.getTime():now+14*864e5;
+ let L=calItems().filter(x=>x.date>=from&&x.date<to);
+ if(tm&&tm.min!=null)L=L.filter(x=>{if(x.allDay)return false;const d=new Date(x.date),mm=d.getHours()*60+d.getMinutes();return mm===tm.min||(tm.guess&&(mm+720)%1440===tm.min)});
+ if(words.length)L=L.filter(x=>{const tl=String(x.title||'').toLowerCase();return words.every(w=>tl.includes(w))});
+ if(!words.length&&!(tm&&tm.min!=null))return{L:[],vague:true};return{L,dy,tm}}
+const ycEditable=x=>!!(x.ev||(x.pv&&x.pv.editable));
+function ycWhy(x){return x.pv?`it’s from ${PVN[x.pv.provider]} · ${x.pv.calendar}, which is read-only here (turn on Allow edits in Settings → Connections → Calendars)`:`it comes from ${x.kind||'another room'} (${bizName(x.biz)}${x.room?' › '+x.room:''}) — change it there`}
+function ycPick(q,verb){const f=ycFind(q);if(f.vague){say('Yorri',`Which one? Say a time or title, e.g. <b>${verb} my 3pm</b> or <b>${verb} dentist tomorrow</b>.`);return null}
+ if(!f.L.length){say('Yorri',`I didn’t find “${esc(q)}” ${f.dy?esc(f.dy.label):'in the next two weeks'}.`);return null}
+ const E=f.L.filter(ycEditable);if(!E.length){const x=f.L[0];say('Yorri',`I can’t ${verb} <b>${esc(x.title)}</b>: ${esc(ycWhy(x))}.${x.pv&&x.pv.link?` <a href="${esc(x.pv.link)}" target="_blank" rel="noopener">Open in ${esc(PVN[x.pv.provider])}</a>.`:''}`);return null}
+ if(E.length>1){say('Yorri',`I found ${E.length}: `+E.slice(0,5).map(x=>`<b>${esc(x.title)}</b> (${esc(ycWhen(x.date,null,x.allDay))})`).join('; ')+'. Say the title too, e.g. <b>'+verb+' '+esc(String(E[0].title).toLowerCase())+'</b>.');return null}
+ return E[0]}
+function ycCancel(q){const x=ycPick(q,'cancel');if(!x)return;const where=x.pv?PVN[x.pv.provider]+' · '+x.pv.calendar:'Your World';
+ YC.pending={at:Date.now(),q:`Delete <b>${esc(x.title)}</b> (${esc(ycWhen(x.date,null,x.allDay))}, ${esc(where)})?`,run:()=>{
+  if(x.pv){const pv=x.pv;DAY.sel=null;return calWrite('DELETE',{provider:pv.provider,calendarId:pv.calendarId,eventId:pv.id},'Deleted <b>'+esc(pv.title)+'</b> from '+esc(PVN[pv.provider])+'.')}
+  const o=calStore();o.events=o.events.filter(v=>v.id!==x.ev);calSave(o);DAY.sel=null;try{draw()}catch(e){}say('Yorri',`Deleted <b>${esc(x.title)}</b>.`)}};
+ say('Yorri',YC.pending.q+(x.pv?' This removes it in '+esc(PVN[x.pv.provider])+' too.':'')+' Say <b>yes</b> to delete or <b>no</b> to keep it.')}
+function ycMove(raw){const m=raw.match(/^(?:please\s+)?(?:move|reschedule|push|shift|change)\s+(.+?)\s+(?:to|until|till)\s+(.+)$/i);if(!m)return say('Yorri','Say it like <b>move my 3pm to 4</b> or <b>move dentist to Friday at 10</b>.');
+ const x=ycPick(m[1],'move');if(!x)return;let dest=m[2].trim();if(/^\d{1,2}(:\d{2})?$/.test(dest))dest='at '+dest;
+ const dy=ycDay(dest),tm=ycTime(dest);if(!dy&&!tm)return say('Yorri',`Move <b>${esc(x.title)}</b> to when? e.g. <b>to 4pm</b> or <b>to tomorrow at 10</b>.`);
+ const old=new Date(x.date),dur=x.end&&x.end>x.date?x.end-x.date:x.allDay?864e5:(x.evKind==='reminder'?0:3600e3);const day=dy?dy.d:ycMid(old);
+ let start=tm&&tm.rel!=null?Date.now()+tm.rel:day.getTime()+(tm?tm.min:old.getHours()*60+old.getMinutes())*60e3;const allDay=x.allDay&&!tm;if(allDay)start=day.getTime();const end=dur?start+dur:null;
+ if(x.pv){const pv=x.pv,tz=Intl.DateTimeFormat().resolvedOptions().timeZone;const pe={title:pv.title,start,end:end||start,allDay,startDate:allDay?dayKey(start):undefined,endDate:allDay?dayKey(end):undefined,notes:pv.notes||'',tz};
+  return calWrite('PATCH',{provider:pv.provider,calendarId:pv.calendarId,eventId:pv.id,event:pe},`Moved <b>${esc(pv.title)}</b> to ${esc(ycWhen(start,end,allDay))} in ${esc(PVN[pv.provider])}.`,()=>remOffs(pv.remind).length?svReq('POST','/calendar/reminder',{pid:pv.pid,title:pv.title,start,allDay,tz,offsets:remOffs(pv.remind),channels:pv.channels||remDefCh()}):null)}
+ const o=calStore(),e=o.events.find(v=>v.id===x.ev);if(!e)return;e.start=start;e.allDay=allDay;if(e.end!=null)e.end=end;calSave(o);try{draw()}catch(z){}say('Yorri',`Moved <b>${esc(e.title)}</b> to ${esc(ycWhen(start,e.end,allDay))}.`)}
+function ycAgenda(raw){const dy=ycDay(raw)||{d:ycMid(Date.now()),end:ycAddD(ycMid(Date.now()),1),label:'today'};const L=calItems().filter(x=>x.date>=dy.d.getTime()&&x.date<dy.end.getTime());
+ const lab=dy.range?dy.label:dy.label+(['today','tomorrow','yesterday'].includes(dy.label)?' ('+calDay(dy.d)+')':'');
+ if(!L.length)return say('Yorri',`Nothing on the calendar ${esc(lab)}.`);L.sort(calSort);
+ const row=x=>`<b>${esc(calTime(x))}</b> ${esc(x.title)}${x.biz&&x.biz!=='cmd'?' ('+esc(bizName(x.biz))+')':''}`;
+ if(dy.range){const by={};L.forEach(x=>{const k=dayKey(x.date);(by[k]=by[k]||[]).push(x)});const ks=Object.keys(by).sort();
+  return say('Yorri',`${esc(lab.charAt(0).toUpperCase()+lab.slice(1))}: ${L.length} item${L.length===1?'':'s'}. `+ks.map(k=>`${esc(calDay(localMidnight(k)))}: `+by[k].slice(0,4).map(row).join(', ')+(by[k].length>4?` +${by[k].length-4} more`:'')).join('; ')+'. Say <b>open</b> and a day to see it.')}
+ say('Yorri',`${esc(lab.charAt(0).toUpperCase()+lab.slice(1))}: ${L.length} item${L.length===1?'':'s'} — `+L.slice(0,8).map(row).join('; ')+(L.length>8?`; and ${L.length-8} more`:'')+'.')}
+// ---- KPIs ----
+function ycApps(low){const out=[];const g=ga4Apps(),p=(KPIL.sum&&KPIL.sum.play&&KPIL.sum.play.apps)||[];
+ const SW=new Set(['your','world','apps','app','the','business']);const has=n=>{n=String(n||'').toLowerCase();if(!n)return false;if(low.includes(n))return true;return n.split(/[\s._-]+/).some(w=>w.length>3&&!SW.has(w)&&new RegExp('\\b'+w+'\\b').test(low))};
+ g.forEach(a=>{if(has(a.label)||has(bizName(a.biz)))out.push({ga4:a})});p.forEach(a=>{if(has(a.name)||has(a.pkg&&a.pkg.split('.').pop()))out.push({play:a})});return out}
+async function ycKpi(raw,low){if(!smsServer())return say('Yorri','App KPIs need the Your World server connection (Settings → Connections). I won’t guess numbers.');
+ await kpiRefresh(true);const d=KPIL.sum;if(!d)return say('Yorri','App KPIs aren’t connected yet — Settings → Connections → App KPIs.'+(KPIL.err&&!/404|not configured/i.test(KPIL.err)?' Last error: '+esc(KPIL.err)+'.':'')+' I won’t guess numbers.');
+ let A=ycApps(low);const any=!A.length;if(any)A=[...ga4Apps().map(a=>({ga4:a})),...(((d.play&&d.play.apps)||[]).map(a=>({play:a})))];
+ if(!A.length)return say('Yorri','The KPI server is connected but no apps are set up yet (Settings → Connections → App KPIs).');
+ const crashQ=/\bcrash|\banr\b|stabil|vitals/i.test(low),month=/\bmonth|28|mau\b/i.test(low),today=/\btoday|daily|dau\b/i.test(low);
+ const parts=A.map(x=>{if(x.ga4){const a=x.ga4;if(a.error)return `<b>${esc(a.label)}</b>: GA4 error — ${esc(a.error)}`;
+   if(!a.hasData)return `<b>${esc(a.label)}</b>: connected (GA4 property ${esc(a.propertyId)}), waiting for data — no Analytics events have arrived yet. They show up 24–48 h after the app sends its first events.`;
+   const s=[];if(!month||today)s.push(`${a.dau.toLocaleString()} active users yesterday${today?' (GA4 reports full days, so today isn’t in yet)':''}`);if(!today||month)s.push(`${a.mau28.toLocaleString()} users in the last 28 days${month?' (GA4’s rolling 28 days, not the calendar month)':''}`);
+   if(!today&&!month)s.push(`${a.newUsers28.toLocaleString()} new, ${(a.engagementRate*100).toFixed(0)}% engaged`);
+   return `<b>${esc(a.label)}</b>: `+s.join(', ')+(crashQ?'. Crash rate comes from Google Play vitals'+(((d.play&&d.play.apps)||[]).length?'':' — not connected yet'):'')}
+  const a=x.play,cr=a.crash&&a.crash.userPerceivedCrashRate,an=a.anr&&a.anr.userPerceivedAnrRate,st=a.stats||{};
+  const flag=(v,l)=>v&&v.latest!=null&&v.latest>l?' (above Google’s bad-behavior line)':'';
+  return `<b>${esc(a.name)}</b> (Google Play): crash rate ${pct(cr&&cr.latest)}${flag(cr,0.0109)}, ANR ${pct(an&&an.latest)}${flag(an,0.0047)}`+(st.activeDeviceInstalls!=null?`, ${st.activeDeviceInstalls.toLocaleString()} active installs`:'')+(st.avgRating!=null?`, rating ${st.avgRating.toFixed(2)}★`:'')+(a.reviews&&a.reviews.length?`, ${a.reviews.length} recent reviews`:'')+'. Play vitals lag about 2 days'});
+ say('Yorri',(any&&!/\ball\b/.test(low)&&ycAppsAsked(low)?'I didn’t catch which app, so here are all: ':'')+parts.map(x=>x.replace(/\.\s*$/,'')).join('. ')+'.')}
+function ycAppsAsked(low){return /\bhow('?s| is)\b.*\bdoing\b/.test(low)}
+// ---- Finance ----
+async function ycFin(kind){if(smsServer())await finRefresh(true);const d=FINL.sum;
+ if(!d){if(mockOn&&kind!=='csv')return say('Yorri',laneReply('Finance'));return say('Yorri','Finance isn’t connected yet — Settings → Connections → Finance (Stripe, QuickBooks, Plaid, or a bank CSV). I won’t guess numbers.')}
+ const B=d.breakdown||[],src=n=>B.find(b=>b.source===n&&!b.error),m=fin$;
+ if(kind==='balance'){const acc=B.filter(b=>!b.error).flatMap(b=>(b.accounts||[]).map(a=>`${esc(a.name)} ${m(a.balance)}`));const st=src('stripe');
+  return say('Yorri',`Cash: <b>${m(d.cash)}</b> (${esc(d.cashNote||d.source)}).`+(acc.length?' Accounts: '+acc.join(', ')+'.':'')+(st?` Stripe balance waiting for payout: ${m(st.cash)}.`:'')+(d.errors&&d.errors.length?' ⚠ '+esc(d.errors.join('; ')):''))}
+ if(kind==='revenue'){const st=src('stripe');return say('Yorri',`This month so far: money in <b>${m(d.inflowMTD)}</b>, out ${m(d.outflowMTD)}, net ${m((d.inflowMTD||0)-(d.outflowMTD||0))} (${esc(d.basis==='QuickBooks'?'QuickBooks P&L':d.basis==='bank'?'bank transactions, transfers excluded':d.basis||d.source)}).`+(st&&d.basis!=='Stripe only'?` Stripe charges this month: ${m(st.inflowMTD)}.`:''))}
+ if(kind==='bills'){if(!src('qbo'))return say('Yorri','Unpaid bills come from QuickBooks, which isn’t connected (Settings → Connections → Finance).');const L=(FINL.ap||[]).slice().sort((a,b)=>(a.due||9e15)-(b.due||9e15));if(!L.length)return say('Yorri','No unpaid bills in QuickBooks.');const now=Date.now();
+  return say('Yorri',`${L.length} unpaid bill${L.length===1?'':'s'}, ${m(d.apTotal)} total: `+L.slice(0,5).map(b=>`${esc(b.name)} ${m(b.amount)}${b.due?(b.due<now?' (overdue since ':' (due ')+calDay(b.due)+')':''}`).join('; ')+(L.length>5?`; +${L.length-5} more`:'')+'. Read-only — I can draft a payment plan, not pay.')}
+ if(kind==='payouts'){const st=src('stripe');if(!st)return say('Yorri','Stripe isn’t connected (Settings → Connections → Finance).');const P=st.payouts||[];if(!P.length)return say('Yorri',`No recent Stripe payouts. Balance waiting at Stripe: ${m(st.cash)}.`);
+  return say('Yorri','Recent Stripe payouts: '+P.slice(0,4).map(p=>`${m(p.amount)} ${p.status==='failed'?'<b>FAILED</b>'+(p.failure?' ('+esc(p.failure)+')':''):esc(p.status)}${p.arrival?' · '+calDay(p.arrival):''}`).join('; ')+`. Balance waiting: ${m(st.cash)}.`)}}
+function ycCsv(){ywSettings(true);connOpen('finance');setTimeout(()=>{const n=$('#finCn')||$('#finCf');if(n){n.scrollIntoView({block:'center'});try{n.focus()}catch(e){}}},150);say('Yorri','Opened the bank CSV importer (Settings → Connections → Finance). Name the account, choose the CSV file, then Import. Duplicates are skipped.')}
+// ---- Support & eMaint ----
+function ycMMKey(){const f=roomFind(r=>{const b=bizStore.businesses.find(x=>(x.rooms||[]).includes(r));const c=b&&connGet(connKey(b.id,r.id));return c&&c.type==='emailbox'})||roomFind(r=>r.type==='maint');return f?connKey(f.b.id,f.r.id):MT_KEY()}
+async function ycTickets(low){await supRefresh();const all=(SUP.tickets||[]).map(supMerge),open=all.filter(t=>t.status!=='closed'),un=open.filter(t=>t.unread),br=open.filter(supBreach);
+ const tag=SUP.status==='Stub'?' (SAMPLE — support inbox not connected)':SUP.status==='Error'?' (error: '+esc(SUP.err)+')':'';
+ if(!all.length)return say('Yorri','No support tickets'+tag+'.');const L=open.slice().sort((a,b)=>(b.receivedAt||0)-(a.receivedAt||0));
+ if(/\bread\b/.test(low)&&L[0]){const t=L[0],m=t.thread[t.thread.length-1]||{};return say('Yorri',`Latest ticket${tag}: <b>${esc(t.subject)}</b> from ${esc(t.fromName||t.from)}, ${Math.round(supAgeH(t))} h ago. “${esc(String(m.body||'').slice(0,300))}” Say <b>open support</b> to reply.`)}
+ say('Yorri',`Support${tag}: <b>${open.length} open</b>, ${un.length} new/unread${br.length?`, <b>${br.length} past SLA</b>`:''}. `+L.slice(0,3).map(t=>`${t.unread?'🆕 ':''}${esc(t.subject)} (${esc(t.fromName||t.from)}, ${Math.round(supAgeH(t))} h)`).join('; ')+'.')}
+async function ycMail(low){const k=ycMMKey();await mmRefresh(k);const MM=mmS(k);if(MM.status==='Error'||MM.status==='Not configured')return say('Yorri',mmSummary(k));
+ const L=MM.items.slice().sort((a,b)=>(b.date||0)-(a.date||0));if(!/\b(read|latest|last|newest|most recent)\b/.test(low)||!L.length)return say('Yorri',mmSummary(k));
+ const x=L[0];if(!x.body)try{await mmOpen(k,x.id)}catch(e){}const i=x.info||{};const tag=MM.status==='Sample'?' (SAMPLE)':'';
+ say('Yorri',`Latest eMaint email${tag}: <b>${esc(x.subject||'(no subject)')}</b> from ${esc(x.fromName||x.from||'?')}, ${x.date?esc(ycRel(x.date))+' '+new Date(x.date).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):''}.`+(i.requestNo?` Request #${esc(i.requestNo)}${i.asset?', asset '+esc(i.asset):''}${i.priority?', priority '+esc(i.priority):''}${i.status?', '+esc(i.status):''}.`:'')+` “${esc(String(x.body||x.snippet||'').replace(/\s+/g,' ').slice(0,280))}”`+(i.needsApproval?' Needs approval — approve it in eMaint.':''))}
+// ---- Alerts ----
+const YC_CATS=[[/calendar|reminders?/,'cal','Calendar'],[/financ\w*|money|stripe|runway/,'fin','Finance'],[/support|tickets?/,'sup','Support tickets'],[/work requests?|emaint|maint\w*|wrs?\b/,'wr','eMaint work requests'],[/decisions?|approvals?/,'dec','Decisions'],[/system/,'sys','System'],[/digest|summary/,'digest','Daily digest'],[/rooms?/,'room','Room alerts']];
+function ycAlertSave(o,msg){smsSave(o);try{smsRender()}catch(e){}say('Yorri',msg+(smsServer()?'':' (Saved on this device; connect the server in Settings → Connections so alerts can be sent.)'))}
+function ycCat(low,on){const c=YC_CATS.find(([re])=>re.test(low));const o=smsGet();
+ if(!c||/\b(all|every|everything)\b/.test(low)){o.all=on;return ycAlertSave(o,`All alerts <b>${on?'ON':'OFF'}</b>.`+(on?' Categories keep their own switches.':' Nothing will be pushed or texted until you turn them back on.'))}
+ const k=c[1],x=o.cats[k];const sms=/\b(text|sms)\b/.test(low),push=/\bpush\b/.test(low);
+ if(on){if(sms||!push)x.on=!!SMS.live||sms;if(push||!sms)x.push=true;if(!o.all)o.all=true}else{if(sms&&!push)x.on=false;else if(push&&!sms)x.push=false;else{x.on=false;x.push=false}}
+ ycAlertSave(o,`${c[2]} alerts: push <b>${x.push?'ON':'OFF'}</b>, text <b>${!SMS.live?'waiting on Twilio':x.on?'ON':'OFF'}</b>.`+(k==='cal'&&!x.push&&!x.on?' Calendar reminders are muted.':''))}
+function ycQuiet(raw,low){const o=smsGet();if(/\b(off|end|stop|cancel|disable)\b/.test(low)&&!/\b(till|until|to)\b/.test(low)){o.quiet.on=false;return ycAlertSave(o,'Quiet hours <b>OFF</b>.')}
+ const hm=min=>tpHM(min);let m=raw.match(/\bfrom\s+(.+?)\s+(?:to|till|until)\s+(.+)$/i);
+ if(m){const a=ycTime('at '+m[1].replace(/^at\s+/i,'')),b=ycTime('at '+m[2].replace(/^at\s+/i,''));if(a&&b&&a.min!=null&&b.min!=null){let s=a.min,e=b.min;if(a.guess&&!/[ap]\.?\s?m/i.test(m[1])&&s>=7*60&&s<12*60)s+=720;o.quiet={on:true,start:hm(s),end:hm(e)};return ycAlertSave(o,`Quiet hours <b>ON</b> from ${ycFmtT(s)} to ${ycFmtT(e)}. Alerts wait until then.`)}}
+ m=raw.match(/\b(?:till|until|to)\s+(.+)$/i);if(m){const b=ycTime('at '+m[1].replace(/^at\s+/i,''));if(b&&b.min!=null){const n=new Date(),s=n.getHours()*60+n.getMinutes();o.quiet={on:true,start:hm(s),end:hm(b.min)};return ycAlertSave(o,`Quiet hours <b>ON</b> from now until ${ycFmtT(b.min)}. Alerts held until then.`)}}
+ if(/\b(on|start|enable)\b/.test(low)){o.quiet.on=true;return ycAlertSave(o,`Quiet hours <b>ON</b>, ${ycFmtT(tpMin(o.quiet.start))}–${ycFmtT(tpMin(o.quiet.end))}.`)}
+ say('Yorri',`Quiet hours are <b>${o.quiet.on?'ON':'OFF'}</b> (${ycFmtT(tpMin(o.quiet.start))}–${ycFmtT(tpMin(o.quiet.end))}). Say <b>quiet hours till 7</b> or <b>quiet hours off</b>.`)}
+async function ycTest(low){const ch=/\b(text|sms)\b/.test(low)?'sms':'push';if(!smsServer())return say('Yorri','Alerts need the Your World server connection (Settings → Connections).');
+ if(ch==='sms'&&!SMS.live)return say('Yorri','Text alerts are waiting on Twilio — add it in Settings → Alerts. Push works now.');
+ if(ch==='push'&&PUSH.state!=='on')say('Yorri','Push isn’t enabled on this device, so the test goes to your other devices only.');
+ try{const r=await svReq('POST','/alerts/test',{cat:'sys',channel:ch});const ok=r.sent&&!r.error;say('Yorri',ok?`Test ${ch==='push'?'push sent to '+(r.devices||r.push&&r.push.devices||1)+' device(s)':'text sent'}.`:`Test ${ch} not sent: ${esc(r.error||r.reason||'unknown reason')}.`)}catch(e){say('Yorri','Test failed: '+esc(e.message))}}
+function ycPush(on){const s=pushSupport();if(s!=='ok')return say('Yorri',s==='ios-home'?'On iPhone, add this site to your Home Screen first, then enable push in Settings → Alerts.':s==='unsupported-tesla'?'The Tesla browser can’t receive push. Text alerts work once Twilio is set up.':'Push isn’t supported in this browser.');
+ if(!on){pushDisable();return say('Yorri','Push <b>OFF</b> on this device.')}if(PUSH.state==='on')return say('Yorri','Push is already on for this device.');
+ if(typeof Notification!=='undefined'&&Notification.permission==='granted'){pushEnable();return say('Yorri','Turning push <b>ON</b> for this device…')}
+ ywSettings(true);smsOpen();say('Yorri','Your browser needs a tap to allow notifications: press <b>Enable push</b> in Settings → Alerts.')}
+// ---- Settings / navigation / display ----
+function ycSec(tab,h,fn){ywSettings(true);setTab(tab);if(fn)try{fn()}catch(e){}setTimeout(()=>{const x=$('#'+h);if(x)x.scrollIntoView({block:'start'})},60)}
+function ycCard(id){ywSettings(true);connOpen();setTimeout(()=>{const c=$('#'+id);if(c){c.open=true;c.scrollIntoView({block:'start'})}},120)}
+function ycToggle(sel,on){const c=$(sel);if(!c)return false;if(c.checked!==on){c.checked=on;c.dispatchEvent(new Event('change',{bubbles:true}))}try{a11yUI()}catch(e){}return true}
+function ycSpeak(on){if(yorriSpeak!==on){const b=$('#spkT')||$('#spkF');if(b)b.click()}}
+function ycVoices(){return TTS_OK?speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang)):[]}
+function ycHelp(){const G={};YC.list.forEach(c=>{if(!c.ex||!c.ex.length)return;(G[c.group]=G[c.group]||[]).push(c.ex[0])});
+ say('Yorri','Here’s what I can do — '+YC_GROUPS.filter(g=>G[g]).map(g=>`<b>${esc(g)}</b>: `+G[g].slice(0,4).map(e=>'“'+esc(e)+'”').join(', ')).join('. ')+'. The full searchable list is in Settings → General → Yorri commands. With a Grok key, you can also just say it your way.')}
+function ycListHTML(q){q=String(q||'').toLowerCase().trim();const G={};YC.list.forEach(c=>{const txt=(c.group+' '+(c.ex||[]).join(' ')+' '+c.help).toLowerCase();if(q&&!q.split(/\s+/).every(w=>txt.includes(w)))return;(G[c.group]=G[c.group]||[]).push(c)});
+ const gs=YC_GROUPS.filter(g=>G[g]);if(!gs.length)return '<p class="cx-st">No commands match.</p>';
+ return gs.map(g=>`<h5>${esc(g)}</h5><ul class="yc-l">`+G[g].map(c=>`<li><span>${(c.ex||[]).map(e=>`<button type="button" class="yc-ex" data-yctry="${esc(e)}" title="Try it">“${esc(e)}”</button>`).join(' ')}</span><small>${esc(c.help)}</small></li>`).join('')+'</ul>').join('')}
+function ycRender(){const L=$('#ycList');if(L)L.innerHTML=ycListHTML(($('#ycQ')||{}).value)}
+document.addEventListener('input',e=>{if(e.target.id==='ycQ')ycRender()});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-yctry]');if(!b)return;const p=b.dataset.yctry;ywSettings(false);if(/[<…]/.test(p)){const q=$('#q');if(q){q.value=p.replace(/[<…].*$/,'');q.focus()}return}ask(p)});
+function ycCoverage(){const need=new Set();document.querySelectorAll('section[data-tab]>h4[id]').forEach(h=>need.add('set:'+h.id));document.querySelectorAll('details.cx-biz[id]').forEach(d=>need.add('card:'+d.id));
+ CMD_ROOMS.forEach(r=>need.add('room:'+r));LAYOUT_TYPES.forEach(t=>need.add('type:'+t));bizStore.businesses.forEach(b=>(b.rooms||[]).forEach(r=>r.type&&need.add('type:'+r.type)));
+ const have=new Set(YC.list.flatMap(c=>c.cov||[]));return [...need].filter(k=>!have.has(k))}
+window.ycCoverage=ycCoverage;
+function ycLLMHint(){return ' APP COMMANDS: if the request is one of these, reply with exactly one line "CMD: <command>" phrased like these examples with the user\'s details filled in, and nothing else: '+YC.list.filter(c=>c.match&&c.ex&&c.ex.length).map(c=>c.ex[0]).join(' | ')+'. Otherwise answer normally.'}
+// Dispatcher: returns true when a registry command handled the text.
+function ycRun(raw0,opt){opt=opt||{};const raw=ycClean(raw0),low=raw.toLowerCase();if(!raw)return false;
+ if(YC.pending){const p=YC.pending;YC.pending=null;if(Date.now()-p.at<3*60e3){if(/^(yes|yeah|yep|yup|confirm|do it|delete it|go ahead|ok|okay|sure)\b/i.test(low)){if(!opt.quiet)say('You',esc(raw0));try{p.run()}catch(e){say('Yorri','Failed: '+esc(e.message))}return true}
+  if(/^(no|nope|keep( it)?|don'?t|never ?mind|stop|cancel that)\b/i.test(low)){if(!opt.quiet)say('You',esc(raw0));say('Yorri','Okay — kept it.');return true}}}
+ for(const c of YC.list){if(!c.match||!c.run)continue;let m;try{m=c.match(raw,low)}catch(e){m=null}if(!m)continue;
+  if(!opt.quiet)say('You',esc(raw0));try{const r=c.run(m,raw,low);if(r&&r.catch)r.catch(e=>say('Yorri','Sorry — '+esc(String(e.message||e))))}catch(e){say('Yorri','Sorry — '+esc(String(e.message||e)))}
+  setTimeout(()=>{try{if(!applying)broadcast(snapshot())}catch(e){}},300);return true}
+ return false}
+// ---- Registry entries ----
+const WDRE='(?:today|tonight|tomorrow|yesterday|(?:this|next)\\s+week|(?:this\\s+)?weekend|(?:on\\s+|this\\s+|next\\s+)?(?:'+YC_WD.join('|')+')|'+YC_MON+'\\.?\\s+\\d{1,2}(?:st|nd|rd|th)?|\\d{1,2}\\/\\d{1,2}|the\\s+\\d{1,2}(?:st|nd|rd|th))';
+ycAdd({id:'cal.remind',group:'Calendar',cov:['room:Calendar','type:calendar','card:calCard'],ex:['remind me at 3 to call Safe Rack','remind me tomorrow at 9 to pay rent','remind me in 20 minutes to check the oven'],help:'Creates a one-time reminder (Push, plus text once Twilio is set up) and reads it back.',match:(r,l)=>/^(?:please\s+)?(?:remind\s+me|set\s+a\s+reminder)\b/.test(l),run:(m,r)=>ycCreate(r,true)});
+ycAdd({id:'cal.add',group:'Calendar',cov:['room:Calendar','type:calendar'],ex:['add appointment tomorrow 10am dentist for 1 hour','schedule lunch with Sam Friday at noon','add Hunt launch review on Oct 30 to Google'],help:'Adds an appointment (end defaults to 1 hour; no time = all day). Add “to Google/Outlook” to write it there.',match:(r,l)=>/^(?:please\s+)?(?:add|schedule|create|book|put|set\s+up)\b/.test(l)&&!/\b(rooms?|business|apps?|key|account)\b/.test(l)&&(ycTime(r)||ycDay(r)||/\b(appointment|appt|event|meeting)\b/.test(l)),run:(m,r)=>ycCreate(r,false)});
+ycAdd({id:'cal.move',group:'Calendar',cov:['room:Calendar'],ex:['move my 3pm to 4','move dentist to Friday at 10'],help:'Moves an event you can edit, keeping its length. Google/Outlook events move there too.',match:(r,l)=>/^(?:please\s+)?(?:move|reschedule|push|shift)\s+.+\s+(?:to|until|till)\s+/.test(l),run:(m,r)=>ycMove(r)});
+ycAdd({id:'cal.cancel',group:'Calendar',cov:['room:Calendar'],ex:['cancel my 3pm','delete the dentist appointment tomorrow'],help:'Deletes an event after you confirm with “yes”. Read-only items explain why they can’t be changed.',match:(r,l)=>{const m=l.match(/^(?:please\s+)?(?:cancel|delete|remove|clear)\s+(.+)$/);return m&&!/\b(that|it|quiet|alerts?|push|key|room|business|account)\b/.test(m[1])&&(/\b(my|the|appointment|appt|event|meeting|reminder)\b/.test(m[1])||ycTime(m[1])||ycDay(m[1]))?m:null},run:m=>ycCancel(m[1])});
+ycAdd({id:'cal.connect',group:'Calendar',cov:['card:calCard'],ex:['open calendar connections'],help:'Opens Settings → Connections → Calendars (Google/Outlook, import/export).',match:(r,l)=>/\b(open|show|connect)\s+(?:my\s+|the\s+)?(?:calendar\s+(?:connections?|settings)|google\s+calendar|outlook(?:\s+calendar)?)\b/.test(l),run:()=>{ycCard('calCard');say('Yorri','Opened <b>Calendars</b> in Connections.')}});
+ycAdd({id:'kpi.app',group:'KPIs',cov:['room:KPIs','type:metrics','card:kpiCard'],ex:['how’s Hunt doing','Weather Radar users this month','what’s the crash rate'],help:'Live app numbers (GA4 users, Play crash/ANR, installs, rating). Says “connected, waiting for data” when there’s nothing yet.',match:(r,l)=>/\bhow(?:'?s| is| are)\s+.+\s+doing\b/.test(l)&&!/\bwe\b/.test(l)||/\b(users?|dau|mau|active users|installs?|downloads|crash(?:es| rate)?|anrs?|ratings?|app reviews|kpis?|metrics|analytics|engagement)\b/.test(l)&&!/\b(add|remind|hire|reviews?\s+due|performance)\b/.test(l),run:(m,r,l)=>ycKpi(r,l)});
+ycAdd({id:'fin.balance',group:'Finance',cov:['room:Finance','card:finCard'],ex:['what are my balances','how much cash do we have'],help:'Cash across QuickBooks/bank/Stripe, per account. Read-only.',match:(r,l)=>/\b(balances?|bank accounts?|how much (?:cash|money))\b/.test(l)&&!/\bimport\b/.test(l),run:()=>ycFin('balance')});
+ycAdd({id:'fin.revenue',group:'Finance',cov:['room:Finance'],ex:['revenue this month','how much came in this month'],help:'Money in/out and net for the month so far.',match:(r,l)=>/\b(revenue|income|sales|came in|money in|inflow)\b/.test(l),run:()=>ycFin('revenue')});
+ycAdd({id:'fin.bills',group:'Finance',cov:['room:Finance'],ex:['any unpaid bills','what bills are due'],help:'Unpaid QuickBooks bills by due date. Proposals only, never pays.',match:(r,l)=>/\b(unpaid|open|outstanding|overdue|due)\b.*\bbills?\b|\bbills?\b.*\b(due|unpaid|owe)\b|\bpayables\b|\bwhat do (?:i|we) owe\b/.test(l)&&!/\bpay (?:the )?bills\b/.test(l),run:()=>ycFin('bills')});
+ycAdd({id:'fin.payouts',group:'Finance',cov:['room:Finance'],ex:['Stripe payouts','any failed payouts'],help:'Recent Stripe payouts and the balance waiting at Stripe.',match:(r,l)=>/\bpayouts?\b/.test(l),run:()=>ycFin('payouts')});
+ycAdd({id:'fin.csv',group:'Finance',cov:['card:finCard'],ex:['import bank CSV'],help:'Opens the bank CSV importer.',match:(r,l)=>/\b(import|upload)\b.*\b(csv|bank|statement)\b/.test(l),run:()=>ycCsv()});
+ycAdd({id:'sup.tickets',group:'Support & eMaint',cov:['room:Support','type:tickets'],ex:['any new tickets','read the latest ticket'],help:'Open/unread/SLA counts and the newest tickets; “read” reads the latest message.',match:(r,l)=>/\btickets?\b/.test(l)&&/\b(any|new|unread|open|latest|newest|last|check|read|how many)\b/.test(l),run:(m,r,l)=>ycTickets(l)});
+ycAdd({id:'sup.mail',group:'Support & eMaint',cov:['type:maint','type:emaint'],ex:['read latest eMaint email','any eMaint emails'],help:'Reads the newest eMaint email (request #, asset, priority) or summarizes the inbox.',match:(r,l)=>/\b(emaint|e maint|maintenance)\b.*\b(e-?mails?|mail|messages?|inbox)\b/.test(l)&&/\b(read|latest|last|newest|any|new|check|most recent)\b/.test(l),run:(m,r,l)=>ycMail(l)});
+ycAdd({id:'al.push',group:'Alerts',cov:['set:smsH'],ex:['turn on push','turn off push'],help:'Push notifications on this device.',match:(r,l)=>{const m=l.match(/\b(?:turn|switch)\s+(on|off)\s+(?:the\s+)?push\b|\b(?:turn|switch)\s+push(?:\s+notifications?)?\s+(on|off)\b|\b(enable|disable)\s+push\b|^push(?:\s+notifications?)?\s+(on|off)$/);return m?{on:/on|enable/.test(m[1]||m[2]||m[3]||m[4])}:null},run:m=>ycPush(m.on)});
+ycAdd({id:'al.cat',group:'Alerts',cov:['set:smsH'],ex:['mute calendar alerts','unmute finance alerts','turn off all alerts'],help:'Turns a category (calendar, finance, support, work requests, decisions, digest) or all alerts on/off.',match:(r,l)=>{if(/\bquiet\b/.test(l))return null;const m=l.match(/^(?:please\s+)?(mute|silence|unmute|stop|turn\s+off|turn\s+on|switch\s+off|switch\s+on|disable|enable)\s+(.*\b(?:alerts?|notifications?|reminders?|texts?)\b.*)$/);return m?{on:/unmute|on|enable/.test(m[1]),rest:m[2]}:null},run:m=>ycCat(m.rest,m.on)});
+ycAdd({id:'al.quiet',group:'Alerts',cov:['set:smsH'],ex:['quiet hours till 7','quiet hours from 10pm to 7am','quiet hours off'],help:'Holds alerts during quiet hours.',match:(r,l)=>/\bquiet\s+hours?\b|\bdo not disturb\b|\bdnd\b/.test(l),run:(m,r,l)=>ycQuiet(r,l)});
+ycAdd({id:'al.test',group:'Alerts',cov:['set:smsH'],ex:['test push','send a test text'],help:'Sends a test alert to your devices (or phone once Twilio is set up).',match:(r,l)=>/\b(test|try)\s+(?:a\s+)?(push|notification|text|sms|alert)\b|\bsend\s+(?:me\s+)?a\s+test\b|\bpush\s+test\b/.test(l),run:(m,r,l)=>ycTest(l)});
+ycAdd({id:'al.status',group:'Alerts',cov:['set:smsH'],ex:['are my alerts on'],help:'Reads alert status, including calendar reminders.',match:(r,l)=>/\b(are|is)\s+(?:my\s+)?(alerts?|push|notifications?|reminders?)\s+(on|working|enabled)\b|\balerts?\s+status\b/.test(l),run:()=>{const o=smsGet();say('Yorri',`Alerts are <b>${o.all?'ON':'OFF'}</b>; push on this device: <b>${PUSH.state==='on'?'on':'off'}</b>; quiet hours ${o.quiet.on?'ON '+ycFmtT(tpMin(o.quiet.start))+'–'+ycFmtT(tpMin(o.quiet.end)):'off'}. `+calRemLine())}});
+ycAdd({id:'nav.alerts',group:'Navigation',cov:['set:smsH'],ex:['open alerts settings'],help:'Settings → Alerts.',match:(r,l)=>/\b(open|go to|show)\s+(?:the\s+|my\s+)?(?:text\s+|sms\s+)?(alerts?|notifications?)(\s+settings)?\b/.test(l),run:()=>{ycSec('alerts','smsH',smsOpen);say('Yorri','Opened <b>Alerts</b> in Settings.')}});
+ycAdd({id:'nav.conn',group:'Navigation',cov:['set:connH'],ex:['open settings connections'],help:'Settings → Connections (server, sync, finance, KPIs, calendars).',match:(r,l)=>/\b(open|go to|show)\s+(?:the\s+)?(?:settings\s+)?connections?\b/.test(l),run:()=>{ycSec('connections','connH',()=>connOpen());say('Yorri','Opened <b>Connections</b> in Settings.')}});
+ycAdd({id:'nav.sync',group:'Navigation',cov:['card:dsCard'],ex:['open device sync'],help:'Settings → Connections → Device sync.',match:(r,l)=>/\b(open|show)\s+(?:device\s+)?sync\b/.test(l),run:()=>{ycCard('dsCard');say('Yorri','Opened <b>Device sync</b>.')}});
+ycAdd({id:'nav.settings',group:'Navigation',cov:['set:advH','set:aiH','set:orgH'],ex:['open settings','open advanced settings','open Yorri AI settings','open organize'],help:'Opens Settings or a section.',match:(r,l)=>{const m=l.match(/^(?:open|go to|show)\s+(?:the\s+)?(settings|advanced(?:\s+settings)?|(?:yorri\s+)?ai(?:\s+settings)?|grok(?:\s+settings)?|organi[sz]e(?:r)?|general(?:\s+settings)?|accessibility|appearance)$/);return m?m[1]:null},run:m=>{
+  if(/advanced/.test(m)){ycSec('advanced','advH');return say('Yorri','Opened <b>Advanced</b> settings.')}if(/ai|grok/.test(m)){ycSec('general','aiH',llmHome);return say('Yorri','Opened <b>Yorri AI</b> settings.')}
+  if(/organ/.test(m)){ycSec('organize','orgH',orgOpen);return say('Yorri','Opened <b>Organize</b>.')}if(/access/.test(m)){ycSec('general','accH');return say('Yorri','Opened <b>Accessibility</b>.')}if(/appear/.test(m)){ycSec('general','appH');return say('Yorri','Opened <b>Appearance</b>.')}
+  ywSettings(true);say('Yorri','Opened <b>Settings</b>.')}});
+ycAdd({id:'nav.fs',group:'Navigation',ex:['full screen','exit full screen'],help:'Full-screen the current room (Esc or “exit full screen” to leave).',match:(r,l)=>/\bfull\s*-?screen\b/.test(l)&&!/\brooms\b/.test(l),run:(m,r,l)=>{if(/\b(exit|close|leave|quit|stop)\b/.test(l)){fsExit();say('Yorri','Exited full screen.')}else{fsEnter();say('Yorri','Full screen. Say <b>exit full screen</b> or press Esc.')}}});
+ycAdd({id:'nav.open',group:'Navigation',cov:['type:pipeline','type:map','type:custom'],ex:['open Weather Radar','open Hunt KPIs','open Command Center','open Apps'],help:'Opens a business, a room in any business, Command Center, or Your World Apps.'});
+ycAdd({id:'nav.cmdroom',group:'Navigation',cov:['room:Briefing','room:HR','room:Payroll','room:Legal','room:Vault'],ex:['open Finance','open Payroll','open Vault'],help:'Opens a Command Center room. Add a question (“open Finance and summarize”) to get its summary.'});
+ycAdd({id:'nav.maint',group:'Support & eMaint',cov:['type:maint'],ex:['open maintenance','what PMs are due','summarize work orders'],help:'Safe Rack maintenance room and work-order/PM summaries.'});
+ycAdd({id:'vc.change',group:'Voice & display',cov:['set:vcH'],ex:['change voice','next voice'],help:'Opens the voice picker; “next voice” tries the next one aloud.',match:(r,l)=>/\b(change|switch|pick|choose|select|different|another|next)\s+(?:your\s+|the\s+|a\s+|yorri'?s?\s+)?voice\b/.test(l),run:(m,r,l)=>{
+  if(/\b(next|another|different)\b/.test(l)){const V=ycVoices();if(!V.length)return say('Yorri',IS_TESLA?'The Tesla browser can’t play voices — read Yorri on screen.':'No device voices here. Try the Lifelike AI voice in Settings → General → Yorri voice.');const c=vcGet();const i=V.findIndex(v=>v.name===c.name);const n=V[(i+1)%V.length];vcSet({name:n.name});try{vcRender()}catch(e){}return say('Yorri',`Hi Aaron, this is ${esc(n.name.replace(/\s*\(.*\)$/,''))}. Say <b>next voice</b> again, or keep this one.`)}
+  ycSec('general','vcH');setTimeout(()=>{const s=$('#vcSel');if(s)try{s.focus()}catch(e){}},120);say('Yorri','Opened the voice picker. Choose a voice and press Preview — or say <b>next voice</b> to hear them one by one.')}});
+ycAdd({id:'vc.mute',group:'Voice & display',cov:['set:qsH'],ex:['mute Yorri','voice on'],help:'Yorri’s spoken replies on/off.',match:(r,l)=>/^(?:mute|unmute|silence)\s+(?:yorri|yourself|voice)$|^(?:yorri\s+)?voice\s+(on|off)$|^(?:turn|switch)\s+(on|off)\s+(?:your|yorri'?s?|the)\s+voice$|^stop talking$/.test(l),run:(m,r,l)=>{const on=/unmute|\bon\b/.test(l);if(on){ycSpeak(true);say('Yorri','Voice on.')}else{say('Yorri','Voice off — I’ll reply on screen.');ycSpeak(false)}}});
+ycAdd({id:'vc.switch',group:'Voice & display',cov:['set:qsH'],ex:['car layout on','mock data off','rooms full screen on'],help:'Quick switches: car layout, mock data, open rooms full screen.',match:(r,l)=>{const m=l.match(/^(?:turn\s+|switch\s+)?(?:(on|off)\s+)?(car layout|car mode|mock data|mock|sample data|rooms full screen|open rooms full screen)\s*(on|off)?$/);return m&&(m[1]||m[3])?{k:m[2],on:(m[1]||m[3])==='on'}:null},run:m=>{const id=/car/.test(m.k)?'#carT':/full/.test(m.k)?'#qsFs':'#mockT';if(!ycToggle(id,m.on))return say('Yorri','That switch isn’t on this screen.');say('Yorri',`${/car/.test(m.k)?'Car layout':/full/.test(m.k)?'Open rooms full screen':'Mock data'} <b>${m.on?'ON':'OFF'}</b>.`)}});
+ycAdd({id:'vc.theme',group:'Voice & display',cov:['set:appH','set:accH'],ex:['dark mode','light mode','bigger text','high contrast on','reduce motion on'],help:'Theme (dark, light, midnight, sand, olive, system), text size, larger text, high contrast, reduce motion, softer flashes.',match:(r,l)=>/^(?:switch to |use |turn on |set )?(dark|light|midnight|sand|desert|olive|field|system|daylight)\s+(?:mode|theme)$|^(bigger|larger|smaller|default|normal|huge)\s+text$|^text size\s+\d+|^(?:high contrast|reduce motion|reduced motion|softer flashes|larger text)\s+(on|off)$/.test(l),run:(m,r,l)=>{let x;
+  if(x=l.match(/(dark|light|midnight|sand|desert|olive|field|system|daylight)\s+(?:mode|theme)/)){const th={dark:'dark',light:'light',daylight:'light',midnight:'midnight',sand:'sand',desert:'sand',olive:'olive',field:'olive',system:'system'}[x[1]];a11ySet({theme:th});return say('Yorri',`Theme: <b>${esc((A11Y_THEMES.find(t=>t[0]===th)||[])[1]||th)}</b>.`)}
+  if(x=l.match(/^text size\s+(\d+)/)){const v=+x[1]/100,b=A11Y_SCALES.reduce((a,s)=>Math.abs(s[0]-v)<Math.abs(a[0]-v)?s:a);a11ySet({scale:b[0]});return say('Yorri',`Text size <b>${esc(b[1])}</b>.`)}
+  if(x=l.match(/^(bigger|larger|smaller|default|normal|huge)\s+text/)){const o=a11yGet(),S=A11Y_SCALES.map(s=>s[0]);let i=S.indexOf(o.scale);if(i<0)i=1;i=x[1]==='huge'?S.length-1:/default|normal/.test(x[1])?1:x[1]==='smaller'?Math.max(0,i-1):Math.min(S.length-1,i+1);a11ySet({scale:S[i]});return say('Yorri',`Text size <b>${esc(A11Y_SCALES[i][1])}</b>.`)}
+  x=l.match(/^(high contrast|reduce motion|reduced motion|softer flashes|larger text)\s+(on|off)$/);const on=x[2]==='on';
+  if(/contrast/.test(x[1]))a11ySet({contrast:on?'on':'off'});else if(/motion/.test(x[1]))a11ySet({motion:on?'on':'off'});else if(/soft/.test(x[1]))a11ySet({soft:on});else a11ySet({large:on});say('Yorri',`${esc(x[1].charAt(0).toUpperCase()+x[1].slice(1))} <b>${on?'ON':'OFF'}</b>.`)}});
+ycAdd({id:'dec.approve',group:'Decisions & lanes',ex:['Yorri approve','approve T2','Yorri decline'],help:'Approves or declines the top decision (or a tier). T3 needs on-device confirmation.'});
+ycAdd({id:'dec.lanes',group:'Decisions & lanes',ex:['hire 5 engineers','run payroll','briefing','summarize legal risks'],help:'Proposes plans into your decision queue and summarizes HR, Payroll, Legal, Vault and the briefing (mock or live).'});
+ycAdd({id:'cal.agenda',group:'Calendar',cov:['room:Calendar'],ex:['what’s on tomorrow','what do I have Friday','what’s on this week'],help:'Reads your schedule for a day or week, from every calendar and room.',match:(r,l)=>/\bwhat(?:'?s| is| do i have| have i got| am i doing)\b.*\b(on|planned|scheduled|happening|have|calendar|agenda)?\b/.test(l)&&(new RegExp('\\b'+WDRE+'\\b').test(l)||/\b(calendar|agenda|schedule)\b/.test(l))&&!/\bkpis?|users?|revenue|cash|tickets?\b/.test(l)||/^(?:my\s+)?(?:agenda|schedule)\b/.test(l),run:(m,r)=>ycAgenda(r)});
+ycAdd({id:'cal.open',group:'Calendar',cov:['room:Calendar'],ex:['open Tuesday','show tomorrow','open Oct 20'],help:'Opens the Day sheet for that date.',match:(r,l)=>{const m=l.match(new RegExp('^(?:open|show|go\\s+to)\\s+(?:the\\s+)?(?:day\\s+)?(?:for\\s+)?('+WDRE+')(?:\\s+on\\s+(?:the|my)\\s+calendar)?$'));return m},run:(m,r)=>{const d=ycDay(r);dayOpen(dayKey(d.d.getTime()),{all:true});say('Yorri',`Opened ${esc(calDay(d.d))}. Swipe or use the arrows for other days; say <b>what’s on</b> to hear it.`)}});
+ycAdd({id:'help',group:'Help',cov:['set:ycH'],ex:['Yorri what can you do','help'],help:'Lists commands by group. The full list with search is here in Settings.',match:(r,l)=>/^(?:help|commands|what can you do|what can i say|what do you do|list commands|show commands|what are (?:your|the) commands)\b/.test(l),run:()=>ycHelp()});
+
 function ask(t){
   if(!t||!String(t).trim())return;
   t=stripHint(t);if(!t)return;
   const qEl=$('#q');if(qEl)qEl.value='';
+  if(ycRun(t))return;
   const vc=tryVoiceCommand(t);
   if(vc===true){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
   if(vc!=='cont')say('You',t);

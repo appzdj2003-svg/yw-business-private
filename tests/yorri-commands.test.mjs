@@ -1,0 +1,66 @@
+// Headless check for Yorri's command registry: runs every intent at phone 390x844 with mocked server, fails if any Settings section,
+// Connections card, Command room or room type has no registry entry (ycCoverage). Run: node tests/yorri-commands.test.mjs (needs playwright-core + chromium headless shell).
+import { chromium } from '/node_modules/playwright-core/index.mjs'; import http from 'node:http'; import fs from 'node:fs';
+const html = fs.readFileSync(new URL('../index.html', import.meta.url)); const srv = http.createServer((q, r) => { if (q.url.startsWith('/sw.js')) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'content-type': 'text/html' }); r.end(html); }).listen(8128);
+const exe = fs.readdirSync('/home/box/.cache/ms-playwright').filter(d => d.startsWith('chromium_headless_shell')).map(d => `/home/box/.cache/ms-playwright/${d}/chrome-headless-shell-linux64/chrome-headless-shell`).find(fs.existsSync);
+const b = await chromium.launch({ executablePath: exe }); const SV = 'https://sv.test';
+const day = n => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + n); return d; };
+const t1 = day(1); t1.setHours(15, 0, 0, 0);
+const calSt = { google: { appConfigured: true, connected: true, account: 'a@gmail.com', redirect: 'x', calendars: [{ id: 'a@gmail.com', name: 'Aaron', canEdit: true, show: true, biz: 'cmd', edit: true, primary: true }] }, ms: { appConfigured: false, connected: false, redirect: 'y', calendars: [] } };
+const evs = { events: [{ pid: 'google:a@gmail.com:g1', id: 'g1', provider: 'google', calendarId: 'a@gmail.com', calendar: 'Aaron', title: 'Board call', start: t1.getTime(), end: t1.getTime() + 3600e3, editable: true, biz: 'cmd', link: 'https://calendar.google.com/x' }], errors: [] };
+let finOn = false, kpiData = false;
+const posted = [];
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }); const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
+await pg.addInitScript(() => { window.confirm = () => true; window.open = () => null; Element.prototype.requestFullscreen = undefined });
+await pg.route('https://api.x.ai/**', r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' }, body: JSON.stringify({ choices: [{ message: { content: 'CMD: what’s on tomorrow' } }] }) }));
+await pg.route(SV + '/**', async r => { const q = r.request(), u = new URL(q.url()), M = q.method(); if (M !== 'GET' && M !== 'OPTIONS') posted.push(M + ' ' + u.pathname + ' ' + (q.postData() || '').slice(0, 160));
+  let body = {};
+  if (u.pathname === '/calendar/status') body = calSt; else if (u.pathname === '/calendar/events') body = evs; else if (u.pathname === '/calendar/event') body = { ok: true, pid: 'google:a@gmail.com:n1' };
+  else if (u.pathname === '/alerts/settings') body = { smsLive: false, pushLive: true, settings: null }; else if (u.pathname === '/alerts/test') body = { sent: true, devices: 2 };
+  else if (u.pathname === '/kpi/summary') body = { configured: true, asOf: Date.now(), ga4: { apps: [{ id: 'hunt', label: 'Hunt', biz: 'hunt', propertyId: '559431330', hasData: kpiData, dau: 12, mau28: 340, newUsers28: 90, engagementRate: 0.61 }, { id: 'wr', label: 'Weather Radar', biz: 'weather', propertyId: '222', hasData: true, dau: 800, mau28: 15000, newUsers28: 3000, engagementRate: 0.5 }] }, play: { apps: [] } };
+  else if (u.pathname === '/finance/summary') body = finOn ? { configured: true, cash: 52000, inflowMTD: 18000, outflowMTD: 9000, burnMonthly: 2000, runwayMonths: 26, source: 'QuickBooks + Stripe', basis: 'QuickBooks', cashNote: 'QuickBooks bank accounts + Stripe balance awaiting payout', apTotal: 1200, arTotal: 300, breakdown: [{ source: 'qbo', label: 'QuickBooks', cash: 50000 }, { source: 'stripe', label: 'Stripe', cash: 2000, inflowMTD: 7000, payouts: [{ id: 'po1', amount: 1500, status: 'paid', arrival: Date.now() - 864e5 }, { id: 'po2', amount: 700, status: 'failed', failure: 'account_closed', arrival: Date.now() }] }], errors: [] } : { configured: false };
+  else if (u.pathname === '/finance/payables') body = { payables: [{ id: 'b1', name: 'Acme Steel', amount: 1200, due: Date.now() - 2 * 864e5 }] }; else if (u.pathname === '/finance/transactions') body = { transactions: [] }; else if (u.pathname === '/finance/receivables') body = { receivables: [] };
+  else if (u.pathname === '/finance/status') body = { stripe: { configured: false }, qbo: { connected: false }, plaid: { items: [] }, csv: { accounts: [] } };
+  await r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' }, body: JSON.stringify(body) }); });
+await pg.goto('http://127.0.0.1:8128/'); await pg.evaluate(sv => { const a = JSON.parse(localStorage.getItem('ywConn') || '{}'); a[SUP_KEY()] = { type: 'support', url: sv, token: 'x'.repeat(40), live: true }; localStorage.setItem('ywConn', JSON.stringify(a)); localStorage.setItem('ywMockData', '0'); localStorage.setItem('ywUnlock', '1'); localStorage.setItem('ywYorriSpeak', '0') }, SV);
+await pg.reload(); await pg.waitForTimeout(5000);
+const ev = (f, a) => pg.evaluate(f, a), wt = ms => pg.waitForTimeout(ms);
+const last = () => ev(() => { if (document.body.classList.contains('fs')) return 'FS: ' + document.querySelector('#fsLast').innerText; const p = [...document.querySelectorAll('#log p.y')].pop(); return p ? p.innerText.replace(/^Yorri:\s*/, '').replace(/\s+/g, ' ').slice(0, 330) : '' });
+const R = [];
+async function say(t, ms = 900) { const fs = await ev(() => document.body.classList.contains('fs')); if (fs) { await pg.fill('#fsQ', t); await pg.click('#fsSend') } else { await pg.fill('#q', t); await pg.press('#q', 'Enter') } await wt(ms); R.push('» ' + t + '\n   ' + await last()); }
+await say('Yorri what can you do');
+await say('remind me at 3 to call Safe Rack');
+await say('add appointment tomorrow 10am dentist for 1 hour');
+await say('remind me tomorrow at 9 to pay rent');
+await say("what's on tomorrow");
+await say('what do I have this week');
+await say('open Tuesday'); R.push('   sheet open: ' + await ev(() => DAY.key)); await ev(() => dayClose());
+await say('move dentist to 11:30');
+await say('move my 3pm to 4');
+await say('cancel the dentist appointment tomorrow'); await say('yes');
+await say('move board call to 4', 1500); await say('add Hunt launch review on Oct 30 at 2pm to Google', 1500); await say('add standup for Hunt Monday 9:15'); await say('cancel my 4pm'); await say('no');
+await say("how's Hunt doing", 1500); kpiData = true; await ev(() => { KPIL.at = 0 }); await say('Weather Radar users this month', 1500); await say('Hunt users today', 1500);
+await say('what are my balances', 1500); finOn = true; await say('what are my balances', 1800); await say('revenue this month', 1500); await say('any unpaid bills', 1500); await say('Stripe payouts', 1500);
+await say('import bank CSV'); R.push('   settings open: ' + await ev(() => document.body.classList.contains('view-settings'))); await ev(() => ywSettings(false));
+await say('any new tickets', 1200); await say('read latest eMaint email', 1200);
+await say('mute calendar alerts'); R.push('   cal cat: ' + await ev(() => JSON.stringify(smsGet().cats.cal)));
+await say('unmute calendar alerts'); await say('quiet hours till 7'); R.push('   quiet: ' + await ev(() => JSON.stringify(smsGet().quiet))); await say('quiet hours from 10 to 7'); R.push('   quiet: ' + await ev(() => JSON.stringify(smsGet().quiet))); await say('quiet hours off');
+await say('test push', 1200); await say('turn on push'); await ev(() => ywSettings(false));
+await say('open settings connections'); await ev(() => ywSettings(false)); await say('open alerts'); await ev(() => ywSettings(false));
+await say('change voice'); await ev(() => ywSettings(false)); await say('dark mode'); await say('bigger text'); await say('text size 100');
+await say('full screen'); await say('exit full screen'); await say('open Weather Radar');
+await say('approve T9');
+// LLM fallback mapping
+await ev(() => localStorage.setItem('ywLlm', JSON.stringify({ key: 'xai-test', base: 'https://api.x.ai/v1', model: 'grok-4' })));
+await say('gimme the rundown of my plans for the morrow', 2500);
+await ev(() => localStorage.removeItem('ywLlm'));
+// coverage + settings list
+await ev(() => { ywSettings(true); setTab('connections') }); await wt(800);
+const cov = await ev(() => ycCoverage()); R.push('COVERAGE missing: ' + JSON.stringify(cov)); const neg = await ev(() => { const b = bizStore.businesses[0]; b.rooms.push({ id: 'zz', label: 'Zed', type: 'newtype' }); const m = ycCoverage(); b.rooms.pop(); return m }); R.push('negative check: ' + JSON.stringify(neg)); if (cov.length || !neg.includes('type:newtype')) process.exitCode = 1;
+await ev(() => setTab('general')); await pg.fill('#ycQ', 'push'); await wt(100);
+R.push('list(push): ' + await ev(() => [...document.querySelectorAll('#ycList .yc-ex')].map(b => b.textContent).join(' ')));
+await pg.fill('#ycQ', ''); R.push('list total: ' + await ev(() => document.querySelectorAll('#ycList .yc-ex').length) + ' groups ' + await ev(() => [...document.querySelectorAll('#ycList h5')].map(h => h.textContent).join(', ')));
+const h = await pg.$('section[aria-labelledby="ycH"]'); await h.scrollIntoViewIfNeeded(); await pg.screenshot({ path: `/tmp/yc_${Date.now() % 1e5}.png` });
+R.push('events: ' + await ev(() => JSON.stringify(calStore().events.map(e => [e.title, new Date(e.start).toString().slice(0, 21), e.kind || '', e.end ? (e.end - e.start) / 6e4 : null, e.remind]))));
+console.log(R.join('\n')); console.log('POSTED\n' + posted.join('\n')); console.log('errors:', errs); if (errs.length) process.exitCode = 1;
+await b.close(); srv.close();
