@@ -202,6 +202,50 @@ html.a11y-contrast .cx-biz,html.a11y-contrast .cx-form input,html.a11y-contrast 
 #setPage .opts button[aria-pressed=true]{background:var(--teal);color:var(--ink);border-color:var(--teal);font-weight:700}
 #setPage .sw{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:6px;vertical-align:-2px;border:1px solid var(--mut)}
 #setPage .tip{color:var(--mut);font-size:12px;margin:8px 0 0}
+#setPage .set-bar{position:sticky;top:-16px;z-index:6;background:var(--ink);margin:10px -18px 0;padding:8px 18px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#setTabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0}
+#setTabs button{flex:0 0 auto;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:8px 14px;min-height:40px;font:inherit;cursor:pointer;white-space:nowrap}
+#setTabs button[aria-selected=true]{background:var(--teal);color:var(--ink);border-color:var(--teal);font-weight:700}
+#setTabs button:focus-visible,#setSearch:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+#setSearch{flex:0 1 200px;min-width:120px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px;font:inherit}
+@media (max-width:600px){#setSearch{flex:1 1 100%}}
+#setPage section[hidden]{display:none}
+#setPage .qs-sel{display:inline-flex;align-items:center;gap:6px;color:var(--mut)}#setPage .qs-sel select{min-height:44px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
+.fin-p{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:var(--card2)}
+.fin-p h6{margin:0 0 6px;font-size:1em;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fin-p .cx-form{padding:0}.fin-p input,.fin-p select{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:8px;min-height:40px;font:inherit;max-width:100%}
+.fin-p ol{margin:4px 0 6px 18px;padding:0;color:var(--mut);font-size:.9em}
+.fin-bd summary{cursor:pointer;color:var(--mut);font-size:.9em;margin-top:6px}
+.cx-grp summary{cursor:pointer}
+.room-bar{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 4px}
+.room-crumb{color:var(--mut);font-size:.85em;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.room-tabs{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.room-tabs button,.fs-b,.cal-bar button,.cal-chips button{background:var(--field);color:var(--txt);border:1px solid var(--line);padding:6px 12px;min-height:36px;font:inherit;font-size:.85em;cursor:pointer}
+.room-tabs button{border:0;border-radius:0}.room-tabs button[aria-selected=true],.cal-bar button[aria-pressed=true]{background:var(--teal);color:var(--ink);font-weight:700}
+.fs-b{border-radius:8px}.cal-bar button{border-radius:8px}
+.cal-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.cal-add{margin-left:auto}
+.cal-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.cal-chips button{border-radius:999px;border-left:4px solid hsl(var(--bh) 70% 55%)}.cal-chips button[aria-pressed=false]{opacity:.45;text-decoration:line-through}
+.cal-day h5{margin:10px 0 4px;color:var(--mut);font-size:.8em;letter-spacing:.06em;text-transform:uppercase}
+.cal-it{display:grid;grid-template-columns:5.5em 1fr;gap:2px 8px;width:100%;text-align:left;background:var(--card2);color:var(--txt);border:1px solid var(--line);border-left:4px solid hsl(var(--bh) 70% 55%);border-radius:8px;padding:8px 10px;margin:4px 0;font:inherit;cursor:pointer;min-height:44px}
+.cal-it:hover,.cal-it:focus-visible{border-color:var(--teal)}.cal-it.late .cal-t{color:var(--red)}
+.cal-t{color:var(--mut);font-size:.85em}.cal-n{font-weight:600;overflow-wrap:anywhere}.cal-s{grid-column:2;color:var(--mut);font-size:.8em}
+.cal-h{font-weight:700;margin:4px 0 6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.cal-wd{font-size:.75em;color:var(--mut);text-align:center}
+.cal-cell{min-height:72px;border:1px solid var(--line);border-radius:6px;padding:3px;background:var(--panel);overflow:hidden}.cal-grid.week .cal-cell{min-height:160px}
+.cal-cell.today{border-color:var(--teal)}.cal-cell.other{opacity:.5}.cal-dn{font-size:.75em;color:var(--mut)}
+.cal-cell .cal-it{grid-template-columns:1fr;padding:3px 4px;min-height:0;font-size:.75em;margin:2px 0}.cal-cell .cal-t{display:none}
+@media (max-width:640px){.cal-grid.week{grid-template-columns:1fr}.cal-grid.week .cal-wd{display:none}.cal-grid.week .cal-cell{min-height:0}.cal-grid.month .cal-cell .cal-n{display:none}.cal-grid.month .cal-cell .cal-it{height:6px;padding:0;border-left-width:0;background:hsl(var(--bh) 70% 55%)}}
+.cal-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;border:1px dashed var(--line);border-radius:10px;padding:10px;margin-bottom:8px}.cal-form label{display:flex;flex-direction:column;gap:4px;color:var(--mut);font-size:.85em}
+.cal-form input,.cal-form select,.cal-form textarea{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;min-height:40px}.cal-wide{grid-column:1/-1}
+#fsBar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 14px;background:var(--hdr);border-bottom:1px solid var(--line);backdrop-filter:blur(6px)}
+#fsBar[hidden]{display:none}#fsCrumb{flex:0 1 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fs-ask{display:flex;gap:6px;flex:1 1 260px}.fs-ask input{flex:1;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:40px;font:inherit}.fs-ask button{background:var(--teal);color:var(--ink);border:0;border-radius:8px;padding:0 14px;font:inherit;font-weight:700;min-height:40px}
+.fs-last{order:4;flex:1 1 100%;font-size:.85em;color:var(--mut);max-height:3.2em;overflow:auto}.fs-last:empty{display:none}#fsBar>.fs-b{order:3;margin-left:auto}#fsCrumb{order:1}.fs-ask{order:2}
+@media(max-width:620px){#fsCrumb{max-width:calc(100% - 90px)}.fs-ask{order:5;flex-basis:100%}.fs-last{order:6}}
+body.fs header,body.fs nav.rooms,body.fs #bizNav,body.fs .car-ctl,body.fs aside.side,body.fs .bizrow,body.fs #board .room-bar .fs-b{display:none!important}
+body.fs main{display:block;padding:calc(110px + env(safe-area-inset-top)) 14px 20px}body.fs #board{display:block}body.fs #board .card{max-width:none}
+
+
 </style>
 <style>#ywGate{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,var(--card2,#0e2a33),var(--ink,#05080c) 70%);font-family:system-ui,sans-serif;color:var(--txt,#cfe)}
 #ywGate .b{width:min(92vw,380px);padding:32px;border:1px solid var(--line,#1fd3c655);border-radius:16px;background:var(--panel,#0a1218);box-shadow:0 0 40px color-mix(in srgb,var(--teal,#1fd3c6) 20%,transparent);text-align:center}
@@ -266,15 +310,18 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <div id="setPage" role="dialog" aria-label="Settings"><div class="wrap">
 <div style="display:flex;align-items:center;gap:10px"><h2>Settings</h2><button type="button" class="sbt" id="setClose" style="margin-left:auto">✕ Close</button></div>
 <p class="tip">Saved in this browser and synced to pop-out screens. Say "open Settings" / "close Settings".</p>
-<section aria-labelledby="appH"><h4 id="appH">Appearance</h4><div class="sgrp"><h5>Text size</h5><div class="opts" id="optScale" role="group" aria-label="Text size"></div><span class="ex">Scales the whole board, Yorri and pop-outs (max 175% with Larger text).</span>
-</div><div class="sgrp"><h5>Color theme</h5><div class="opts" id="optTheme" role="group" aria-label="Color theme"></div><span class="ex">System follows your device's light/dark setting.</span></div></section>
-<section aria-labelledby="accH"><h4 id="accH">Accessibility</h4><div class="sgrp"><h5>Larger text</h5><div class="opts"><button type="button" id="optLarge" aria-pressed="false">Larger text (+15%)</button></div><span class="ex">Adds 15% on top of the size above and lets labels wrap instead of clipping.</span></div><div class="sgrp"><h5>High contrast</h5><div class="opts" id="optContrast" role="group" aria-label="High contrast"></div><span class="ex">Brighter text and thicker borders on top of any theme. System follows your device's contrast setting.</span></div><div class="sgrp"><h5>Reduce motion</h5><div class="opts" id="optMotion" role="group" aria-label="Reduce motion"></div><span class="ex">Turns off glow, scanning lines and animations. System follows your device setting.</span></div><div class="sgrp"><h5>Softer flashes</h5><div class="opts"><button type="button" id="optSoft" aria-pressed="false">Softer flashes</button></div><span class="ex">Keeps pulses and glows, but at 45% strength.</span></div></section>
-<section><h4>Yorri &amp; layout</h4><div class="opts">
+<div class="set-bar"><div role="tablist" id="setTabs" aria-label="Settings sections"></div><input type="search" id="setSearch" placeholder="Search settings" aria-label="Search settings"></div>
+<section data-tab="general" aria-labelledby="qsH"><h4 id="qsH">Quick switches</h4><div class="opts">
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
 <button type="button" class="sbt" data-proxy="#mockT" id="setMock">Mock data</button>
-</div>
-<div class="sgrp" id="voiceGrp"><h5>Yorri’s speaking voice</h5>
+<label class="qs-sel"><input type="checkbox" id="qsFs"> Open rooms full screen</label><label class="qs-sel">Theme <select id="qsTheme" aria-label="Color theme"></select></label><label class="qs-sel">Text size <select id="qsScale" aria-label="Text size"></select></label>
+</div><span class="ex">Yorri voice is the mute switch. Same switches as on the main board; both stay in sync.</span></section>
+<section data-tab="general" aria-labelledby="appH"><h4 id="appH">Appearance</h4><div class="sgrp"><h5>Text size</h5><div class="opts" id="optScale" role="group" aria-label="Text size"></div><span class="ex">Scales the whole board, Yorri and pop-outs (max 175% with Larger text).</span>
+</div><div class="sgrp"><h5>Color theme</h5><div class="opts" id="optTheme" role="group" aria-label="Color theme"></div><span class="ex">System follows your device's light/dark setting.</span></div></section>
+<section data-tab="general" aria-labelledby="accH"><h4 id="accH">Accessibility</h4><div class="sgrp"><h5>Larger text</h5><div class="opts"><button type="button" id="optLarge" aria-pressed="false">Larger text (+15%)</button></div><span class="ex">Adds 15% on top of the size above and lets labels wrap instead of clipping.</span></div><div class="sgrp"><h5>High contrast</h5><div class="opts" id="optContrast" role="group" aria-label="High contrast"></div><span class="ex">Brighter text and thicker borders on top of any theme. System follows your device's contrast setting.</span></div><div class="sgrp"><h5>Reduce motion</h5><div class="opts" id="optMotion" role="group" aria-label="Reduce motion"></div><span class="ex">Turns off glow, scanning lines and animations. System follows your device setting.</span></div><div class="sgrp"><h5>Softer flashes</h5><div class="opts"><button type="button" id="optSoft" aria-pressed="false">Softer flashes</button></div><span class="ex">Keeps pulses and glows, but at 45% strength.</span></div></section>
+<section data-tab="general" aria-labelledby="vcH"><h4 id="vcH">Yorri voice</h4>
+<div class="sgrp" id="voiceGrp">
 <label>Voice <select id="vcSel" aria-label="Yorri speaking voice"></select></label>
 <label>Speed <input type="range" id="vcRate" min="0.7" max="1.4" step="0.05" aria-label="Voice speed"> <span id="vcRateV" class="mono"></span></label>
 <label>Pitch <input type="range" id="vcPitch" min="0.7" max="1.3" step="0.05" aria-label="Voice pitch"> <span id="vcPitchV" class="mono"></span></label>
@@ -282,12 +329,19 @@ window.ywTry=function(e){e.preventDefault();var err=document.getElementById('ywE
 <label id="vcAiVL">AI voice <select id="vcAiV" aria-label="AI voice"><option value="eve">Eve</option><option value="ara">Ara</option><option value="rex">Rex</option><option value="sal">Sal</option><option value="leo">Leo</option></select></label>
 <button type="button" id="vcPrev">▶ Preview</button>
 <span class="ex" id="vcNote">Each device lists its own voices (phone and PC differ). “Auto” picks the most natural one here. The AI voice costs about $15 per million characters on your xAI account; if it fails, Yorri falls back to the device voice.</span></div>
-<span class="ex">Voice mutes Yorri · Car layout puts Ask Yorri on top · Mock shows demo data.</span><p class="tip">These are the same switches as on the main board — both places stay in sync.</p></section>
-<section aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
-<section aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Connect each room to its server. Say "open connections".</span><div id="syncBox"></div><div id="connList"></div></section>
-<section aria-labelledby="smsH"><h4 id="smsH">Alerts</h4><div id="smsBox"></div></section>
-<section aria-labelledby="advH"><h4 id="advH">Advanced</h4><div class="opts"><button type="button" class="sbt" id="setReset">Reset all display settings</button></div><span class="ex">Restores text size, theme, contrast and motion. Layout reset is under Organize → Advanced; config export under Connections → Advanced.</span></section>
+</section>
+<section data-tab="general" aria-labelledby="aiH"><h4 id="aiH">Yorri AI</h4><span class="ex">Your xAI (Grok) key and model. Stays in this browser unless you sync it.</span><div id="llmHome"></div></section>
+<section data-tab="organize" aria-labelledby="orgH"><h4 id="orgH">Organize</h4><span class="ex">Order, rename, add, move or delete businesses and rooms. Say "open organize".</span><div id="orgList"></div></section>
+<section data-tab="connections" aria-labelledby="connH"><h4 id="connH">Connections</h4><span class="ex">Sync, data sources, and each room’s server. Say "open connections".</span><div id="syncBox"></div><div id="cxGroups"></div><div id="connList"></div></section>
+<section data-tab="alerts" aria-labelledby="smsH"><h4 id="smsH">Alerts</h4><span class="ex">Push and text alerts. Say "open alerts".</span><div id="smsBox"></div></section>
+<section data-tab="advanced" aria-labelledby="advH"><h4 id="advH">Advanced</h4>
+<div class="sgrp"><h5>Reset</h5><div class="opts"><button type="button" class="sbt" id="setReset">Reset display settings</button><button type="button" class="sbt" id="advLayout">Reset layout</button></div><span class="ex">Display: text size, theme, contrast, motion. Layout: businesses and rooms back to default.</span></div>
+<div class="sgrp"><h5>Config file</h5><div class="opts"><button type="button" class="sbt" id="cxExport">Export config</button><label style="color:var(--mut)"><input type="checkbox" id="cxExTok"> include tokens</label>
+<button type="button" class="sbt" id="cxImport">Import config</button><input type="file" id="cxFile" accept="application/json,.json" hidden aria-label="Choose config file"></div><span class="ex" id="cxMsg" role="status" aria-live="polite">Back up or move connections and layout.</span></div>
+<div class="sgrp"><h5>This device</h5><div class="opts"><button type="button" class="sbt" id="advUnlink">Unlink device from sync</button></div><span class="ex">Settings stay here; they just stop syncing.</span></div>
+<div class="sgrp"><h5>About</h5><div class="cx-st" id="advAbout">Site build …</div></div></section>
 </div></div>
+<div id="fsBar" hidden role="region" aria-label="Full screen room"><span id="fsCrumb" class="mono"></span><div class="fs-ask"><input id="fsQ" placeholder="Ask Yorri…" aria-label="Ask Yorri"><button type="button" id="fsSend">Send</button></div><span id="fsLast" class="fs-last" aria-live="polite"></span><button type="button" class="fs-b" data-fs="exit" aria-label="Exit full screen">✕ Exit</button></div>
 <nav class="rooms" id="nav"></nav>
 <div class="car-ctl" id="carCtl"><label title="Ask Yorri on top + decisions under it. Auto-on in Tesla; use this to test on phone/laptop."><input type="checkbox" id="carT"> Car layout</label></div>
 <main><section class="board" id="board"></section>
@@ -350,10 +404,52 @@ Vault:`<div class="kpi"><div><b>1,284</b><small>docs</small></div><div><b class=
    No secrets here — real connectors should call a server-side proxy. */
 const LIVE={
  support:{source:{get name(){return SupportSource().name},fetch:()=>({tickets:SUP.tickets.filter(t=>t.status!=='closed').map(t=>({id:t.id,subj:t.subject,pri:t.priority,ageH:Math.round(supAgeH(t)),slaH:t.slaH,from:t.from})),closedWeek:0,medianReplyM:null})}},
- finance:{source:{name:'stub',fetch:()=>({cash:null,burnMo:null,inMTD:null,outMTD:null,ap:[
-   {vendor:'Stub Vendor A',amt:null,due:'—'}],connected:false})}}
+ finance:{source:{get name(){return FINL.sum?'server':'none'},fetch:()=>FINL.sum}}
 };
 const liveData=k=>{try{return LIVE[k].source.fetch()}catch(e){return null}};
+const FINL={sum:null,tx:[],ap:[],ar:[],st:null,err:'',at:0,busy:false,msg:{}};
+const fin$=n=>{if(n==null||isNaN(n))return '—';const a=Math.abs(n),sg=n<0?'−':'';return sg+(a>=1e6?'$'+(a/1e6).toFixed(2)+'M':a>=1e4?'$'+(a/1e3).toFixed(1)+'k':'$'+a.toLocaleString('en-US',{maximumFractionDigits:a<100?2:0}))};
+const FIN_SRC={stripe:'Stripe',qbo:'QuickBooks',plaid:'Bank',csv:'Bank CSV'};
+async function finRefresh(force){if(!smsServer()||FINL.busy||(!force&&Date.now()-FINL.at<120e3))return;FINL.busy=true;
+ try{const s=await svReq('GET','/finance/summary');FINL.sum=s&&s.configured?s:null;if(FINL.sum){const [t,p,r]=await Promise.all([svReq('GET','/finance/transactions?limit=8'),svReq('GET','/finance/payables'),svReq('GET','/finance/receivables')]);FINL.tx=t.transactions||[];FINL.ap=p.payables||[];FINL.ar=r.receivables||[]}FINL.err=''}
+ catch(e){FINL.err=String(e.message||e).slice(0,120);if(/not configured|HTTP 404/.test(FINL.err))FINL.sum=null}FINL.at=Date.now();FINL.busy=false;try{draw()}catch(e){}}
+setTimeout(()=>finRefresh(true),3000);setInterval(()=>finRefresh(true),5*60e3);
+/* ==== App KPIs (Google Play vitals/reviews, GA4/Firebase, App Store gated) — read-only ==== */
+const KPIL={sum:null,st:null,err:'',at:0,busy:false,msg:{}};
+const pct=v=>v==null?'—':(v*100).toFixed(2)+'%';
+async function kpiRefresh(force){if(!smsServer()||KPIL.busy||(!force&&Date.now()-KPIL.at<120e3))return;KPIL.busy=true;
+ try{const s=await svReq('GET','/kpi/summary');KPIL.sum=s&&s.configured?s:null;KPIL.err=''}catch(e){KPIL.err=String(e.message||e).slice(0,120);if(/not configured|HTTP 404/.test(KPIL.err))KPIL.sum=null}KPIL.at=Date.now();KPIL.busy=false;try{draw()}catch(e){}}
+setTimeout(()=>kpiRefresh(true),3500);setInterval(()=>kpiRefresh(true),15*60e3);
+async function kpiStatus(){if(!smsServer()){KPIL.st=null;kpiRender();return}try{KPIL.st=await svReq('GET','/kpi/status')}catch(e){KPIL.st={error:e.message}}kpiRender()}
+function kpiRender(){const B=$('#kpiBox');if(!B)return;const S=KPIL.st,M=KPIL.msg,msg=k=>M[k]?`<div class="cx-st ${M[k].ok?'cx-ok':'cx-bad'}" role="status">${esc(M[k].t)}</div>`:'';
+ if(!S||S.error){B.innerHTML=`<details class="cx-biz" id="kpiCard"><summary><span class="cx-dot err" aria-hidden="true"></span><span class="og-name">App KPIs</span> <span class="cx-n">${S&&S.error?(/404/.test(S.error)?'server update pending':'error'):'needs server'}</span></summary><div class="cx-form"><span></span><span class="cx-st">${S&&S.error?esc(S.error):'Connect the Support server first; KPIs run on the same server.'}</span></div></details>`;return}
+ const p=S.play,g=S.ga4,on=[p.configured&&'Google Play',g.configured&&'GA4'].filter(Boolean);
+ B.innerHTML=`<details class="cx-biz" id="kpiCard"${CX.open.kpi?' open':''}><summary><span class="cx-dot ${on.length?'live':''}" aria-hidden="true"></span><span class="og-name">App KPIs</span> <span class="cx-n">${on.length?esc(on.join(' · ')):'not connected'}</span></summary>
+ <p class="cx-st" style="margin:6px 0">Read-only. One Google service account can serve Play and GA4. The key file is checked, stored encrypted on the server and never shown again.</p>
+ <div class="fin-p"><h6><span class="cx-dot ${p.configured?'live':''}"></span>Google Play <span class="cx-st">${p.configured?esc(p.account)+' · '+((p.packages.length?p.packages:p.discovered.map(a=>a.pkg)).length)+' app(s)'+(p.bucket?' · installs on':''):'crash rate, ANR, reviews, installs'}</span></h6>
+  ${p.configured&&!M.playEdit?`<div class="cx-st">${(p.discovered||[]).map(a=>esc(a.name)+' <span class="mono">'+esc(a.pkg)+'</span>').join(' · ')||'No apps visible yet — check the Play Console permissions.'}</div><div class="opts"><button type="button" class="og-b" data-kpi="play-edit">Replace / edit</button> <button type="button" class="og-b" data-kpi="play-del">Remove</button></div>`:
+  `<ol><li>In <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> pick (or create) a project → APIs &amp; Services → <b>Enable</b> “Google Play Android Developer API” and “Google Play Developer Reporting API” (plus “Cloud Storage” if you want installs).</li><li>IAM → Service accounts → <b>Create</b> “yw-kpi” (no project roles needed) → Keys → Add key → <b>JSON</b>. Download it.</li><li>In <a href="https://play.google.com/console/" target="_blank" rel="noopener">Play Console</a> → Users and permissions → <b>Invite new user</b> → the service-account email → account permissions: <b>View app information and download bulk reports (read-only)</b>; add <b>Reply to reviews</b> so reviews can be read. Nothing else.</li><li>Paste the whole JSON file below. Optional: your reports bucket (Play Console → Download reports → Statistics → “Copy Cloud Storage URI”, e.g. <span class="mono">pubsite_prod_rev_0123…</span>) for installs and ratings.</li></ol>
+  <div class="cx-form"><label for="kpiSa">Service-account JSON</label><textarea id="kpiSa" rows="3" autocomplete="off" spellcheck="false" placeholder='{"type":"service_account", …}'></textarea><label for="kpiPk">Package names</label><input id="kpiPk" value="${esc((p.packages||[]).join(', '))}" placeholder="optional — blank = all apps the account can see"><label for="kpiBk">Reports bucket</label><input id="kpiBk" value="${esc(p.bucket||'')}" placeholder="optional — for installs &amp; ratings"><span></span><div><button type="button" class="og-b" data-kpi="play-save">Save &amp; verify</button>${M.playEdit?' <button type="button" class="og-b" data-kpi="play-cancel">Cancel</button>':''}</div></div>${p.configured?'<div class="cx-st">Leave the JSON blank to keep the saved key and only change packages/bucket.</div>':''}`}${msg('play')}</div>
+ <div class="fin-p"><h6><span class="cx-dot ${g.configured?'live':''}"></span>Firebase / Google Analytics 4 <span class="cx-st">${g.configured?'property '+esc(g.propertyId)+' · '+esc(g.account):'ready — apps don’t send Analytics yet'}</span></h6>
+  ${g.configured&&!M.ga4Edit?`<div class="opts"><button type="button" class="og-b" data-kpi="ga4-edit">Edit</button> <button type="button" class="og-b" data-kpi="ga4-del">Remove</button></div>`:
+  `<ol><li>Once the apps ship the Firebase Analytics SDK, open <a href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics</a> → Admin → Property settings → copy the <b>Property ID</b> (a number).</li><li>Admin → Property access management → <b>＋ Add users</b> → the service-account email → role <b>Viewer</b>. In Cloud Console enable “Google Analytics Data API”.</li></ol>
+  <div class="cx-form"><label for="kpiGp">Property ID</label><input id="kpiGp" inputmode="numeric" value="${esc(g.propertyId||'')}" placeholder="123456789"><label for="kpiGs">Service-account JSON</label><textarea id="kpiGs" rows="2" autocomplete="off" spellcheck="false" placeholder="${p.configured?'blank = reuse the Google Play account':'paste JSON'}"></textarea><span></span><div><button type="button" class="og-b" data-kpi="ga4-save">Save &amp; verify</button>${M.ga4Edit?' <button type="button" class="og-b" data-kpi="ga4-cancel">Cancel</button>':''}</div></div>`}${msg('ga4')}</div>
+ <div class="fin-p"><h6><span class="cx-dot" aria-hidden="true"></span>App Store Connect <span class="cx-st">not connected</span></h6><div class="cx-st">${esc(S.appstore.note)} Prepared; not enabled yet.</div></div>
+ </details>`}
+document.addEventListener('toggle',e=>{if(e.target.id==='kpiCard')CX.open.kpi=e.target.open},true);
+async function kpiDo(key,fn,okText){KPIL.msg[key]={ok:true,t:'Checking with Google…'};kpiRender();try{const r=await fn();if(r&&r.play)KPIL.st=r;KPIL.msg[key]={ok:true,t:okText};KPIL.msg[key+'Edit']=false;kpiRefresh(true)}catch(e){KPIL.msg[key]={ok:false,t:String(e.message||e).slice(0,180)}}kpiRender()}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-kpi]');if(!t)return;const a=t.dataset.kpi,M=KPIL.msg,v=id=>(($('#'+id)||{}).value||'').trim();
+ if(/-edit$/.test(a)){M[a.split('-')[0]+'Edit']=true;return kpiRender()}if(/-cancel$/.test(a)){M[a.split('-')[0]+'Edit']=false;return kpiRender()}
+ if(a==='play-save'){const sa=v('kpiSa');const b={provider:'play',packages:v('kpiPk'),bucket:v('kpiBk')};if(sa)b.serviceAccount=sa;const f=$('#kpiSa');if(f)f.value='';return kpiDo('play',()=>svReq('POST','/kpi/config',b),'Google Play connected (read-only).')}
+ if(a==='ga4-save'){const sa=v('kpiGs');const b={provider:'ga4',propertyId:v('kpiGp')};if(sa)b.serviceAccount=sa;const f=$('#kpiGs');if(f)f.value='';return kpiDo('ga4',()=>svReq('POST','/kpi/config',b),'GA4 connected (read-only).')}
+ if(/-del$/.test(a)){const pv=a.split('-')[0];if(confirm('Remove '+(pv==='play'?'Google Play':'GA4')+' from the server?'))kpiDo(pv,()=>svReq('DELETE','/kpi/config',{provider:pv}),'Removed.')}});
+function kpiAppsHTML(){const d=KPIL.sum;if(!d)return emptyState('App KPIs')+(KPIL.err&&!/404/.test(KPIL.err)?`<div class="cx-st cx-bad">${esc(KPIL.err)}</div>`:'');let h='';
+ if(d.play&&d.play.error)h+=`<div class="cx-st cx-bad">Google Play: ${esc(d.play.error)}</div>`;
+ ((d.play&&d.play.apps)||[]).forEach(a=>{const cr=a.crash&&a.crash.userPerceivedCrashRate,an=a.anr&&a.anr.userPerceivedAnrRate,bad=(x,lim)=>x&&x.latest!=null&&x.latest>lim?'dn':'up',st=a.stats||{},rv=a.reviews||[],avg=rv.length?rv.reduce((s,r)=>s+(r.stars||0),0)/rv.length:null;
+  h+=`<div class="row"><span><b>${esc(a.name)}</b></span><span class="mono">${esc(a.pkg)}</span></div><div class="kpi"><div><b class="${bad(cr,0.0109)}">${pct(cr&&cr.latest)}</b><small>crash (user-perceived)</small></div><div><b class="${bad(an,0.0047)}">${pct(an&&an.latest)}</b><small>ANR (user-perceived)</small></div><div><b>${st.activeDeviceInstalls!=null?st.activeDeviceInstalls.toLocaleString():'—'}</b><small>active installs</small></div><div><b>${st.avgRating!=null?st.avgRating.toFixed(2)+'★':avg!=null?avg.toFixed(1)+'★':'—'}</b><small>${st.avgRating!=null?'rating':'recent reviews'}</small></div></div>`+
+  rv.slice(0,2).map(r=>`<div class="row"><span>${'★'.repeat(r.stars||0)} ${esc(r.text.slice(0,90))}</span><span class="mono">${r.at?new Date(r.at).toLocaleDateString([], {month:'short',day:'numeric'}):''}</span></div>`).join('')+(a.errors&&a.errors.length?`<div class="cx-st cx-bad">${esc(a.errors.join('; '))}</div>`:'')});
+ if(d.ga4)h+=d.ga4.error?`<div class="cx-st cx-bad">GA4: ${esc(d.ga4.error)}</div>`:d.ga4.hasData?`<div class="kpi"><div><b>${d.ga4.dau.toLocaleString()}</b><small>DAU</small></div><div><b>${d.ga4.mau28.toLocaleString()}</b><small>28-day users</small></div><div><b>${d.ga4.newUsers28.toLocaleString()}</b><small>new (28d)</small></div><div><b>${(d.ga4.engagementRate*100).toFixed(0)}%</b><small>engaged</small></div></div>`:'<div class="cx-st">GA4 connected — no Analytics events yet (apps need the Firebase SDK).</div>';
+ return h+`<div style="margin-top:8px"><span class="mock-badge" style="color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)">LIVE</span> <span class="mono">Play vitals lag ~2 days · App Store: not connected · as of ${new Date(d.asOf).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</span></div>`}
 const liveBadge=()=>(typeof supURL==='function'&&supURL())?'<span class="mock-badge" style="color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)">LIVE</span>':'<span class="mock-badge" style="color:var(--amber)">SAMPLE</span>';
 const LS_AUDIT='ywVaultAudit';
 function audit(entry){try{const a=JSON.parse(localStorage.getItem(LS_AUDIT)||'[]');a.unshift(Object.assign({ts:new Date().toISOString(),mode:mockOn?'MOCK':'LIVE(stub)'},entry));localStorage.setItem(LS_AUDIT,JSON.stringify(a.slice(0,200)))}catch(e){}}
@@ -364,10 +460,14 @@ const LIVE_RENDER={
   return `<div class="kpi"><div><b>${ts.length}</b><small>open</small></div><div><b class="dn">${ts.filter(t=>t.ageH>=t.slaH).length}</b><small>SLA breach</small></div><div><b>${d.medianReplyM==null?'—':d.medianReplyM+'m'}</b><small>median reply</small></div></div>`+
   ts.map(t=>`<div class="row"><span>${esc(t.id)} · ${esc(t.subj)} <span class="mono">${esc(t.pri)} · ${t.ageH}h</span></span><span>${slaOf(t)} <button class="btn" data-sup="${esc(t.id)}" style="padding:2px 6px;font-size:10px">Propose reply</button></span></div>`).join('')+
   `<div style="margin-top:8px">${liveBadge()} <span class="mono">source: ${esc(LIVE.support.source.name)}</span></div>`},
- Finance:()=>{const d=liveData('finance');if(!d)return emptyState('Finance');const v=x=>x==null?'—':k$(x);
-  return `<div class="kpi"><div><b>${v(d.cash)}</b><small>cash</small></div><div><b>${v(d.burnMo)}</b><small>burn / mo</small></div><div><b>${d.cash&&d.burnMo?(d.cash/d.burnMo).toFixed(1)+' mo':'—'}</b><small>runway</small></div></div><div class="row"><span>MTD in / out</span><span>${v(d.inMTD)} / ${v(d.outMTD)}</span></div>`+
-  (d.ap||[]).map(b=>`<div class="row"><span>AP · ${esc(b.vendor)}</span><span>${v(b.amt)} · due ${esc(b.due)}</span></div>`).join('')+
-  `<div class="row"><span>Connector</span><span class="am">${d.connected?'connected':'not connected'}</span></div><div style="margin-top:8px">${liveBadge()} <span class="mono">source: ${esc(LIVE.finance.source.name)}</span></div>`},
+ KPIs:()=>kpiAppsHTML(),
+ Finance:()=>{const d=FINL.sum;if(!d)return emptyState('Finance')+(FINL.err?`<div class="cx-st cx-bad">${esc(FINL.err)}</div>`:'');const m=fin$,lo=d.runwayMonths!=null&&d.runwayMonths<6;
+  return `<div class="kpi"><div><b>${m(d.cash)}</b><small>cash</small></div><div><b>${d.burnMonthly>0?m(d.burnMonthly):'—'}</b><small>burn / mo</small></div><div><b class="${lo?'dn':'up'}">${d.cashPositive?'Cash +':d.runwayMonths!=null?d.runwayMonths+' mo':'—'}</b><small>runway</small></div></div>`+
+  `<div class="row"><span>MTD in / out</span><span><span class="up">${m(d.inflowMTD)}</span> / <span class="dn">${m(d.outflowMTD)}</span></span></div><div class="row"><span>Open bills (AP) / invoices (AR)</span><span>${m(d.apTotal)} / ${m(d.arTotal)}</span></div>`+
+  FINL.ap.slice(0,2).map(b=>`<div class="row"><span>AP · ${esc(b.name)}</span><span>${m(b.amount)}${b.due?' · due '+new Date(b.due).toLocaleDateString([], {month:'short',day:'numeric'}):''}</span></div>`).join('')+
+  FINL.tx.slice(0,5).map(t=>`<div class="row"><span>${esc(t.desc||'—')} <span class="mono">${esc(FIN_SRC[t.source]||t.source)}${t.account?' '+esc(t.account):''} · ${new Date(t.date).toLocaleDateString([], {month:'short',day:'numeric'})}</span></span><span class="${t.amount<0?'dn':'up'}">${t.amount<0?'':'+'}${m(t.amount)}</span></div>`).join('')+
+  `<details class="fin-bd"><summary>Sources &amp; how totals are counted</summary>${(d.breakdown||[]).map(b=>`<div class="row"><span>${esc(b.label)}${b.error?` <span class="cx-bad">${esc(b.error)}</span>`:''}</span><span class="mono">${b.cash!=null?'cash '+m(b.cash):''}${b.inflowMTD!=null?' · MTD +'+m(b.inflowMTD)+' / −'+m(b.outflowMTD):''}</span></div>${b.note?`<div class="cx-st">${esc(b.note)}</div>`:''}`).join('')}<div class="cx-st">Cash = ${esc(d.cashNote)}. Burn = average net outflow over the last 3 full months.</div></details>`+
+  `<div class="mono" style="margin-top:8px">${esc(d.source)} · as of ${new Date(d.asOf).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})} · read-only</div>`},
  Vault:()=>{const a=auditList().slice(0,6);return `<div class="kpi"><div><b>${auditList().length}</b><small>audit entries</small></div></div>`+(a.length?a.map(e=>`<div class="row"><span>${esc(e.decision)} · ${esc(e.title)}</span><span class="mono">${esc(e.lane||'')} · ${esc(e.ts.slice(5,16).replace('T',' '))}</span></div>`).join(''):'<div class="row"><span>No decisions logged yet</span></div>')+`<div style="margin-top:8px">${liveBadge()} <span class="mono">audit · local</span></div>`}
 };
 /* ==== SUPPORT INBOX (website side). One interface: SupportSource {name, list(), get(id), send(id,body)} ====
@@ -413,7 +513,7 @@ const SUP_REMOTE=url=>{const base=url.replace(/\/+$/,'');const req=async(path,op
  /* only called from supOnDecide (approve action) */ send:(id,body)=>req('/tickets/'+encodeURIComponent(id)+'/reply',{method:'POST',body:JSON.stringify({approved:true,body})})}};
 /*MAINT*/
 /* ---- Business room cards read ywConn per room ---- */
-function roomState(b,room){const k=connKey(b.id,room.id),c=connGet(k),live=!!(c.live&&c.url);
+function roomState(b,room){const k=connKey(b.id,room.id),c=connGet(k),live=!!(c.live&&c.url);if(room.type==='calendar')return {k,c,st:'live'};
  if(live){const er=(c.type==='emailbox'||(c.type==='emaint'&&room.type!=='maint'))?mmS(k).status==='Error'||mmS(k).status==='Not configured':c.result&&!c.result.ok;return {k,c,st:er?'err':'live'}}
  if(room.role==='support'||room.type==='maint')return {k,c,st:'sample'};
  if(c.type!=='none'&&c.url)return {k,c,st:'sample'};return {k,c,st:mockOn?'mock':'none'}}
@@ -425,7 +525,7 @@ function mailPreview(k,room){const M=mmS(k);if(!M.loaded){mmRefresh(k);return '<
  if(M.status!=='Live')return `<div class="tip" style="margin-top:0">${mmSummary(k)}</div>`+roomOpenBtn(room);
  const ap=M.items.filter(m=>m.info&&m.info.needsApproval).length,u=M.items.filter(m=>m.unread).length;
  return `<div class="kpi"><div><b>${M.items.length}</b><small>emails</small></div><div><b class="am">${u}</b><small>unread</small></div><div><b class="dn">${ap}</b><small>need approval</small></div></div>${M.items.slice(0,2).map(x=>`<div class="row"><span>${x.unread?'● ':''}${esc(x.subject)}</span></div>`).join('')}`+roomOpenBtn(room)}
-function roomBody(b,room,board){const {k,c,st}=roomState(b,room),live=st==='live'||st==='err';
+function roomBody(b,room,board){if(room.type==='calendar')return calHTML({biz:b.id});const {k,c,st}=roomState(b,room),live=st==='live'||st==='err';
  const mailType=c.type==='emailbox'||(c.type==='emaint'&&room.type!=='maint');
  if(live&&mailType)return board?mailPreview(k,room):mmRender(k);
  if(room.role==='support'){if(!board)return supRender();const a=SUP.tickets;if(!SUP.loaded0){SUP.loaded0=1;supRefresh()}return `<div class="kpi"><div><b>${a.filter(t=>t.status!=='closed').length}</b><small>open</small></div><div><b class="am">${a.filter(t=>t.unread).length}</b><small>unread</small></div><div><b class="dn">${a.filter(supBreach).length}</b><small>SLA breach</small></div></div>${a.slice(0,2).map(t=>`<div class="row"><span>${t.unread?'● ':''}${esc(t.subject)}</span></div>`).join('')}${supChip()}`+roomOpenBtn(room)}
@@ -439,7 +539,7 @@ function bizCard(b,label,room,keep,board){if(!room)return cardHTML(label+' · '+
  return `<div class="card ${keep?'keep':''}"><h3>${esc(label)} · ${esc(b.name)} ${roomChip(st,k)}</h3>${roomBody(b,room,board)}</div>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-roomopen],[data-cxgo]');if(!t)return;
  if(t.dataset.roomopen){roomView=t.dataset.roomopen;draw();window.scrollTo({top:0});return}
- const k=t.dataset.cxgo;if(!k){ywSettings(true);connOpen();return}const bid=k.split('/')[0];CX.open[bid]=true;CX.roomOpen[k]=true;const bb=ogB(bid);if(bb&&bb.parent)CX.open[bb.parent]=true;ywSettings(true);connRender();
+ const k=t.dataset.cxgo;if(!k||k==='finance'){ywSettings(true);connOpen(k);return}setTab('connections');const bid=k.split('/')[0];CX.open[bid]=true;CX.roomOpen[k]=true;const bb=ogB(bid);if(bb&&bb.parent)CX.open[bb.parent]=true;ywSettings(true);connRender();
  setTimeout(()=>{const el=document.querySelector(`#connList details[data-cxr="${CSS.escape(k)}"]`);if(el){el.open=true;el.scrollIntoView({block:'center'});const f=el.querySelector('select,input');if(f)f.focus()}},50)});
 
 /* ---- eMaint notification emails (read-only) in Safe Rack › Maintenance ---- */
@@ -482,12 +582,12 @@ setTimeout(()=>{try{bizStore.businesses.forEach(b=>(b.rooms||[]).forEach(r=>{con
 
 /* ---- Sync this device (ywDevSync): pull/push the settings bundle via {server}/config. Only the site token is used; no mailbox/eMaint passwords. */
 const LS_DS='ywDevSync',DS_DEF_URL='https://yw-business-server.onrender.com';
-const DS_KEYS=['ywConn','ywBusinesses','ywSms','ywA11y','ywVoice'];
+const DS_KEYS=['ywConn','ywBusinesses','ywSms','ywA11y','ywVoice','ywCal'];
 const dsGet=()=>{try{return JSON.parse(localStorage.getItem(LS_DS)||'{}')||{}}catch(e){return{}}};
 const dsSet=p=>{const o=Object.assign(dsGet(),p);try{_lsSet.call(localStorage,LS_DS,JSON.stringify(o))}catch(e){}return o};
 const DSU={busy:false,msg:'',err:false,quiet:false};let dsTimer=null;
 const _lsSet=Storage.prototype.setItem;
-const DS_SEC={ywConn:'conn',ywBusinesses:'biz',ywSms:'sms',ywA11y:'a11y',ywVoice:'voice',ywLlm:'xai'};
+const DS_SEC={ywCal:'cal',ywConn:'conn',ywBusinesses:'biz',ywSms:'sms',ywA11y:'a11y',ywVoice:'voice',ywLlm:'xai'};
 const dsMod=()=>{try{return JSON.parse(localStorage.getItem('ywDsMod')||'{}')||{}}catch(e){return{}}};
 function dsTouch(sec,t){const m=dsMod();m[sec]=t||Date.now();_lsSet.call(localStorage,'ywDsMod',JSON.stringify(m))}
 Storage.prototype.setItem=function(k,v){const prev=this===localStorage&&DS_SEC[k]&&!DSU.quiet?this.getItem(k):null;_lsSet.call(this,k,v);try{if(this===localStorage&&!DSU.quiet&&DS_SEC[k]&&prev!==v){dsTouch(DS_SEC[k]);if(dsGet().linked&&(DS_KEYS.includes(k)||(k==='ywLlm'&&dsGet().xai)))dsQueue()}}catch(e){}};
@@ -496,7 +596,7 @@ function dsFlush(){if(!dsTimer)return;clearTimeout(dsTimer);dsTimer=null;const d
 addEventListener('pagehide',dsFlush);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')dsFlush();else if(dsGet().linked)dsPullOnLoad()});
 function dsBundle(){const d=dsGet(),j=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}};
  const conn=j('ywConn')||{};const c2={};for(const[k,v]of Object.entries(conn)){c2[k]={type:v.type,url:v.url,live:!!v.live};if(v.tested)c2[k].tested=v.tested}
- const b={conn:c2,biz:j('ywBusinesses'),sms:j('ywSms'),a11y:j('ywA11y'),voice:j('ywVoice')};if(d.xai){const l=j('ywLlm');if(l)b.xai=l}b.mod=dsMod();return b}
+ const b={conn:c2,biz:j('ywBusinesses'),sms:j('ywSms'),a11y:j('ywA11y'),voice:j('ywVoice'),cal:j('ywCal')};if(d.xai){const l=j('ywLlm');if(l)b.xai=l}b.mod=dsMod();return b}
 async function dsReq(method,body){const d=dsGet();const r=await fetch(d.url.replace(/\/+$/,'')+'/config',{method,headers:Object.assign({Authorization:'Bearer '+d.token},body?{'Content-Type':'application/json'}:{}),body:body?JSON.stringify(body):undefined});
  if(r.status===404)throw new Error('this server doesn’t support sync yet');if(r.status===401||r.status===403)throw new Error('token rejected');const j=await r.json().catch(()=>({}));if(!r.ok&&r.status!==409)throw new Error('HTTP '+r.status);return {status:r.status,j}}
 function dsApply(b0){if(!b0)return false;const d=dsGet(),lm=dsMod(),rm=b0.mod||{},b={};for(const k of Object.keys(b0)){if(k==='mod')continue;if(!lm[k]||(rm[k]||0)>lm[k])b[k]=b0[k]}DSU.quiet=true;try{
@@ -504,7 +604,7 @@ function dsApply(b0){if(!b0)return false;const d=dsGet(),lm=dsMod(),rm=b0.mod||{
    const same=v.url&&v.url.replace(/\/+$/,'')===d.url.replace(/\/+$/,'');out[k].token=same?d.token:(L.token||'')}
   for(const[k,v]of Object.entries(local))if(!out[k])out[k]=v;_lsSet.call(localStorage,'ywConn',JSON.stringify(out))}
  if(b.biz&&Array.isArray(b.biz.businesses)&&b.biz.businesses.length)_lsSet.call(localStorage,'ywBusinesses',JSON.stringify(b.biz));
- if(b.sms)_lsSet.call(localStorage,'ywSms',JSON.stringify(b.sms));if(b.a11y)_lsSet.call(localStorage,'ywA11y',JSON.stringify(b.a11y));if(b.voice)_lsSet.call(localStorage,'ywVoice',JSON.stringify(b.voice));
+ if(b.sms)_lsSet.call(localStorage,'ywSms',JSON.stringify(b.sms));if(b.a11y)_lsSet.call(localStorage,'ywA11y',JSON.stringify(b.a11y));if(b.voice)_lsSet.call(localStorage,'ywVoice',JSON.stringify(b.voice));if(b.cal)_lsSet.call(localStorage,'ywCal',JSON.stringify(b.cal));
  if(b.xai&&d.xai)_lsSet.call(localStorage,'ywLlm',JSON.stringify(b.xai));const nm=dsMod();for(const k of Object.keys(b))nm[k]=rm[k]||1;_lsSet.call(localStorage,'ywDsMod',JSON.stringify(nm))}finally{DSU.quiet=false}return Object.keys(b).length>0}
 async function dsPush(){const d=dsGet();if(!d.linked)return;DSU.busy=true;dsRender();
  try{let r=await dsReq('PUT',{bundle:dsBundle(),baseRev:d.rev||0});if(r.status===409){if(r.j.bundle&&dsApply(r.j.bundle))dsLiveApply();r=await dsReq('PUT',{bundle:dsBundle(),baseRev:r.j.rev})}
@@ -536,10 +636,12 @@ document.addEventListener('change',e=>{if(e.target.id==='dsXai'&&dsGet().linked)
 /* ---- Text Alerts (ywSms). No SMS backend yet: nothing is ever sent from here. Optional sync with support server /alerts/settings. ---- */
 const LS_SMS='ywSms';
 const SMS_CATS=[['Approvals',[['wr','eMaint work requests needing approval','Text when a maintenance request is waiting for your OK.',true],['dec','Command Center decisions awaiting approval','Text when Yorri has a plan in your decision queue.']]],
+ ['Calendar',[['cal','Event reminders','Before your calendar events, using each event’s reminder time.']]],
+ ['Finance',[['fin','Finance alerts','Low runway (under 6 months), large outflows, failed Stripe payouts.']]],
  ['Operations',[['sup','New Support tickets','Text when a new customer email arrives in Support.'],['room','Room on/off confirmations','Text when a room is switched Live or back to Sample.']]],
  ['System',[['sys','Server or connection problems','Text when a connector fails its check or a server goes down.']]],
  ['Summaries',[['digest','Daily digest','One text a day with tickets, work orders and decisions.']]]];
-function smsDefault(){return{phone:'',all:false,quiet:{on:false,start:'22:00',end:'07:00'},cats:{wr:{on:true,push:true,pri:'any',biz:''},dec:{on:true,push:true},sup:{on:false,push:false},room:{on:false,push:false},sys:{on:true,push:true},digest:{on:false,push:false,time:'07:30'}},updatedAt:0}}
+function smsDefault(){return{phone:'',all:false,quiet:{on:false,start:'22:00',end:'07:00'},cats:{wr:{on:true,push:true,pri:'any',biz:''},dec:{on:true,push:true},sup:{on:false,push:false},room:{on:false,push:false},sys:{on:true,push:true},fin:{on:false,push:true},cal:{on:false,push:true},digest:{on:false,push:false,time:'07:30'}},updatedAt:0}}
 function smsGet(){let o={};try{o=JSON.parse(localStorage.getItem(LS_SMS)||'{}')||{}}catch(e){}const d=smsDefault();return Object.assign(d,o,{quiet:Object.assign(d.quiet,o.quiet||{}),cats:Object.fromEntries(Object.keys(d.cats).map(k=>[k,Object.assign(d.cats[k],(o.cats||{})[k]||{})]))})}
 const SMS={sync:'',edit:false,live:false,pushLive:false,tw:null,twEdit:false,twMsg:'',res:null};let smsTimer=null;
 function smsSave(o,push){o.updatedAt=Date.now();try{localStorage.setItem(LS_SMS,JSON.stringify(o))}catch(e){}if(push!==false){clearTimeout(smsTimer);smsTimer=setTimeout(()=>smsSync('put'),600)}}
@@ -575,7 +677,7 @@ function smsRender(){const B=$('#smsBox');if(!B)return;const o=smsGet(),off=!o.a
    ${sub?`<details class="sm-sub"><summary>Filters</summary><div class="sm-fl"><label>Priority <select id="smPri" aria-label="Minimum priority"><option value="any"${c.pri==='any'?' selected':''}>Any</option><option value="2"${c.pri==='2'?' selected':''}>P2 and higher</option><option value="1"${c.pri==='1'?' selected':''}>P1 only</option></select></label><label>Business <select id="smBiz" aria-label="Only this business"><option value="">All businesses</option>${bizOrdered().map(b=>`<option value="${esc(b.id)}"${c.biz===b.id?' selected':''}>${esc(b.name)}</option>`).join('')}</select></label></div></details>`:''}
    ${k==='digest'?`<label class="sm-sub cx-st">Send at <input type="time" id="smDt" value="${esc(c.time)}" aria-label="Digest time"></label>`:''}</div>`}).join('')}`).join('')}</div>
  <p class="sm-hint">Approvals arrive with Approve/Decline buttons (push) or “Reply YES 1234 / NO 1234” (SMS). Text HELP, ON/OFF &lt;category&gt;, or STOP.</p>`}
-function smsOpen(){const B=$('#smsBox');if(B)B.closest('section').scrollIntoView({block:'start'})}
+function smsOpen(){setTab('alerts')}
 document.addEventListener('change',e=>{const t=e.target;if(!t.closest||!t.closest('#smsBox'))return;const o=smsGet();
  if(t.id==='smAll')o.all=t.checked;else if(t.id==='smQ')o.quiet.on=t.checked;else if(t.id==='smQs')o.quiet.start=t.value;else if(t.id==='smQe')o.quiet.end=t.value;
  else if(t.id.startsWith('smc_'))o.cats[t.id.slice(4)].on=t.checked;else if(t.id.startsWith('smp_'))o.cats[t.id.slice(4)].push=t.checked;else if(t.id==='pushT'){t.checked?pushEnable():pushDisable();return}else if(t.id==='twOn'){twCall('POST',{enabled:t.checked});return}else if(t.id==='smPri')o.cats.wr.pri=t.value;else if(t.id==='smBiz')o.cats.wr.biz=t.value;else if(t.id==='smDt')o.cats.digest.time=t.value;else return;
@@ -618,10 +720,169 @@ async function alertsActions(){if(actBusy||!smsServer())return;actBusy=true;try{
  localStorage.setItem('ywAlertActSince',String(max))}catch(e){}actBusy=false}
 setInterval(alertsActions,60e3);setTimeout(()=>{alertsActions();pushInit();twLoad()},2500);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')alertsActions()});
 function ywDeepLink(u){try{const q=new URL(u,location.href).searchParams;if(q.get('biz')&&bizStore.businesses.some(b=>b.id===q.get('biz'))){bizStore.activeId=q.get('biz');saveBiz();setPageView('apps')}
- if(q.get('room')){roomView=q.get('room');draw()}if(q.get('decisions')){const d=$('#dq');if(d)d.scrollIntoView({block:'start'})}if(q.get('settings')){ywSettings(true);if(q.get('settings')==='connections')connOpen()}
+ if(q.get('room')){roomView=q.get('room');draw()}if(q.get('decisions')){const d=$('#dq');if(d)d.scrollIntoView({block:'start'})}if(q.get('settings')){ywSettings(true);if(q.get('settings')==='connections')connOpen(q.get('fin')?'finance':undefined)}if(q.get('fin')==='qbo-ok'){say('Yorri','QuickBooks connected. Pulling your books now (read-only).');finStatus();finRefresh(true)}if(q.get('fin')==='qbo-error')say('Yorri','QuickBooks didn’t connect: '+esc(q.get('msg')||'unknown error'))
  if(location.search)history.replaceState(null,'',location.pathname)}catch(e){}}
 if(NAV.serviceWorker)NAV.serviceWorker.addEventListener('message',e=>{const d=e.data||{};if(d.type==='yw-open')ywDeepLink(d.url);if(d.type==='yw-actions')alertsActions()});
 setTimeout(()=>{if(location.search)ywDeepLink(location.href)},800);
+
+/* ==== Settings tabs, quick switches, Yorri AI home, Advanced ==== */
+const SET_TABS=[['general','General'],['connections','Connections'],['alerts','Alerts'],['organize','Organize'],['advanced','Advanced']];
+function setTabsRender(){const T=$('#setTabs');if(!T||T.childElementCount)return;T.innerHTML=SET_TABS.map(([k,l])=>`<button type="button" role="tab" id="stab_${k}" data-stab="${k}" aria-controls="setPage" aria-selected="false" tabindex="-1">${l}</button>`).join('')}
+function setTab(k,scroll){setTabsRender();if(!SET_TABS.some(x=>x[0]===k))k='general';const q=$('#setSearch');if(q&&q.value){q.value='';}
+ document.querySelectorAll('#setPage section[data-tab]').forEach(sec=>{sec.hidden=sec.dataset.tab!==k});
+ document.querySelectorAll('#setTabs [data-stab]').forEach(b=>{const on=b.dataset.stab===k;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;if(on&&b.scrollIntoView)b.scrollIntoView({block:'nearest',inline:'nearest'})});
+ try{localStorage.setItem('ywSetTab',k)}catch(e){}if(scroll!==false){const P=$('#setPage');if(P)P.scrollTop=0}if(k==='connections'){finStatus();kpiStatus()}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-stab]');if(b)setTab(b.dataset.stab)});
+document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('#setTabs [data-stab]');if(!b)return;const L=[...document.querySelectorAll('#setTabs [data-stab]')];let i=L.indexOf(b);
+ if(e.key==='ArrowRight')i=(i+1)%L.length;else if(e.key==='ArrowLeft')i=(i-1+L.length)%L.length;else if(e.key==='Home')i=0;else if(e.key==='End')i=L.length-1;else return;e.preventDefault();setTab(L[i].dataset.stab);L[i].focus()});
+document.addEventListener('input',e=>{if(e.target.id!=='setSearch')return;const q=e.target.value.trim().toLowerCase();
+ document.querySelectorAll('#setPage section[data-tab]').forEach(sec=>{sec.hidden=q?!sec.textContent.toLowerCase().includes(q):sec.dataset.tab!==(localStorage.getItem('ywSetTab')||'general')})});
+function qsRender(){const o=a11yGet(),t=$('#qsTheme'),sc=$('#qsScale');if(t)t.innerHTML=A11Y_THEMES.map(([v,l])=>`<option value="${v}"${o.theme===v?' selected':''}>${l}</option>`).join('');if(sc)sc.innerHTML=A11Y_SCALES.map(([v,l])=>`<option value="${v}"${o.scale==v?' selected':''}>${l}</option>`).join('');
+ const fd=$('#qsFs');if(fd)fd.checked=localStorage.getItem('ywFsDefault')==='1'}
+document.addEventListener('change',e=>{const id=e.target.id;if(id==='qsTheme'){const b=document.querySelector(`#optTheme [data-theme-set="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsScale'){const b=document.querySelector(`#optScale [data-scale="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsFs'){localStorage.setItem('ywFsDefault',e.target.checked?'1':'0')}});
+function llmHome(){const h=$('#llmHome'),p=$('#llmPanel');if(h&&p&&p.parentNode!==h){h.appendChild(p)}if(p){p.style.display='block';try{llmUI()}catch(e){}}}
+const SITE_BUILD='2026-10-16 · finance, calendar, full screen, KPIs';
+async function advAbout(){const a=$('#advAbout');if(!a)return;let sv='not connected';const s=smsServer();if(s){try{const j=await (await fetch(s.url+'/healthz')).json();sv=j.build||'unknown'}catch(e){sv='unreachable'}}a.textContent=`Site build ${SITE_BUILD} · Server build ${sv}`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advLayout,#advUnlink');if(!t)return;
+ if(t.id==='advLayout'){orgRender();const b=document.querySelector('[data-og="reset"]');if(b)b.click();return}
+ if(t.id==='advUnlink'){if(!dsGet().linked){alert('This device isn’t linked to sync.');return}dsRender();const b=$('#dsUnlink');if(b)b.click()}});
+
+/* ==== Connections groups + Finance setup ==== */
+function cxGroupsRender(){const G=$('#cxGroups');if(!G)return;const all=connAll(),rows=[];bizOrdered().forEach(b=>(b.rooms||[]).forEach(r=>{const k=connKey(b.id,r.id),c=all[k]||{};rows.push({b,r,k,c})}));
+ const grp=(id,title,pred,extra)=>{const L=rows.filter(pred),live=L.filter(x=>x.c.live&&x.c.url).length;return `<details class="cx-biz cx-grp" data-cxg="${id}"${CX.open['g:'+id]?' open':''}><summary><span class="cx-dot ${live?'live':''}" aria-hidden="true"></span><span class="og-name">${title}</span> <span class="cx-n">${live?live+' live':L.length?'not live':'none'}</span></summary><div class="cx-form">${L.map(x=>`<span class="sm-l">${esc(x.b.name)}</span><span>${esc(x.r.label)} · ${esc((CONN_TYPES[x.c.type]||['—'])[0])} · ${x.c.live&&x.c.url?'<span class="cx-ok">Live</span>':'Sample'} <button type="button" class="bz-link" data-cxgo="${esc(x.k)}">Set up</button></span>`).join('')||'<span></span><span class="cx-st">No rooms use this yet.</span>'}${extra||''}</div></details>`};
+ G.innerHTML=grp('inbox','Inboxes',x=>x.c.type==='support'||x.c.type==='emailbox')+`<div id="finBox"></div>`+grp('ops','Operations',x=>x.c.type==='emaint'||x.c.type==='rest')+
+  `<div id="kpiBox"></div><details class="cx-biz cx-grp" data-cxg="gcal"><summary><span class="cx-dot" aria-hidden="true"></span><span class="og-name">Google Calendar</span> <span class="cx-n">ready — connect later</span></summary><div class="cx-form"><span></span><span class="cx-st">Your calendar rooms already work with manual events and dated items from every room. Google Calendar sync is prepared as a future connection; nothing to do now.</span></div></details>`;
+ finRender();try{kpiRender()}catch(e){}}
+document.addEventListener('toggle',e=>{const g=e.target.dataset&&e.target.dataset.cxg;if(g)CX.open['g:'+g]=e.target.open},true);
+async function finStatus(){if(!smsServer()){FINL.st=null;finRender();return}try{FINL.st=await svReq('GET','/finance/status')}catch(e){FINL.st={error:e.message}}finRender()}
+function finRender(){const B=$('#finBox');if(!B)return;const S=FINL.st,M=FINL.msg,cp=(id,v)=>`<span class="mono" style="overflow-wrap:anywhere" id="${id}">${esc(v)}</span> <button type="button" class="og-b" data-fcopy="${id}">Copy</button>`;
+ const msg=k=>M[k]?`<div class="cx-st ${M[k].ok?'cx-ok':'cx-bad'}" role="status">${esc(M[k].t)}</div>`:'';
+ if(!S||S.error){B.innerHTML=`<details class="cx-biz" id="finCard" open><summary><span class="cx-dot err" aria-hidden="true"></span><span class="og-name">Finance</span> <span class="cx-n">${S&&S.error?'error':'needs server'}</span></summary><div class="cx-form"><span></span><span class="cx-st">${S&&S.error?esc(S.error):'Connect the Support server (Connections → Your World Apps → Support) first; Finance runs on the same server.'}</span></div></details>`;return}
+ const st=S.stripe,q=S.qbo,pl=S.plaid,cv=S.csv,on=[st.configured&&'Stripe',q.connected&&'QuickBooks',pl.items.length&&'Plaid',cv.accounts.length&&cv.accounts.length+' bank CSV'].filter(Boolean);
+ B.innerHTML=`<details class="cx-biz" id="finCard"${CX.open.fin!==false?' open':''}><summary><span class="cx-dot ${on.length?'live':''}" aria-hidden="true"></span><span class="og-name">Finance</span> <span class="cx-n">${on.length?esc(on.join(' · ')):'not connected'}</span></summary>
+ <p class="cx-st" style="margin:6px 0">Read-only. You can connect several at once: QuickBooks is the book of record for cash and bills, Stripe adds payments, invoices and payouts, and bank feeds fill in when there’s no QuickBooks. Keys are checked, then stored encrypted on the server and never shown again.</p>
+ <div class="fin-p"><h6><span class="cx-dot ${st.configured?'live':''}"></span>Stripe ${st.configured?`<span class="cx-st">${st.mode} key ••••${esc(st.last4)}${st.restricted?' · restricted':' · <span class="cx-bad">full secret key — a restricted read-only key is safer</span>'}${st.env?' · set on Render':''}</span>`:''}</h6>
+  ${st.configured&&!M.stripeEdit?(st.env?'':`<button type="button" class="og-b" data-fin="stripe-edit">Replace key</button> <button type="button" class="og-b" data-fin="stripe-del">Remove</button>`):`<ol><li>Open <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener">dashboard.stripe.com/apikeys</a> → <b>Create restricted key</b>.</li><li>Name it “Your World read-only”. Set <b>Read</b> on: Balance, Balance transactions, Charges, Payouts, Invoices. Leave everything else <b>None</b>.</li><li>Create, copy the key (starts with <span class="mono">rk_live_</span>) and paste it here.</li></ol>
+  <div class="cx-form"><label for="finSk">Restricted key</label><input id="finSk" type="password" autocomplete="off" spellcheck="false" placeholder="rk_live_…"><span></span><div><button type="button" class="og-b" data-fin="stripe-save">Save &amp; verify</button>${M.stripeEdit?' <button type="button" class="og-b" data-fin="stripe-cancel">Cancel</button>':''}</div></div>`}${msg('stripe')}</div>
+ <div class="fin-p"><h6><span class="cx-dot ${q.connected?'live':''}"></span>QuickBooks Online <span class="cx-st">${q.connected?'connected · company ••'+esc(q.realmLast4||'')+' · '+esc(q.env):q.appConfigured?'app keys saved · '+esc(q.env)+' · not connected yet':'needs your Intuit app keys'}</span></h6>
+  ${q.appConfigured&&!M.qboEdit?`<div class="opts">${q.connected?`<button type="button" class="og-b" data-fin="qbo-disc">Disconnect</button>`:`<button type="button" class="og-b" data-fin="qbo-conn">Connect QuickBooks</button>`}${q.appEnv?'':` <button type="button" class="og-b" data-fin="qbo-edit">Edit app keys</button> <button type="button" class="og-b" data-fin="qbo-del">Remove</button>`}</div>`:
+  `<ol><li>Go to <a href="https://developer.intuit.com/app/developer/dashboard" target="_blank" rel="noopener">developer.intuit.com</a> → <b>Create an app</b> → QuickBooks Online and Payments; scope <b>Accounting</b>.</li><li>Under <b>Keys &amp; credentials</b> (Production, or Development for sandbox) add this Redirect URI, then copy the Client ID and Client Secret.</li><li>Paste them below, choose the environment, Save, then <b>Connect QuickBooks</b> and pick your company.</li></ol>
+  <div class="cx-form"><label for="finQi">Client ID</label><input id="finQi" autocomplete="off" spellcheck="false"><label for="finQs">Client Secret</label><input id="finQs" type="password" autocomplete="off" spellcheck="false"><label for="finQe">Environment</label><select id="finQe"><option value="production"${q.env==='production'?' selected':''}>Production (real books)</option><option value="sandbox"${q.env==='sandbox'?' selected':''}>Sandbox (test company)</option></select><span></span><div><button type="button" class="og-b" data-fin="qbo-save">Save app keys</button>${M.qboEdit?' <button type="button" class="og-b" data-fin="qbo-cancel">Cancel</button>':''}</div></div>`}
+  <div class="cx-st" style="margin-top:6px">Redirect URI: ${cp('finRedir',q.redirect)}</div>${msg('qbo')}</div>
+ <div class="fin-p"><h6><span class="cx-dot ${cv.accounts.length?'live':''}"></span>Bank — CSV import <span class="cx-st">works with any bank export</span></h6>
+  ${cv.accounts.map(a=>`<div class="row"><span>${esc(a.name)} <span class="mono">${a.rows} rows · imported ${new Date(a.lastImport).toLocaleDateString([], {month:'short',day:'numeric'})}</span></span><span><button type="button" class="og-b" data-fin="csv-del" data-acct="${esc(a.id)}" aria-label="Remove ${esc(a.name)}">Remove</button></span></div>`).join('')}
+  <div class="cx-form"><label for="finCn">Account name</label><input id="finCn" list="finCnL" placeholder="e.g. Chase Checking"><datalist id="finCnL">${cv.accounts.map(a=>`<option value="${esc(a.name)}">`).join('')}</datalist>
+  <label for="finCo">Opening balance</label><input id="finCo" inputmode="decimal" placeholder="optional (if no balance column)"><label for="finCf">CSV file</label><input id="finCf" type="file" accept=".csv,text/csv"><span></span><div><button type="button" class="og-b" data-fin="csv-import">Import</button></div></div>
+  <div class="cx-st">Columns: <span class="mono">date, description, amount, category</span> (or debit/credit; optional balance). Re-importing the same file skips duplicates; use the same account name to add newer months.</div>${msg('csv')}</div>
+ <div class="fin-p"><h6><span class="cx-dot ${pl.items.length?'live':''}"></span>Bank — direct link (Plaid) <span class="cx-st">${pl.appConfigured?'ready · '+esc(pl.env):'Ready — add Plaid keys to enable'}</span></h6>
+  ${pl.items.map(i=>`<div class="row"><span>${esc(i.name)}</span><span><button type="button" class="og-b" data-fin="plaid-del" data-item="${esc(i.id)}">Unlink</button></span></div>`).join('')}
+  ${pl.appConfigured&&!M.plaidEdit?`<div class="opts"><button type="button" class="og-b" data-fin="plaid-link">Link a bank</button>${pl.appEnv?'':' <button type="button" class="og-b" data-fin="plaid-edit">Edit keys</button> <button type="button" class="og-b" data-fin="plaid-delapp">Remove keys</button>'}</div>`:
+  `<ol><li>Sign up at <a href="https://dashboard.plaid.com/signup" target="_blank" rel="noopener">dashboard.plaid.com</a>; request Production access for Transactions (or use Sandbox to try it).</li><li>Developers → Keys: copy <b>client_id</b> and the <b>secret</b> for the environment.</li></ol>
+  <div class="cx-form"><label for="finPi">client_id</label><input id="finPi" autocomplete="off" spellcheck="false"><label for="finPs">secret</label><input id="finPs" type="password" autocomplete="off" spellcheck="false"><label for="finPe">Environment</label><select id="finPe"><option value="production">Production</option><option value="sandbox">Sandbox</option></select><span></span><div><button type="button" class="og-b" data-fin="plaid-save">Save &amp; verify</button>${M.plaidEdit?' <button type="button" class="og-b" data-fin="plaid-cancel">Cancel</button>':''}</div></div>`}${msg('plaid')}</div>
+ <div class="fin-p"><h6>Finance alerts</h6><div class="cx-form"><label for="finLo">Large outflow over</label><div><input id="finLo" inputmode="numeric" value="${esc(String(S.largeOutflow||5000))}" style="width:9em"> <button type="button" class="og-b" data-fin="lo-save">Save</button></div></div><div class="cx-st">Low runway (&lt; 6 months), large outflows and failed payouts go through Alerts → Finance (push/SMS).</div>${msg('lo')}</div>
+ </details>`}
+document.addEventListener('toggle',e=>{if(e.target.id==='finCard')CX.open.fin=e.target.open},true);
+let plaidJs=null;const loadPlaid=()=>plaidJs||(plaidJs=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdn.plaid.com/link/v2/stable/link-initialize.js';sc.onload=ok;sc.onerror=()=>no(new Error('couldn’t load Plaid Link'));document.head.appendChild(sc)}));
+async function finDo(key,fn,okText){FINL.msg[key]={ok:true,t:'Working…'};finRender();try{const r=await fn();if(r&&r.stripe)FINL.st=r;FINL.msg[key]={ok:true,t:typeof okText==='function'?okText(r):okText};finRefresh(true)}catch(e){FINL.msg[key]={ok:false,t:String(e.message||e).slice(0,160)}}finRender()}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-fin],[data-fcopy]');if(!t)return;
+ if(t.dataset.fcopy){const v=$('#'+t.dataset.fcopy).textContent;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>t.textContent='Copied',()=>t.textContent='Select & copy');return}
+ const a=t.dataset.fin,M=FINL.msg,v=id=>(($('#'+id)||{}).value||'').trim();
+ if(/-edit$/.test(a)){M[a.split('-')[0]+'Edit']=true;return finRender()}if(/-cancel$/.test(a)){M[a.split('-')[0]+'Edit']=false;return finRender()}
+ if(a==='stripe-save')return finDo('stripe',async()=>{const r=await svReq('POST','/finance/config',{provider:'stripe',key:v('finSk')});M.stripeEdit=false;return r},'Stripe connected (read-only).');
+ if(a==='stripe-del'){if(confirm('Remove the Stripe key from the server?'))finDo('stripe',()=>svReq('DELETE','/finance/config',{provider:'stripe'}),'Stripe removed.');return}
+ if(a==='qbo-save')return finDo('qbo',async()=>{const r=await svReq('POST','/finance/config',{provider:'qbo',clientId:v('finQi'),clientSecret:v('finQs'),env:v('finQe')});M.qboEdit=false;return r},'App keys saved. Now tap Connect QuickBooks.');
+ if(a==='qbo-conn')return finDo('qbo',async()=>{const {url}=await svReq('POST','/finance/qbo/connect');location.href=url},'Opening Intuit sign-in…');
+ if(a==='qbo-disc'){if(confirm('Disconnect QuickBooks? Your app keys stay saved.'))finDo('qbo',()=>svReq('POST','/finance/qbo/disconnect'),'QuickBooks disconnected.');return}
+ if(a==='qbo-del'){if(confirm('Remove QuickBooks app keys and disconnect?'))finDo('qbo',()=>svReq('DELETE','/finance/config',{provider:'qbo'}),'QuickBooks removed.');return}
+ if(a==='plaid-save')return finDo('plaid',async()=>{const r=await svReq('POST','/finance/config',{provider:'plaid',clientId:v('finPi'),secret:v('finPs'),env:v('finPe')});M.plaidEdit=false;return r},'Plaid keys verified. Tap Link a bank.');
+ if(a==='plaid-delapp'){if(confirm('Remove Plaid keys?'))finDo('plaid',()=>svReq('DELETE','/finance/config',{provider:'plaid'}),'Plaid keys removed.');return}
+ if(a==='plaid-link')return finDo('plaid',async()=>{await loadPlaid();const {link_token}=await svReq('POST','/finance/plaid/link-token');return await new Promise((ok,no)=>{window.Plaid.create({token:link_token,onSuccess:(pt,meta)=>svReq('POST','/finance/plaid/exchange',{public_token:pt,name:meta&&meta.institution&&meta.institution.name}).then(ok,no),onExit:err=>err?no(new Error(err.display_message||err.error_message||'Plaid closed')):no(new Error('Cancelled'))}).open()})},'Bank linked.');
+ if(a==='plaid-del'){if(confirm('Unlink this bank?'))finDo('plaid',()=>svReq('DELETE','/finance/plaid/item',{id:t.dataset.item}),'Bank unlinked.');return}
+ if(a==='csv-del'){if(confirm('Remove this account and its imported rows?'))finDo('csv',()=>svReq('DELETE','/finance/import',{account:t.dataset.acct}),'Account removed.');return}
+ if(a==='csv-import'){const f=($('#finCf')||{}).files;const name=v('finCn');if(!name){M.csv={ok:false,t:'Name the account first'};return finRender()}if(!f||!f[0]){M.csv={ok:false,t:'Choose a CSV file'};return finRender()}if(f[0].size>2.5e6){M.csv={ok:false,t:'File is over 2.5 MB — export a shorter date range'};return finRender()}
+  return finDo('csv',async()=>{const csv=await f[0].text();const r=await svReq('POST','/finance/import',{name,csv,opening:v('finCo')});FINL.st=await svReq('GET','/finance/status');return r},r=>`Imported ${r.added} new row${r.added===1?'':'s'}${r.duplicates?`, skipped ${r.duplicates} duplicate${r.duplicates===1?'':'s'}`:''}${r.skipped?`, ${r.skipped} unreadable`:''}.`)}
+ if(a==='lo-save')return finDo('lo',()=>svReq('POST','/finance/config',{provider:'settings',largeOutflow:+v('finLo')}),'Saved.')});
+
+
+/* ==== Calendar: dated items from every room + manual events (synced as ywCal) ==== */
+const CAL={view:'agenda',anchor:Date.now(),hide:{},form:null};
+const calStore=()=>{try{const o=JSON.parse(localStorage.getItem('ywCal')||'{}');return Array.isArray(o.events)?o:{events:[]}}catch(e){return{events:[]}}};
+const calSave=o=>{try{localStorage.setItem('ywCal',JSON.stringify(o))}catch(e){}};
+const bizHue=id=>{let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))%360;return h};
+const bizName=id=>id==='cmd'?'Command Center':((bizStore.businesses.find(b=>b.id===id)||{}).name||id);
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function calItems(){const out=[],H=3600e3;
+ try{const f=roomFind(supRoomPred);const bid=f?f.b.id:'cmd',rl=f?f.r.label:'Support';(SUP.tickets||[]).filter(t=>t.status!=='closed'&&t.receivedAt).forEach(t=>out.push({id:'sup:'+t.id,date:t.receivedAt+(t.slaH||24)*H,title:'SLA due · '+t.id+' '+t.subject,biz:bid,room:rl,kind:'Support'}))}catch(e){}
+ try{bizStore.businesses.forEach(b=>(b.rooms||[]).forEach(r=>{const k=connKey(b.id,r.id),M=MMS[k];if(!M||!M.items)return;M.items.slice(0,40).forEach(m=>{const i=m.info||{};out.push({id:'mm:'+m.id,date:m.date,title:(i.requestNo?'WR #'+i.requestNo+' · ':i.workOrderNo?'WO #'+i.workOrderNo+' · ':'')+(m.subject||''),biz:b.id,room:r.label,kind:i.needsApproval?'Needs approval':'eMaint email'})})}))}catch(e){}
+ (FINL.ap||[]).forEach(b=>b.due&&out.push({id:b.id,date:b.due,allDay:true,title:'Bill due · '+b.name+' '+fin$(b.amount),biz:'cmd',room:'Finance',kind:'Finance'}));
+ (FINL.ar||[]).forEach(b=>b.due&&out.push({id:b.id,date:b.due,allDay:true,title:'Invoice due · '+b.name+' '+fin$(b.amount),biz:'cmd',room:'Finance',kind:'Finance'}));
+ (queue||[]).forEach((a,i)=>out.push({id:'q:'+qKey(a),date:Date.now(),title:'Decision · '+a.title,biz:'cmd',room:'Command Board',kind:'Decision'}));
+ if(mockOn){const fri=new Date();fri.setDate(fri.getDate()+((5-fri.getDay()+7)%7||7));fri.setHours(9,0,0,0);
+  out.push({id:'m:pay',date:fri.getTime(),title:'Payroll run · $71,880 (sample)',biz:'cmd',room:'Payroll',kind:'Payroll'},{id:'m:nda',date:Date.now()+3*864e5,allDay:true,title:'Acme NDA renewal notice (sample)',biz:'cmd',room:'Legal',kind:'Legal'},{id:'m:rev',date:Date.now()+9*864e5,allDay:true,title:'5 performance reviews due (sample)',biz:'cmd',room:'HR',kind:'HR'})}
+ calStore().events.forEach(e=>out.push({id:'ev:'+e.id,ev:e.id,date:e.start,allDay:!!e.allDay,title:e.title,notes:e.notes,biz:e.biz||'cmd',room:e.room||'',kind:'Event'}));
+ return out.filter(x=>x.date&&!isNaN(x.date)).sort((a,b)=>a.date-b.date)}
+function calScoped(sc){return calItems().filter(x=>sc.all?!CAL.hide[x.biz]:sc.room?x.biz===sc.biz&&x.room===sc.room:x.biz===sc.biz)}
+const calTime=x=>x.allDay?'All day':new Date(x.date).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+const calDay=t=>new Date(t).toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'});
+function calItemHTML(x,compact){const h=bizHue(x.biz);return `<button type="button" class="cal-it${x.date<Date.now()&&!x.allDay&&x.kind!=='Event'?' late':''}" data-calgo="${esc(x.id)}" style="--bh:${h}" aria-label="${esc(calDay(x.date)+', '+calTime(x)+': '+x.title+' — '+bizName(x.biz)+(x.room?' › '+x.room:''))}"><span class="cal-t">${esc(calTime(x))}</span><span class="cal-n">${esc(x.title)}</span>${compact?'':`<span class="cal-s">${esc(bizName(x.biz))}${x.room?' › '+esc(x.room):''} · ${esc(x.kind)}</span>`}</button>`}
+function calHTML(sc){const now=new Date(),view=CAL.view,items=calScoped(sc),scKey=esc(JSON.stringify(sc));
+ const tabs=`<div class="cal-bar" role="group" aria-label="Calendar view">${[['agenda','Agenda'],['week','Week'],['month','Month']].map(([v,l])=>`<button type="button" data-calv="${v}" aria-pressed="${view===v}">${l}</button>`).join('')}${view!=='agenda'?`<button type="button" data-calnav="-1" aria-label="Previous">‹</button><button type="button" data-calnav="0">Today</button><button type="button" data-calnav="1" aria-label="Next">›</button>`:''}<button type="button" data-caladd="${scKey}" class="cal-add">＋ Event</button></div>`;
+ const chips=sc.all?`<div class="cal-chips" role="group" aria-label="Show businesses">${['cmd',...bizOrdered().map(b=>b.id)].map(id=>`<button type="button" data-calhide="${esc(id)}" aria-pressed="${!CAL.hide[id]}" style="--bh:${bizHue(id)}">${esc(bizName(id))}</button>`).join('')}</div>`:'';
+ const form=CAL.form&&CAL.form.sc===JSON.stringify(sc)?calFormHTML(sc):'';let body='';
+ if(view==='agenda'){const start=new Date(now);start.setHours(0,0,0,0);const late=items.filter(x=>x.date<start.getTime()&&x.kind!=='Event'&&x.date>start.getTime()-14*864e5),up=items.filter(x=>x.date>=start.getTime()&&x.date<start.getTime()+30*864e5);
+  const g={};up.forEach(x=>(g[dayKey(x.date)]=g[dayKey(x.date)]||[]).push(x));
+  body=(late.length?`<div class="cal-day"><h5 class="dn">Overdue</h5>${late.map(x=>calItemHTML(x)).join('')}</div>`:'')+(Object.keys(g).length?Object.entries(g).map(([k,L])=>`<div class="cal-day"><h5>${dayKey(Date.now())===k?'Today · ':''}${calDay(L[0].date)}</h5>${L.map(x=>calItemHTML(x)).join('')}</div>`).join(''):'<p class="cx-st">Nothing in the next 30 days. Add an event with ＋ Event.</p>')}
+ else{const a=new Date(CAL.anchor);a.setHours(0,0,0,0);let days=[];
+  if(view==='week'){const st=new Date(a);st.setDate(a.getDate()-a.getDay());for(let i=0;i<7;i++){const d=new Date(st);d.setDate(st.getDate()+i);days.push(d)}}
+  else{const st=new Date(a.getFullYear(),a.getMonth(),1);st.setDate(1-st.getDay());for(let i=0;i<42;i++){const d=new Date(st);d.setDate(st.getDate()+i);days.push(d)}}
+  const by={};items.forEach(x=>(by[dayKey(x.date)]=by[dayKey(x.date)]||[]).push(x));
+  body=`<div class="cal-h">${view==='week'?calDay(days[0])+' – '+calDay(days[6]):a.toLocaleDateString([], {month:'long',year:'numeric'})}</div><div class="cal-grid ${view}" role="grid">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="cal-wd" role="columnheader">${d}</div>`).join('')}${days.map(d=>{const k=dayKey(d),L=by[k]||[],mo=view==='month'&&d.getMonth()!==a.getMonth();return `<div class="cal-cell${k===dayKey(Date.now())?' today':''}${mo?' other':''}" role="gridcell" aria-label="${esc(calDay(d))}, ${L.length} item${L.length===1?'':'s'}"><span class="cal-dn">${d.getDate()}</span>${L.slice(0,view==='month'?3:8).map(x=>calItemHTML(x,true)).join('')}${L.length>(view==='month'?3:8)?`<span class="cx-st">+${L.length-(view==='month'?3:8)} more</span>`:''}</div>`}).join('')}</div>`}
+ return `<div class="cal">${tabs}${chips}${form}${body}</div>`}
+function calRoomsFor(sc){const L=[];if(sc.all||sc.biz==='cmd')CMD_ROOMS.forEach(r=>L.push(['cmd',r]));bizOrdered().forEach(b=>{if(sc.all||sc.biz===b.id)(b.rooms||[]).forEach(r=>r.type!=='calendar'&&L.push([b.id,r.label]))});return L}
+function calFormHTML(sc){const f=CAL.form,e=f.ev||{},d=e.start?new Date(e.start):new Date(Date.now()+3600e3),pad=n=>String(n).padStart(2,'0');const dv=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),tv=e.allDay?'':pad(d.getHours())+':'+pad(d.getMinutes());
+ const cur=(e.biz||sc.biz||'cmd')+'|'+(e.room||sc.room||'');
+ return `<form class="cal-form" data-calform onsubmit="return false" aria-label="${e.id?'Edit':'New'} event"><label>Title <input id="calT" required value="${esc(e.title||'')}"></label><label>Date <input id="calD" type="date" value="${dv}"></label><label>Time <input id="calH" type="time" value="${tv}" aria-describedby="calHh"></label><span class="cx-st" id="calHh">Leave time empty for all day.</span>
+ <label>Room <select id="calR">${!sc.room?`<option value="${esc((sc.biz||'cmd')+'|')}">${esc(bizName(sc.biz||'cmd'))} (whole business)</option>`:''}${calRoomsFor(sc).map(([b,r])=>`<option value="${esc(b+'|'+r)}"${cur===b+'|'+r?' selected':''}>${esc(bizName(b)+' › '+r)}</option>`).join('')}</select></label>
+ <label>Remind <select id="calM">${[['','No reminder'],['0','At start'],['10','10 min before'],['30','30 min before'],['60','1 hour before'],['1440','1 day before']].map(([v,l])=>`<option value="${v}"${String(e.remind??'')===v?' selected':''}>${l}</option>`).join('')}</select></label>
+ <label class="cal-wide">Notes <textarea id="calN" rows="2">${esc(e.notes||'')}</textarea></label>
+ <div class="cal-wide"><button type="button" class="og-b" data-calsave>Save</button> ${e.id?'<button type="button" class="og-b" data-caldel>Delete</button> ':''}<button type="button" class="og-b" data-calcancel>Cancel</button> <span class="cx-st">Reminders use Alerts → Calendar (push/SMS).</span></div></form>`}
+function calOpen(x){if(!x)return;if(x.ev){const e=calStore().events.find(v=>v.id===x.ev);CAL.form={sc:CAL.lastSc||'{"all":true}',ev:e};draw();return}
+ if(x.biz==='cmd'){setPageView('command');roomView=x.room||'Command Board'}else{bizStore.activeId=x.biz;saveBiz();setPageView('apps');roomView=x.room||'Business Board'}ROOMSUB='room';draw();window.scrollTo({top:0})}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-calv],[data-calnav],[data-calhide],[data-caladd],[data-calgo],[data-calsave],[data-caldel],[data-calcancel]');if(!t)return;const d=t.dataset;
+ if(d.calv){CAL.view=d.calv;CAL.anchor=Date.now()}else if(d.calnav!=null){const a=new Date(CAL.anchor);if(+d.calnav===0)CAL.anchor=Date.now();else{if(CAL.view==='week')a.setDate(a.getDate()+7*d.calnav);else a.setMonth(a.getMonth()+ +d.calnav);CAL.anchor=a.getTime()}}
+ else if(d.calhide){CAL.hide[d.calhide]=!CAL.hide[d.calhide]}else if(d.caladd){CAL.form={sc:d.caladd,ev:null};CAL.lastSc=d.caladd}
+ else if(d.calgo!=null){const it=calItems().find(x=>x.id===d.calgo);const sc=t.closest('.cal')&&t.closest('.cal').querySelector('[data-caladd]');if(sc)CAL.lastSc=sc.dataset.caladd;return calOpen(it)}
+ else if(d.calcancel!=null){CAL.form=null}else if(d.caldel!=null){if(!confirm('Delete this event?'))return;const o=calStore();o.events=o.events.filter(v=>v.id!==CAL.form.ev.id);calSave(o);CAL.form=null}
+ else if(d.calsave!=null){const v=id=>($('#'+id)||{}).value||'';const title=v('calT').trim();if(!title){$('#calT').focus();return}const [y,m,dd]=v('calD').split('-').map(Number);if(!y){$('#calD').focus();return}const tm=v('calH');const dt=new Date(y,m-1,dd,tm?+tm.split(':')[0]:0,tm?+tm.split(':')[1]:0);
+  const [biz,room]=v('calR').split('|');const o=calStore(),old=CAL.form.ev;const ev={id:old?old.id:'e'+Date.now().toString(36),title:title.slice(0,120),start:dt.getTime(),allDay:!tm,biz:biz||'cmd',room:room||'',notes:v('calN').slice(0,500),remind:v('calM')===''?null:+v('calM'),tz:Intl.DateTimeFormat().resolvedOptions().timeZone};
+  o.events=o.events.filter(x=>x.id!==ev.id);o.events.push(ev);o.events=o.events.slice(-500);calSave(o);CAL.form=null;say('Yorri',`Saved <b>${esc(ev.title)}</b> for ${esc(calDay(ev.start))}${ev.allDay?'':' at '+esc(calTime({date:ev.start}))}.`)}
+ draw()});
+function calToday(){const s0=new Date();s0.setHours(0,0,0,0);const L=calItems().filter(x=>x.date>=s0.getTime()&&x.date<s0.getTime()+864e5);return L.length?`Today: ${L.length} item${L.length===1?'':'s'} — `+L.slice(0,8).map(x=>`<b>${esc(calTime(x))}</b> ${esc(x.title)} (${esc(bizName(x.biz))}${x.room?' › '+esc(x.room):''})`).join('; ')+(L.length>8?'; …':'')+'.':'Nothing on the calendar today.'}
+function calSeedRooms(){if(localStorage.getItem('ywSeedCal'))return;let ch=false;bizStore.businesses.forEach(b=>{b.rooms=b.rooms||[];if(!b.rooms.some(r=>r.type==='calendar')){b.rooms.push({id:'cal-'+b.id,label:'Calendar',type:'calendar'});ch=true}});localStorage.setItem('ywSeedCal','1');if(ch)saveBiz()}
+
+/* ==== Room sub-tabs (Room | Calendar) + full screen ==== */
+let ROOMSUB='room',lastRoomKey='';
+function singleRoom(){if(isSat)return false;const board=pageView==='command'?'Command Board':'Business Board';if(roomView===board||roomView==='Calendar')return false;if(pageView!=='command'){const r=(activeBiz().rooms||[]).find(x=>x.label===roomView);if(r&&r.type==='calendar')return false}return true}
+function roomScope(){return pageView==='command'?{biz:'cmd',room:roomView}:{biz:activeBiz().id,room:roomView}}
+function roomBarHTML(){if(isSat)return '';const one=singleRoom(),fs=document.body.classList.contains('fs');const crumb=(pageView==='command'?'Command Center':(()=>{const b=activeBiz(),p=bizParent(b)&&bizStore.businesses.find(x=>x.id===b.parent);return (p?esc(p.name)+' › ':'')+esc(b.name)})())+' › '+esc(roomView);
+ return `<div class="room-bar"><span class="room-crumb" aria-label="Location">${crumb}</span>${one?`<span role="tablist" aria-label="Room views" class="room-tabs"><button type="button" role="tab" data-rsub="room" aria-selected="${ROOMSUB==='room'}">Room</button><button type="button" role="tab" data-rsub="cal" aria-selected="${ROOMSUB==='cal'}">Calendar</button></span>`:''}<button type="button" class="fs-b" data-fs="${fs?'exit':'enter'}" aria-label="${fs?'Exit full screen':'Open this room full screen'}">${fs?'✕ Exit':'⛶ Full screen'}</button></div>`}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-rsub],[data-fs]');if(!t)return;if(t.dataset.rsub){ROOMSUB=t.dataset.rsub;draw();return}t.dataset.fs==='exit'?fsExit():fsEnter()});
+function fsHash(){return '#fs/'+pageView+'/'+(pageView==='apps'?activeBiz().id:'cmd')+'/'+encodeURIComponent(roomView)}
+function fsEnter(){if(document.body.classList.contains('fs'))return;if(location.hash!==fsHash())history.pushState({fs:1},'',fsHash());fsApply(true);if(!IS_TESLA&&document.documentElement.requestFullscreen&&!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{})}
+function fsExit(){if(!document.body.classList.contains('fs'))return;if(history.state&&history.state.fs)history.back();else{history.replaceState(null,'',location.pathname+location.search);fsApply(false)}}
+function fsPad(){const bar=$('#fsBar'),m=document.querySelector('main');if(m)m.style.paddingTop=document.body.classList.contains('fs')&&bar&&!bar.hidden?(bar.offsetHeight+12)+'px':''}
+window.addEventListener('resize',()=>{if(document.body.classList.contains('fs'))fsPad()});
+function fsApply(on){document.body.classList.toggle('fs',on);const bar=$('#fsBar');if(bar)bar.hidden=!on;if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});draw();fsPad();if(on){const b=document.querySelector('#fsBar .fs-b');if(b)b.focus()}else{const n=$('#nav .act');if(n)n.focus()}}
+function fsFromHash(){const m=/^#fs\/(command|apps)\/([^/]+)\/(.+)$/.exec(location.hash);if(!m){if(document.body.classList.contains('fs'))fsApply(false);return}
+ if(m[1]==='apps'&&bizStore.businesses.some(b=>b.id===m[2])){bizStore.activeId=m[2];setPageView('apps')}else if(m[1]==='command')setPageView('command');roomView=decodeURIComponent(m[3]);fsApply(true)}
+addEventListener('popstate',fsFromHash);addEventListener('hashchange',fsFromHash);setTimeout(fsFromHash,300);
+document.addEventListener('keydown',e=>{if(!document.body.classList.contains('fs'))return;if(e.key==='Escape'&&!document.body.classList.contains('view-settings')){e.preventDefault();fsExit();return}
+ if(e.key==='Tab'){const F=[...document.querySelectorAll('#fsBar button,#fsBar input,#board button,#board input,#board select,#board textarea,#board a[href],#board summary,#board [tabindex="0"]')].filter(x=>x.offsetParent!==null&&!x.disabled);if(!F.length)return;const i=F.indexOf(document.activeElement);
+  if(e.shiftKey&&(i<=0)){e.preventDefault();F[F.length-1].focus()}else if(!e.shiftKey&&(i===F.length-1||i<0)){e.preventDefault();F[0].focus()}}});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#fsSend');if(t){const q=$('#fsQ');const v=(q.value||'').trim();if(v){q.value='';ask(v)}}});
+document.addEventListener('keydown',e=>{if(e.target.id==='fsQ'&&e.key==='Enter'){e.preventDefault();const v=e.target.value.trim();if(v){e.target.value='';ask(v)}}});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#nav button');if(!b||localStorage.getItem('ywFsDefault')!=='1')return;setTimeout(()=>{if(singleRoom())fsEnter()},0)});
+
 /* nesting: one level. bizParent() ignores stale/invalid parents so data never breaks */
 function bizParent(b){const p=b&&b.parent&&bizStore.businesses.find(x=>x.id===b.parent);return p&&!p.parent&&p!==b?p.id:null}
 const bizTop=()=>bizStore.businesses.filter(b=>!bizParent(b));
@@ -655,7 +916,7 @@ function ogGroup(b,bi,sibs){const bs=bizStore.businesses;return `<details class=
    ${bs.length>1?`<select class="og-sel" data-og="rmove" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Move ${esc(r.label)} to another business"><option value="">Move to…</option>${bs.filter(x=>x!==b).map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select>`:''}
    <button type="button" class="og-b" data-og="rren" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Rename ${esc(r.label)}">Rename</button><button type="button" class="og-b danger" data-og="rdel" data-b="${esc(b.id)}" data-r="${esc(r.id)}" aria-label="Delete ${esc(r.label)}">Delete</button></div>`).join('')}
   <div class="og-add"><button type="button" class="og-b" data-og="radd" data-b="${esc(b.id)}">＋ Add room</button></div>${b.parent?'':`${bizKids(b.id).map((c,ci,cs)=>ogGroup(c,ci,cs)).join('')}<div class="og-nest" data-ognest="${esc(b.id)}">Drop a business here to put it under ${esc(b.name)}</div>`}</details>`}
-function orgOpen(){const L=$('#orgList');if(L)L.closest('section').scrollIntoView({block:'start'})}
+function orgOpen(){setTab('organize')}
 const ogB=id=>bizStore.businesses.find(b=>b.id===id);
 function bizSwapSib(b,dir){const bs=bizStore.businesses,sib=bs.filter(x=>bizParent(x)===bizParent(b)),i=sib.indexOf(b),o=sib[i+dir];if(!o)return false;const a=bs.indexOf(b),c=bs.indexOf(o);[bs[a],bs[c]]=[bs[c],bs[a]];return true}
 function bizNest(b,pid){if(pid){const P=ogB(pid);if(!P||P===b||bizParent(P)||bizKids(b.id).length)return false;b.parent=pid}else delete b.parent;return true}
@@ -708,7 +969,7 @@ function connMigrate(){if(!roomFind(supRoomPred)){const y=bizStore.businesses.fi
  mv(SUP_KEY(),LS_SUPURL,LS_SUPTOK,'support');mv(MT_KEY(),LS_MTURL,LS_MTTOK,'emaint');
  const dflt=(k,type)=>{if(!o[k]){o[k]={type,url:'',token:'',live:false};ch=true}};dflt(SUP_KEY(),'support');dflt(MT_KEY(),'emaint');if(ch)connSave(o)}
 function connState(c){if(c.live&&c.url)return c.result&&!c.result.ok?['err','Error']:['live','Live'];return c.type==='none'?['','Not connected']:['sample','Sample']}
-function connRender(){const L=$('#connList');if(!L)return;L.querySelectorAll('details[data-cxb]').forEach(d=>CX.open[d.dataset.cxb]=d.open);L.querySelectorAll('details[data-cxr]').forEach(d=>CX.roomOpen[d.dataset.cxr]=d.open);const all=connAll();
+function connRender(){cxGroupsRender();const L=$('#connList');if(!L)return;L.querySelectorAll('details[data-cxb]').forEach(d=>CX.open[d.dataset.cxb]=d.open);L.querySelectorAll('details[data-cxr]').forEach(d=>CX.roomOpen[d.dataset.cxr]=d.open);const all=connAll();
  L.innerHTML=bizOrdered().map(b=>{const rooms=b.rooms||[];const live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
   return `<details class="cx-biz${bizParent(b)?' og-child':''}" data-cxb="${esc(b.id)}"${CX.open[b.id]?' open':''}><summary aria-label="${esc(b.name)}, ${live} of ${rooms.length} rooms live">${bizParent(b)?'<span class="cx-n" aria-hidden="true">'+esc(ogB(bizParent(b)).name)+' ›</span> ':''}${esc(b.name)} <span class="cx-n">${live}/${rooms.length} live</span></summary>`+
   (rooms.length?rooms.map(r=>{const k=connKey(b.id,r.id),c=connGet(k),[cls,lab]=connState(c),id='cx'+k.replace(/[^a-z0-9]/gi,'_');
@@ -722,12 +983,8 @@ function connRender(){const L=$('#connList');if(!L)return;L.querySelectorAll('de
     <label for="${id}l">Mode</label><label style="color:var(--txt)"><input id="${id}l" type="checkbox" data-cxk="${esc(k)}" data-cxf="live"${c.live?' checked':''}> Live (off = sample data)</label>
     <span></span><div class="cx-act"><button type="button" class="sbt" data-cxtest="${esc(k)}">Test connection</button><span role="status" aria-live="polite" class="${c.result?(c.result.ok?'cx-ok':'cx-bad'):''}">${c.result?esc(c.result.msg):''}${c.tested?` <span class="cx-st">· ${new Date(c.tested).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>`:''}</span></div>`}
    </div></details>`}).join(''):'<p class="cx-help" style="padding:8px 20px">No rooms yet.</p>')+'</details>'}).join('')+
- `<details class="cx-adv"><summary>Advanced</summary>
-  <div class="opts"><button type="button" class="sbt" id="setAI">Grok / xAI key &amp; model</button></div>
-  <div class="opts"><button type="button" class="sbt" id="cxExport">Export config</button><label style="color:var(--mut)"><input type="checkbox" id="cxExTok"> include tokens</label>
-  <button type="button" class="sbt" id="cxImport">Import config</button><input type="file" id="cxFile" accept="application/json,.json" hidden aria-label="Choose config file"></div>
-  <span class="ex" id="cxMsg" role="status" aria-live="polite"></span></details>`}
-function connOpen(){const L=$('#connList');if(L)L.closest('section').scrollIntoView({block:'start'})}
+ ''}
+function connOpen(item){setTab('connections');if(item==='finance'){const f=$('#finCard');if(f){f.open=true;f.scrollIntoView({block:'start'})}}}
 function connAfter(k){if(k===SUP_KEY())supRefresh();if(k===MT_KEY())maintRefresh();mmS(k).loaded=false;if(mmConn(k))mmRefresh(k);delete GEN[k];connRender();draw()}
 document.addEventListener('toggle',e=>{const d=e.target.dataset||{};if(d.cxb)CX.open[d.cxb]=e.target.open;if(d.cxr)CX.roomOpen[d.cxr]=e.target.open},true);
 document.addEventListener('change',e=>{const el=e.target,k=el.dataset&&el.dataset.cxk,f=el.dataset&&el.dataset.cxf;
@@ -822,7 +1079,7 @@ window.addEventListener('storage',e=>{if(e.key===LS_CONN){maintRefresh();connRen
 
 const SupportSource=()=>supURL()?SUP_REMOTE(supURL()):SUP_STUB;
 const SUP={tickets:[],status:'Stub',err:'',filter:'all',sort:'sla',open:null,draft:'',loading:false};
-async function supRefresh(){SUP.loading=true;const src=SupportSource();try{SUP.tickets=(await src.list())||[];SUP.status=src.name==='stub'?'Stub':'Connected';SUP.err=''}catch(e){SUP.tickets=[];SUP.status='Error';SUP.err=String(e.message||e).slice(0,100)}SUP.loading=false;if(typeof draw==='function')draw();supModal()}
+async function supRefresh(){SUP.loading=true;const src=SupportSource();try{{const L=await src.list();SUP.tickets=Array.isArray(L)?L:[]}SUP.status=src.name==='stub'?'Stub':'Connected';SUP.err=''}catch(e){SUP.tickets=[];SUP.status='Error';SUP.err=String(e.message||e).slice(0,100)}SUP.loading=false;if(typeof draw==='function')draw();supModal()}
 const supAgeH=t=>Math.max(0,(Date.now()-t.receivedAt)/SUP_H);
 const supAge=t=>{const h=supAgeH(t);return h<1?Math.round(h*60)+'m':h<48?Math.round(h)+'h':Math.round(h/24)+'d'};
 const supBreach=t=>t.status!=='closed'&&supAgeH(t)>=t.slaH;
@@ -888,11 +1145,13 @@ window.addEventListener('storage',e=>{if(e.key===LS_SUPST||e.key===LS_CONN)supRe
 setTimeout(supRefresh,0);setInterval(()=>{if(!SUP.open)draw()},60e3);
 const LIVE_SUM={
  Support:()=>{const d=liveData('support')||{tickets:[]};const ts=d.tickets;const br=ts.filter(t=>t.ageH>=t.slaH);return `Support (stub source): <b>${ts.length} open</b> — ${ts.filter(t=>t.pri==='high').length} high. ${br.length?'<b>SLA breach:</b> '+br.map(t=>esc(t.id+' '+t.subj)).join(', '):'No SLA breaches.'} Real inbox not connected yet.`},
- Finance:()=>`Finance (stub source): no live connector yet — cash, burn and AP show “—” until QuickBooks/bank is wired. Not inventing numbers.`
+ KPIs:()=>{const d=KPIL.sum;if(!d)return 'App KPIs: not connected yet — Settings → Connections → App KPIs. Not inventing numbers.';return 'App KPIs: '+((d.play&&d.play.apps)||[]).map(a=>`${esc(a.name)} crash ${pct(a.crash&&a.crash.userPerceivedCrashRate&&a.crash.userPerceivedCrashRate.latest)}, ANR ${pct(a.anr&&a.anr.userPerceivedAnrRate&&a.anr.userPerceivedAnrRate.latest)}${a.reviews&&a.reviews.length?', '+a.reviews.length+' recent reviews':''}`).join('; ')+(d.ga4&&d.ga4.hasData?`. GA4 DAU ${d.ga4.dau}, 28-day users ${d.ga4.mau28}`:'')+'. Bad-behavior thresholds: crash 1.09%, ANR 0.47%. Read-only.'},
+ Finance:()=>{const d=FINL.sum;if(!d)return 'Finance: not connected yet — set it up in Settings → Connections → Finance. Not inventing numbers.';const m=fin$;
+  return `Finance (${esc(d.source)}): cash <b>${m(d.cash)}</b>; ${d.cashPositive?'<b>cash positive</b> over the last 3 months':`avg net burn <b>${m(d.burnMonthly)}/mo</b> → runway <b>${d.runwayMonths??'—'} mo</b>`}. MTD in ${m(d.inflowMTD)} vs out ${m(d.outflowMTD)}. Open AP ${m(d.apTotal)}, AR ${m(d.arTotal)}.${d.runwayMonths!=null&&d.runwayMonths<6?' <b>Runway under 6 months</b> — want me to draft cost-cutting or collections proposals?':''}${d.errors&&d.errors.length?' ⚠ '+esc(d.errors.join('; ')):''} Read-only: I can propose, never move money.`}
 };
-const CMD_ROOMS=['Briefing','Finance','HR','Payroll','Legal','Support','Vault'];
+const CMD_ROOMS=['Briefing','Calendar','Finance','KPIs','HR','Payroll','Legal','Support','Vault'];
 const CMD_DEFAULT_MULTI=['Finance','HR','Payroll','Legal','Support','Vault'];
-function cmdBody(name){if(name==='Support')return supTileHTML();if(!mockOn)return cmdState(name)!=='none'&&LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
+function cmdBody(name){if(name==='Support')return supTileHTML();if(name==='KPIs')return kpiAppsHTML();if(name==='Calendar')return calHTML({all:true});if(!mockOn)return cmdState(name)!=='none'&&LIVE_RENDER[name]?LIVE_RENDER[name]():emptyState(name);return (CMD_MOCK[name]||'')+mockBadgeWrap()}
 
 function layoutHTML(room,bizName){
   const t=room.type||'custom',label=room.label||'Room';
@@ -1032,7 +1291,7 @@ function setScreenCount(n){
   if(!isSat){if(screenCount===1){Object.keys(pops).forEach(k=>{try{pops[k]&&pops[k].close()}catch(e){}});pops={};$('#popupWarn').classList.remove('show')}else reopenScreens()}
   draw();broadcast(Object.assign(snapshot(),{type:'state'}));
 }
-function cmdState(t){if(mockOn)return 'mock';if(t==='Support')return supURL()?'live':'sample';if(t==='Vault')return 'live';if(t==='Finance'&&LIVE.finance&&LIVE.finance.source&&LIVE.finance.source.name!=='stub')return 'live';return 'none'}
+function cmdState(t){if(t==='Calendar')return 'live';if(mockOn)return 'mock';if(t==='Support')return supURL()?'live':'sample';if(t==='Vault')return 'live';if(t==='KPIs')return KPIL.sum?'live':'none';if(t==='Finance')return FINL.sum?(FINL.sum.cash==null&&FINL.sum.errors&&FINL.sum.errors.length?'err':'live'):'none';return 'none'}
 function cardHTML(title,body,keep){return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} ${roomChip(cmdState(title))}</h3>${body}</div>`}
 function draw(){if(typeof dedupeQ==='function')dedupeQ();{const bn=$('#bizNav');if(bn)bn.innerHTML=bizNavHTML()}
   ensureAssignments();
@@ -1080,7 +1339,8 @@ function draw(){if(typeof dedupeQ==='function')dedupeQ();{const bn=$('#bizNav');
     if(!list.length)html=cardHTML(b.name,`<div class="empty"><b>NO ROOMS YET</b>Click <b>Edit rooms</b> to build this business’s board.</div>`,true);
     else html=list.map(({label,room})=>bizCard(b,label,room,isSat,roomView==='Business Board'&&!isSat&&list.length>1)).join('');
   }
-  $('#board').innerHTML=html;
+  {const rk=pageView+'|'+roomView;if(rk!==lastRoomKey){lastRoomKey=rk;ROOMSUB='room'}if(singleRoom()&&ROOMSUB==='cal'){const sc=roomScope();html=`<div class="card keep"><h3>${esc(roomView)} · Calendar ${roomChip('live')}</h3>${calHTML(sc)}</div>`}html=roomBarHTML()+html;if(document.body.classList.contains('fs')){const fq=$('#fsCrumb');if(fq)fq.textContent=(document.querySelector('.room-crumb')||{}).textContent||''}}
+  $('#board').innerHTML=html;{const c=document.querySelector('#board .room-crumb'),fc=$('#fsCrumb');if(c&&fc)fc.textContent=c.textContent}
   if($('#pend'))$('#pend').textContent=queue.length+' AWAITING YOUR DECISION';
   if($('#dq')){
     $('#dq').classList.toggle('decide',queue.length>0);
@@ -1123,7 +1383,7 @@ function ttsSpeak(t){ttsStop();const c=vcGet();if(c.ai)ttsAI(t).catch(e=>{consol
 function ttsNote(){if(ttsNoted)return;ttsNoted=true;const n=$('#ttsNote');if(n){n.textContent="Tesla browser can't play voice aloud — read Yorri on screen";n.style.display=''}}
 function speakYorri(h,force){if(!yorriSpeak&&!force)return;if(!TTS_OK){ttsNote();return}const t=ttsClean(h);if(!t)return;try{ttsSpeak(t)}catch(e){}}
 function applySpk(){const b=$('#spkT');if(b)b.textContent=yorriSpeak?'🔊 Voice on':'🔇 Voice off';const f=document.getElementById('spkF');if(f){f.textContent=yorriSpeak?'🔊':'🔇';f.classList.toggle('muted',!yorriSpeak);f.setAttribute('aria-pressed',yorriSpeak?'false':'true');f.title=yorriSpeak?'Mute Yorri':'Unmute Yorri'}}
-function say(w,t){if(!$('#log'))return;$('#log').querySelectorAll('.spk').forEach(x=>x.remove());const y=w=='Yorri';$('#log').insertAdjacentHTML('beforeend',`<p class="${y?'y':''}"><b>${w}:</b> ${t}${y&&TTS_OK?' <button type="button" class="spk" title="Speak again">🔈</button>':''}</p>`);$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML});if(y&&!applying)speakYorri(t)}
+function say(w,t){if(w==='Yorri'){const fl=$('#fsLast');if(fl){fl.innerHTML=t;fsPad()}}if(!$('#log'))return;$('#log').querySelectorAll('.spk').forEach(x=>x.remove());const y=w=='Yorri';$('#log').insertAdjacentHTML('beforeend',`<p class="${y?'y':''}"><b>${w}:</b> ${t}${y&&TTS_OK?' <button type="button" class="spk" title="Speak again">🔈</button>':''}</p>`);$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML});if(y&&!applying)speakYorri(t)}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#log .spk')){const p=e.target.closest('p').cloneNode(true);p.querySelectorAll('.spk,b:first-child').forEach(x=>x.remove());speakYorri(p.innerHTML,true)}else if((e.target.closest&&e.target.closest('#spkT,#spkF'))){yorriSpeak=!yorriSpeak;try{localStorage.setItem('ywYorriSpeak',yorriSpeak?'1':'0')}catch(x){}applySpk();if(!yorriSpeak)ttsStop();else if(yorriSpeak&&!TTS_OK)ttsNote()}});
 setTimeout(applySpk,0);if(TTS_OK&&speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=()=>vcRender();
 setTimeout(vcRender,0);setTimeout(vcRender,1500);
@@ -1159,6 +1419,12 @@ function tryVoiceCommand(raw){
   }
   if(/\b(open|go\s+to|show)\s+(the\s+)?(text|sms)\s*alerts?\b/.test(t)){say('You',raw);ywSettings(true);smsOpen();say('Yorri','Opened <b>Alerts</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(organi[sz]e|organizer)\b/.test(t)){say('You',raw);ywSettings(true);orgOpen();say('Yorri','Opened <b>Organize</b> in Settings.');return true}
+  if(/\b(exit|close|leave|quit)\s+full\s*-?screen\b/.test(t)){say('You',raw);fsExit();say('Yorri','Exited full screen.');return true}
+  if(/\bfull\s*-?screen\b/.test(t)){say('You',raw);fsEnter();say('Yorri','Full screen. Say <b>exit full screen</b> or press Esc.');return true}
+  if(/\bwhat('?s| is)\s+(on\s+)?(for\s+)?today\b|\btoday'?s\s+(agenda|schedule|calendar)\b|\bwhat'?s on (my )?calendar\b/.test(t)){say('You',raw);say('Yorri',calToday());return true}
+  if(/\b(open|go\s+to|show)\s+(the\s+|my\s+)?calendar\b/.test(t)&&pageView==='apps'&&(activeBiz().rooms||[]).some(r=>r.type==='calendar')){say('You',raw);const r=activeBiz().rooms.find(r=>r.type==='calendar');roomView=r.label;draw();say('Yorri','Opened <b>'+esc(activeBiz().name)+' › Calendar</b>.');return true}
+  if(/\b(open|go\s+to|show)\s+(the\s+)?finance\s+(settings|setup|connections?)\b/.test(t)){say('You',raw);ywSettings(true);connOpen('finance');say('Yorri','Opened <b>Finance</b> setup in Connections.');return true}
+  if(/\b(open|go\s+to|show)\s+(the\s+)?(alerts?|notifications?)(\s+settings)?\b/.test(t)&&!/\b(text|sms)\s*alerts?/.test(t)){say('You',raw);ywSettings(true);smsOpen();say('Yorri','Opened <b>Alerts</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?connections?\b/.test(t)){say('You',raw);ywSettings(true);connOpen();say('Yorri','Opened <b>Connections</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(true);say('Yorri','Opened <b>Settings</b>.');return true}
   if(/\b(close|exit|hide)\s+(the\s+)?(settings|accessibility|preferences)\b/.test(t)){say('You',raw);ywSettings(false);say('Yorri','Closed Settings.');return true}
@@ -1174,7 +1440,7 @@ function tryVoiceCommand(raw){
     say('You',raw);setPageView('command');roomView='Command Board';draw();say('Yorri','Opened <b>Command Center</b>.');return true;
   }
   // open <room> on command center
-  const cmdMap={briefing:'Briefing',finance:'Finance',hr:'HR','human resources':'HR',payroll:'Payroll',legal:'Legal',support:'Support',vault:'Vault','command board':'Command Board'};
+  const cmdMap={calendar:'Calendar',briefing:'Briefing',finance:'Finance',hr:'HR','human resources':'HR',payroll:'Payroll',legal:'Legal',support:'Support',vault:'Vault','command board':'Command Board'};
   for(const [k,v] of Object.entries(cmdMap)){
     if(new RegExp('\\bopen\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)||new RegExp('\\bgo\\s+to\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)||new RegExp('\\bshow\\s+'+k.replace(/ /g,'\\s+')+'\\b').test(t)){
       say('You',raw);setPageView('command');roomView=v;draw();broadcast(snapshot());say('Yorri','Opened <b>'+v+'</b>.');
@@ -1267,7 +1533,7 @@ const ASKY=/\b(summar\w*|analy\w*|what\w*|how|any|status|break\s*down|tell|due|r
 function laneFor(t){for(const n of ['Payroll','Support','Legal','Vault','HR','Finance','Briefing'])if(LANES[n].re.test(t))return n;return null}
 function laneReply(n){if(!mockOn&&LIVE_SUM[n]&&cmdState(n)!=='none')return `<span class="tier t0">T0</span><b>${cmdState(n)==='live'?'LIVE':'SAMPLE'}</b> `+LIVE_SUM[n]();if(!mockOn&&n!=='Briefing')return `<span class="tier t0">T0</span>${esc(n)}: no live connector yet (mock off).`;return `<span class="tier t0">T0</span>${mockOn?'<b>MOCK</b> ':''}`+LANES[n].sum()}
 function finSummary(){return laneReply('Finance')}
-function finCtx(){if(!mockOn)return ' LIVE(stub) data (label LIVE stub; no other figures exist): Support tickets '+JSON.stringify(liveData('support'))+'; Finance '+JSON.stringify(liveData('finance'));return mockOn?' MOCK demo lane data (use these numbers, label MOCK): '+['Finance','Payroll','HR','Legal','Support','Vault'].map(n=>LANES[n].ctx()).join(' ')+' Briefing = rollup of all lanes.':''}
+function finCtx(){if(!mockOn)return ' LIVE data (no other figures exist): Support tickets '+JSON.stringify(liveData('support'))+'; Finance '+(FINL.sum?JSON.stringify({summary:Object.assign({},FINL.sum,{breakdown:undefined}),bySource:(FINL.sum.breakdown||[]).map(b=>({source:b.label,cash:b.cash,note:b.note,error:b.error})),recent:FINL.tx.slice(0,8),payables:FINL.ap.slice(0,10),receivables:FINL.ar.slice(0,10)})+' (Finance is READ-ONLY: analyze and propose only; never move money or claim to)':'not connected');return mockOn?' MOCK demo lane data (use these numbers, label MOCK): '+['Finance','Payroll','HR','Legal','Support','Vault'].map(n=>LANES[n].ctx()).join(' ')+' Briefing = rollup of all lanes.':''}
 /* ---- Grok LLM (xAI OpenAI-compatible) ---- */
 const LS_LLM='ywLlm',LLM_DEF={key:'',base:'https://api.x.ai/v1',model:'grok-4'};
 function llmCfg(){try{return Object.assign({},LLM_DEF,JSON.parse(localStorage.getItem(LS_LLM)||'{}'))}catch(e){return Object.assign({},LLM_DEF)}}
@@ -1290,7 +1556,7 @@ catch(e){const net=e instanceof TypeError;say('Yorri',`<span class="mono">AI off
 function llmUI(){const c=llmCfg();if(!$('#llmKey'))return;$('#llmKey').value=c.key;$('#llmBase').value=c.base;$('#llmModel').value=c.model;$('#llmStat').textContent=c.key?'Grok on':'No key — built-in mode';}
 function llmRead(){return{key:$('#llmKey').value.trim(),base:$('#llmBase').value.trim()||LLM_DEF.base,model:$('#llmModel').value.trim()||LLM_DEF.model}}
 document.addEventListener('click',async e=>{const id=e.target.id;
-if(id==='llmBtn'){const p=$('#llmPanel');p.style.display=p.style.display==='none'?'block':'none';llmUI()}
+if(id==='llmBtn'){ywSettings(true);setTab('general');llmHome();const h=$('#llmHome');if(h)h.scrollIntoView({block:'start'})}
 else if(id==='llmSave'){llmSaveCfg(llmRead());llmUI();$('#llmStat').textContent='Saved'}
 else if(id==='llmClear'){const c=llmRead();c.key='';llmSaveCfg(c);llmUI()}
 else if(id==='llmTest'){const c=llmRead();if(!c.key){$('#llmStat').textContent='Enter key';return}$('#llmStat').textContent='Testing…';
@@ -1441,7 +1707,7 @@ if($('#satRoom'))$('#satRoom').onchange=()=>{
 };
 if($('#satSync'))$('#satSync').onclick=()=>broadcast({type:'hello'});
 
-loadMock();loadVoiceCodes();loadBiz();connMigrate();setTimeout(dsPullOnLoad,800);loadLayout();loadCar();
+loadMock();loadVoiceCodes();loadBiz();try{calSeedRooms()}catch(e){}connMigrate();setTimeout(dsPullOnLoad,800);loadLayout();loadCar();
 if($('#mockT'))$('#mockT').checked=mockOn;
 applyCarLayout();
 if(IS_TESLA){setVmsg('Tesla detected — tap the ask box, use the steering-wheel mic, then Send. Car layout on (toggle under rooms if you want side panel).');if($('#mic'))$('#mic').title='Tesla: focus box + yoke mic'}
@@ -1480,7 +1746,7 @@ function a11yUI(){const o=a11yGet();const sc=$('#optScale');if(!sc)return;
  const sp=$('#setSpk');if(sp)sp.textContent=(typeof yorriSpeak!=='undefined'&&!yorriSpeak)?'🔇 Yorri voice: off':'🔊 Yorri voice: on';
  const ca=$('#setCar'),ct=$('#carT');if(ca&&ct)ca.textContent='🚗 Car layout: '+(ct.checked?'on':'off');
  const mo=$('#setMock'),mt=$('#mockT');if(mo&&mt)mo.textContent='Mock data: '+(mt.checked?'on':'off')}
-function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();dsRender();connRender();orgRender();smsRender();smsSync('get');const f=$('#setClose');if(f)f.focus()}}
+function ywSettings(open){document.body.classList.toggle('view-settings',!!open);const b=$('#navSettings');if(b){b.classList.toggle('act',!!open);b.setAttribute('aria-expanded',String(!!open))}if(open){a11yUI();dsRender();connRender();orgRender();smsRender();smsSync('get');setTabsRender();setTab(localStorage.getItem('ywSetTab')||'general',false);qsRender();llmHome();advAbout();finStatus();kpiStatus();const f=$('#setClose');if(f)f.focus()}}
 window.ywSettings=ywSettings;
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#navSettings,#setClose,[data-scale],[data-theme-set],[data-contrast],[data-motion],#optLarge,#optSoft,[data-proxy],#setAI,#setReset');if(!t)return;
  if(t.id==='navSettings')return ywSettings(!document.body.classList.contains('view-settings'));
