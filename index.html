@@ -783,7 +783,7 @@ function qsRender(){const o=a11yGet(),t=$('#qsTheme'),sc=$('#qsScale');if(t)t.in
  const fd=$('#qsFs');if(fd)fd.checked=localStorage.getItem('ywFsDefault')==='1'}
 document.addEventListener('change',e=>{const id=e.target.id;if(id==='qsTheme'){const b=document.querySelector(`#optTheme [data-theme-set="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsScale'){const b=document.querySelector(`#optScale [data-scale="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsFs'){localStorage.setItem('ywFsDefault',e.target.checked?'1':'0')}});
 function llmHome(){const h=$('#llmHome'),p=$('#llmPanel');if(h&&p&&p.parentNode!==h){h.appendChild(p)}if(p){p.style.display='block';try{llmUI()}catch(e){}}}
-const SITE_BUILD='2026-10-17 · Yorri commands, touch pickers';
+const SITE_BUILD='2026-10-17 · safe approve/decline targets';
 async function advAbout(){const a=$('#advAbout');if(!a)return;let sv='not connected';const s=smsServer();if(s){try{const j=await (await fetch(s.url+'/healthz')).json();sv=j.build||'unknown'}catch(e){sv='unreachable'}}a.textContent=`Site build ${SITE_BUILD} · Server build ${sv}`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advLayout,#advUnlink');if(!t)return;
  if(t.id==='advLayout'){orgRender();const b=document.querySelector('[data-og="reset"]');if(b)b.click();return}
@@ -1613,30 +1613,29 @@ document.addEventListener('click',e=>{if(e.target&&e.target.id==='vcPrev'){if(IS
 
 /* —— Voice: approve / decline / open navigation —— */
 function normVoice(t){return String(t||'').toLowerCase().replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim()}
+/* —— Decisions by voice/text: never guess. Bare "Yorri approve" = top item; a tier or title must match exactly one pending item. —— */
+const DEC_NO=/\b(decline|declined|deny|denied|reject|rejected|no)\b/;
+function decTrigger(t){const ap=normVoice(voiceCodes.approve),de=normVoice(voiceCodes.decline);
+ return /^(?:hey\s+)?(?:yorri\s+)?(?:i\s+)?(approve|approved|approving|decline|declined|deny|denied|reject|rejected)\b/.test(t)||/^(?:hey\s+)?(?:yorri\s+)?(?:ok|okay|yes|no)\s+(?:the\s+|item\s+|tier\s+)?t\s?\d+\b/.test(t)||/\bt\s?\d+\s+(approved|declined|denied|rejected)\b/.test(t)||(ap&&(' '+t+' ').includes(' '+ap+' '))||(de&&(' '+t+' ').includes(' '+de+' '))}
+function decPending(){return queue.length?'pending are '+queue.map(a=>`<span class="tier ${a.t[0]}">${esc(a.t[1])}</span>${esc(a.title)}`).join(' · '):'nothing is pending'}
+function decPick(t){const ap=normVoice(voiceCodes.approve),de=normVoice(voiceCodes.decline);let r=' '+t+' ';[ap,de].forEach(c=>{if(c)r=r.split(' '+c+' ').join(' ')});
+ r=r.replace(/\b(hey|yorri|i|approve|approved|approving|ok|okay|yes|no|decline|declined|deny|denied|reject|rejected|the|it|this|that|item|items|please|top|one|first|now|plan|decision|for|me)\b/g,' ').replace(/\s+/g,' ').trim();
+ const tm=r.match(/^(?:tier\s*|t\s?)(\d+)$/);if(tm||/^\d$/.test(r)){const tier='T'+(tm?tm[1]:r);const L=queue.map((a,i)=>[a,i]).filter(([a])=>String(a.t[1]).toUpperCase()===tier);
+  return L.length===1?{i:L[1-1][1]}:L.length?{amb:L.map(x=>x[0]),label:tier}:{none:tier}}
+ if(!r)return queue.length?{i:0}:{empty:true};
+ const w=r.split(' ').filter(x=>x.length>1&&x!=='tier');const L=queue.map((a,i)=>[a,i]).filter(([a])=>{const tl=normVoice(a.title);return w.length&&w.every(x=>tl.includes(x))});
+ return L.length===1?{i:L[0][1]}:L.length?{amb:L.map(x=>x[0]),label:'“'+r+'”'}:{none:'“'+r+'”'}}
+function decVoice(raw,t,saidYou){if(!decTrigger(t))return false;const dc=normVoice(voiceCodes.decline),ok=!(dc&&(' '+t+' ').includes(' '+dc+' '))&&!DEC_NO.test(t.replace(normVoice(voiceCodes.approve),''));
+ if(!saidYou)say('You',esc(raw));const p=decPick(t);
+ if(p.empty){say('Yorri',`Nothing pending to ${ok?'approve':'decline'}.`);return true}
+ if(p.none){say('Yorri',`I don’t see ${esc(p.none)} — ${decPending()}. Nothing was ${ok?'approved':'declined'}.`);return true}
+ if(p.amb){say('Yorri',`More than one item matches ${esc(p.label)}: `+p.amb.map(a=>`<span class="tier ${a.t[0]}">${esc(a.t[1])}</span>${esc(a.title)}`).join(' · ')+`. Say part of the title, e.g. <b>${ok?'approve':'decline'} ${esc(normVoice(p.amb[0].title).split(' ').slice(-2).join(' '))}</b>. Nothing was changed.`);return true}
+ if(pageView!=='command')setPageView('command');decide(p.i,ok?1:0);return true}
 function tryVoiceCommand(raw){
   const t=normVoice(raw);
   if(!t)return false;
   const ap=normVoice(voiceCodes.approve),de=normVoice(voiceCodes.decline);
-  // "approve T2", "approved T2", "approve the T2", "decline T3", "yorri approve t2"
-  const dm=t.match(/^(?:hey\s+)?(?:yorri\s+)?(approve|approved|approving|ok|okay|yes|decline|declined|deny|denied|reject|rejected)\s+(?:the\s+|item\s+|tier\s+)?(t[0-3])\b/);
-  if(dm){
-    const ok=!/^(decline|declined|deny|denied|reject|rejected)$/.test(dm[1]);const tier=dm[2].toUpperCase();
-    if(pageView!=='command'){setPageView('command');}
-    say('You',raw);
-    const i=queue.findIndex(a=>a&&a.t&&String(a.t[1]).toUpperCase()===tier);
-    if(i<0){say('Yorri',queue.length?`No ${tier} item pending. Queue has: ${queue.map(a=>a.t[1]+' '+esc(a.title)).join(' · ')}.`:'Nothing pending.');return true}
-    decide(i,ok?1:0);return true;
-  }
-  if(t===ap||t.endsWith(' '+ap)||t.includes(ap)){
-    if(pageView!=='command'){setPageView('command');}
-    if(!queue.length){say('Yorri','Nothing pending to approve.');return true}
-    say('You',raw);decide(0,1);return true;
-  }
-  if(t===de||t.endsWith(' '+de)||t.includes(de)){
-    if(pageView!=='command'){setPageView('command');}
-    if(!queue.length){say('Yorri','Nothing pending to decline.');return true}
-    say('You',raw);decide(0,0);return true;
-  }
+  if(decVoice(raw,t))return true;
   if(/\b(open|go\s+to|show)\s+(the\s+)?(text|sms)\s*alerts?\b/.test(t)){say('You',raw);ywSettings(true);smsOpen();say('Yorri','Opened <b>Alerts</b> in Settings.');return true}
   if(/\b(open|go\s+to|show)\s+(the\s+)?(organi[sz]e|organizer)\b/.test(t)){say('You',raw);ywSettings(true);orgOpen();say('Yorri','Opened <b>Organize</b> in Settings.');return true}
   if(/\b(exit|close|leave|quit)\s+full\s*-?screen\b/.test(t)){say('You',raw);fsExit();say('Yorri','Exited full screen.');return true}
@@ -2010,7 +2009,7 @@ ycAdd({id:'vc.theme',group:'Voice & display',cov:['set:appH','set:accH'],ex:['da
   if(x=l.match(/^(bigger|larger|smaller|default|normal|huge)\s+text/)){const o=a11yGet(),S=A11Y_SCALES.map(s=>s[0]);let i=S.indexOf(o.scale);if(i<0)i=1;i=x[1]==='huge'?S.length-1:/default|normal/.test(x[1])?1:x[1]==='smaller'?Math.max(0,i-1):Math.min(S.length-1,i+1);a11ySet({scale:S[i]});return say('Yorri',`Text size <b>${esc(A11Y_SCALES[i][1])}</b>.`)}
   x=l.match(/^(high contrast|reduce motion|reduced motion|softer flashes|larger text)\s+(on|off)$/);const on=x[2]==='on';
   if(/contrast/.test(x[1]))a11ySet({contrast:on?'on':'off'});else if(/motion/.test(x[1]))a11ySet({motion:on?'on':'off'});else if(/soft/.test(x[1]))a11ySet({soft:on});else a11ySet({large:on});say('Yorri',`${esc(x[1].charAt(0).toUpperCase()+x[1].slice(1))} <b>${on?'ON':'OFF'}</b>.`)}});
-ycAdd({id:'dec.approve',group:'Decisions & lanes',ex:['Yorri approve','approve T2','Yorri decline'],help:'Approves or declines the top decision (or a tier). T3 needs on-device confirmation.'});
+ycAdd({id:'dec.approve',group:'Decisions & lanes',ex:['Yorri approve','approve T2','Yorri decline'],help:'Approves or declines the top decision, or the one tier/title you name. Unknown or ambiguous targets change nothing. T3 needs on-device confirmation.'});
 ycAdd({id:'dec.lanes',group:'Decisions & lanes',ex:['hire 5 engineers','run payroll','briefing','summarize legal risks'],help:'Proposes plans into your decision queue and summarizes HR, Payroll, Legal, Vault and the briefing (mock or live).'});
 ycAdd({id:'cal.agenda',group:'Calendar',cov:['room:Calendar'],ex:['what’s on tomorrow','what do I have Friday','what’s on this week'],help:'Reads your schedule for a day or week, from every calendar and room.',match:(r,l)=>/\bwhat(?:'?s| is| do i have| have i got| am i doing)\b.*\b(on|planned|scheduled|happening|have|calendar|agenda)?\b/.test(l)&&(new RegExp('\\b'+WDRE+'\\b').test(l)||/\b(calendar|agenda|schedule)\b/.test(l))&&!/\bkpis?|users?|revenue|cash|tickets?\b/.test(l)||/^(?:my\s+)?(?:agenda|schedule)\b/.test(l),run:(m,r)=>ycAgenda(r)});
 ycAdd({id:'cal.open',group:'Calendar',cov:['room:Calendar'],ex:['open Tuesday','show tomorrow','open Oct 20'],help:'Opens the Day sheet for that date.',match:(r,l)=>{const m=l.match(new RegExp('^(?:open|show|go\\s+to)\\s+(?:the\\s+)?(?:day\\s+)?(?:for\\s+)?('+WDRE+')(?:\\s+on\\s+(?:the|my)\\s+calendar)?$'));return m},run:(m,r)=>{const d=ycDay(r);dayOpen(dayKey(d.d.getTime()),{all:true});say('Yorri',`Opened ${esc(calDay(d.d))}. Swipe or use the arrows for other days; say <b>what’s on</b> to hear it.`)}});
@@ -2025,7 +2024,7 @@ function ask(t){
   if(vc===true){setTimeout(()=>{if(!applying)broadcast(snapshot())},200);return}
   if(vc!=='cont')say('You',t);
   setTimeout(async()=>{
-    if(/^(?:hey\s+)?(?:yorri\s+)?(?:i\s+)?(approve|approved|decline|declined|deny|denied|reject|rejected)\b|\bt[0-3]\s+(approved|declined|denied|rejected)\b/.test(normVoice(t))&&queue.length){const tm=normVoice(t).match(/\bt[0-3]\b/);const ok=!/\b(decline|declined|deny|denied|reject|rejected)\b/i.test(t);const i=tm?queue.findIndex(a=>String(a.t[1]).toUpperCase()===tm[0].toUpperCase()):0;if(i>=0){decide(i,ok?1:0);return}}
+    if(decTrigger(normVoice(t))){decVoice(t,normVoice(t),true);return}
     if(llmCfg().key&&await llmAsk(t))return;
     if(pageView==='apps'){appsAsk(t);return}
     if(pageView!=='apps'){let ln=laneFor(t);if(vc==='cont'&&LANES[roomView]&&(!ln||ln==='Briefing'))ln=roomView==='Command Board'?'Briefing':roomView;
