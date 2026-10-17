@@ -60,7 +60,7 @@ l = await say('show automated'); assert.match(l, /Showing Automated — 2 ticket
 l = await say('always treat jane@gmail.com as needs reply', 1200); assert.match(l, /mail from jane@gmail.com will always land in Needs reply/); assert.deepEqual(cfg.always, ['jane@gmail.com']);
 // Settings: rules editor + AI toggle; AI sorts only uncertain tickets
 T.find(x => x.id === 'S-6').box = 'reply'; Object.assign(T.find(x => x.id === 'S-6'), { boxBy: 'rule', uncertain: true, slaH: 48 });
-await ev(() => { ywSettings(true); setTab('connections') }); await wt(800);
+await ev(() => { ywSettings(true); setTab('inbox') }); await wt(800);
 assert.match(await ev(() => document.querySelector('#inbBox').innerText), /AI sorting/);
 await ev(() => document.querySelector('[data-inbadd]').click()); await wt(100);
 await ev(() => { const r = [...document.querySelectorAll('#inbRules .inb-r')].pop(); r.querySelector('[data-inbf]').value = 'subject'; r.querySelector('[data-inbm]').value = 'Monthly Report'; r.querySelector('[data-inbb]').value = 'auto'; document.querySelector('[data-inbsave]').click() }); await wt(700);
@@ -71,7 +71,7 @@ assert.equal(cfg.ai.on, true); const aiPost = posted.find(p => /S-6\/box .*"by":
 assert.ok(!posted.some(p => /S-5\/box .*"by":"ai"/.test(p)), 'confident tickets are not sent to AI');
 await ev(() => { ywSettings(false); SUP.box = 'auto'; supGo() }); await wt(300);
 const aiChip = await ev(() => document.querySelector('[data-supo="S-6"] .sup-why')?.textContent); assert.match(aiChip, /🤖 sorted by AI · FYI broadcast, no question · 86%/); out.push('AI chip: ' + aiChip);
-await pg.screenshot({ path: '/tmp/sup_ai'+(process.env.DESK?'_d':'')+'.png' }); await ev(() => { ywSettings(true); setTab('connections'); document.querySelector('#inbH').scrollIntoView() }); await wt(400); await pg.screenshot({ path: '/tmp/sup_set'+(process.env.DESK?'_d':'')+'.png' }); await ev(() => ywSettings(false));
+await pg.screenshot({ path: '/tmp/sup_ai'+(process.env.DESK?'_d':'')+'.png' }); await ev(() => { ywSettings(true); setTab('inbox'); document.querySelector('#inbH').scrollIntoView() }); await wt(400); await pg.screenshot({ path: '/tmp/sup_set'+(process.env.DESK?'_d':'')+'.png' }); await ev(() => ywSettings(false));
 const cov = await ev(() => ycCoverage()); assert.deepEqual(cov, []);
 console.log(out.join('\n')); console.log('errors:', errs); assert.deepEqual(errs, []); console.log('support boxes: all passed');
 await b.close(); srv.close();

@@ -57,9 +57,9 @@ await ev(() => localStorage.removeItem('ywLlm'));
 // coverage + settings list
 await ev(() => { ywSettings(true); setTab('connections') }); await wt(800);
 const cov = await ev(() => ycCoverage()); R.push('COVERAGE missing: ' + JSON.stringify(cov)); const neg = await ev(() => { const b = bizStore.businesses[0]; b.rooms.push({ id: 'zz', label: 'Zed', type: 'newtype' }); const m = ycCoverage(); b.rooms.pop(); return m }); R.push('negative check: ' + JSON.stringify(neg)); if (cov.length || !neg.includes('type:newtype')) process.exitCode = 1;
-await ev(() => setTab('general')); await pg.fill('#ycQ', 'push'); await wt(100);
+await ev(() => setTab('yorri')); await pg.fill('#ycQ', 'push'); await wt(100);
 R.push('list(push): ' + await ev(() => [...document.querySelectorAll('#ycList .yc-ex')].map(b => b.textContent).join(' ')));
-await pg.fill('#ycQ', ''); R.push('list total: ' + await ev(() => document.querySelectorAll('#ycList .yc-ex').length) + ' groups ' + await ev(() => [...document.querySelectorAll('#ycList h5')].map(h => h.textContent).join(', ')));
+await pg.fill('#ycQ', ''); R.push('list total: ' + await ev(() => document.querySelectorAll('#ycList .yc-ex').length) + ' groups ' + await ev(() => [...document.querySelectorAll('#ycList .yc-g summary b')].map(h => h.textContent).join(', ')));
 const h = await pg.$('section[aria-labelledby="ycH"]'); await h.scrollIntoViewIfNeeded(); await pg.screenshot({ path: `/tmp/yc_${Date.now() % 1e5}.png` });
 R.push('events: ' + await ev(() => JSON.stringify(calStore().events.map(e => [e.title, new Date(e.start).toString().slice(0, 21), e.kind || '', e.end ? (e.end - e.start) / 6e4 : null, e.remind]))));
 console.log(R.join('\n')); console.log('POSTED\n' + posted.join('\n')); console.log('errors:', errs); if (errs.length) process.exitCode = 1;

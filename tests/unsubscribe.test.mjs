@@ -107,7 +107,7 @@ l = await say('what needs my action'); assert.match(l, /2 need your action: prom
 l = await say('who keeps emailing me'); assert.match(l, /2 repeat senders \(30 days\): news ×3 \(Spam\/Other, Unsubscribed\)/);
 l = await say('show repeat senders'); assert.match(l, /grouped in this box/);
 // Settings list
-await ev(() => { ywSettings(true); setTab('connections') }); await wt(800); const st = await ev(() => document.querySelector('#inbUnsub').innerText.replace(/\s+/g, ' '));
+await ev(() => { ywSettings(true); setTab('inbox') }); await wt(800); const st = await ev(() => document.querySelector('#inbUnsub').innerText.replace(/\s+/g, ' '));
 assert.match(st, /news@weekly\.example · Unsubscribed · \w{3} \d+ · one-click/); assert.match(st, /noreply@redditmail\.com · Request sent — may take a few days/); out.push('settings: ' + st);
 await ev(() => document.querySelector('#inbH').scrollIntoView()); await pg.screenshot({ path: '/tmp/un_set' + (DESK ? '_d' : '') + '.png' }); await ev(() => ywSettings(false));
 assert.deepEqual(await ev(() => ycCoverage()), []);
