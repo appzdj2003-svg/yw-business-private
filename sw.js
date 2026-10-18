@@ -12,9 +12,9 @@ async function openUrl(url) {
 }
 self.addEventListener('notificationclick', e => {
   const d = e.notification.data || {}; e.notification.close();
-  if ((e.action === 'yes' || e.action === 'no') && d.t && d.api) {
+  if ((e.action === 'yes' || e.action === 'no' || e.action === 'go') && d.t && d.api) {
     e.waitUntil(fetch(d.api + '/push/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ t: d.t, action: e.action }) })
-      .then(r => r.json()).then(j => self.registration.showNotification(j.ok ? (e.action === 'yes' ? 'Approved' : 'Declined') : 'Not recorded', { body: j.msg || j.error || '', tag: 'act:' + d.tag, icon: '/icon-192.png', data: { url: d.url || '/' } }))
+      .then(r => r.json()).then(j => self.registration.showNotification(j.ok ? (e.action === 'no' ? 'Declined' : 'Approved') : 'Not recorded', { body: j.msg || j.error || '', tag: 'act:' + d.tag, icon: '/icon-192.png', data: { url: d.url || '/' } }))
       .catch(() => self.registration.showNotification('Not recorded', { body: 'Couldn’t reach the server. Open the site to decide.', icon: '/icon-192.png', data: { url: d.url || '/' } }))
       .then(() => self.clients.matchAll({ type: 'window' }).then(cs => cs.forEach(c => c.postMessage({ type: 'yw-actions' })))));
     return;
