@@ -9,15 +9,15 @@ await pg.addInitScript(() => { window.confirm = () => true; localStorage.setItem
 await pg.route(SV + '/**', r => { const u = new URL(r.request().url()); const body = u.pathname === '/alerts/actions' ? { actions } : u.pathname === '/alerts/settings' ? { smsLive: false, pushLive: false, settings: null } : {}; return r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' }, body: JSON.stringify(body) }) });
 await pg.goto('http://127.0.0.1:8129/'); await pg.waitForTimeout(2500);
 const ev = (f, a) => pg.evaluate(f, a);
-const reset = () => ev(() => { queue = [{ t: ['t1', 'T1'], title: 'Approve 3 PTO requests', why: '' }, { t: ['t2', 'T2'], title: 'Send renewal reminder to Acme legal', why: '' }, { t: ['t1', 'T1'], title: 'Continue onboarding J. Ruiz', why: '' }, { t: ['t3', 'T3'], title: 'Run Friday payroll', why: '' }]; Object.keys(decided).forEach(k => delete decided[k]); draw() });
+const reset = () => ev(() => { queue = [{ t: ['t1', 'T1'], title: 'Approve 3 time-off requests', why: '' }, { t: ['t2', 'T2'], title: 'Send renewal reminder to Beta counsel', why: '' }, { t: ['t1', 'T1'], title: 'Continue onboarding J. Ruiz', why: '' }, { t: ['t3', 'T3'], title: 'Review Friday payroll', why: '' }]; Object.keys(decided).forEach(k => delete decided[k]); draw() });
 const run = async t => { await ev(t => ask(t), t); await pg.waitForTimeout(600); return ev(() => ({ q: queue.map(a => a.title), last: [...document.querySelectorAll('#log p.y')].pop().innerText.replace(/\s+/g, ' ') })) };
 const N = 4; const out = [];
 for (const [t, expectN, re] of [
-  ['approve T9', N, /I don’t see T9 — pending are T1 ?Approve 3 PTO requests · T2 ?Send renewal reminder.*Nothing was approved/],
+  ['approve T9', N, /I don’t see T9 — pending are T1 ?Approve 3 time-off requests · T2 ?Send renewal reminder.*Nothing was approved/],
   ['Yorri approve T9', N, /I don’t see T9/], ['decline T9', N, /I don’t see T9.*Nothing was declined/], ['yes T7', N, /I don’t see T7/], ['T9 approved', N, /I don’t see T9/],
   ['approve T1', N, /More than one item matches T1.*Nothing was changed/], ['approve the zebra contract', N, /I don’t see “zebra contract”/],
-  ['approve T2', N - 1, /Done: Send renewal reminder/], ['decline onboarding', N - 1, /Declined: Continue onboarding/], ['approve payroll', N - 1, /Done: Run Friday payroll/],
-  ['Yorri approve', N - 1, /Done: Approve 3 PTO requests/], ['yorri decline', N - 1, /Declined: Approve 3 PTO requests/]]) {
+  ['approve T2', N - 1, /Approved: Send renewal reminder.*nothing ran automatically/], ['decline onboarding', N - 1, /Declined: Continue onboarding/], ['approve payroll', N - 1, /Approved: Review Friday payroll/],
+  ['Yorri approve', N - 1, /Approved: Approve 3 time-off requests/], ['yorri decline', N - 1, /Declined: Approve 3 time-off requests/]]) {
   await reset(); const r = await run(t); out.push(t + ' → ' + r.q.length + ' | ' + r.last.slice(0, 140)); assert.equal(r.q.length, expectN, t); assert.match(r.last, re, t);
 }
 await ev(() => { queue = [] }); const e = await run('approve T2'); assert.match(e.last, /I don’t see T2 — nothing is pending. Nothing was approved/); out.push('empty → ' + e.last);

@@ -99,5 +99,5 @@ l = await last(); assert.match(l, /Approved the crash fix for Your World Weather
 l = await say('send the crash to Grok Bot', 1300); assert.match(l, /Handing off Your World Weather Radar 0\.8\.99 \(140\) to WeatherAI/);
 assert.ok(!reqs.some(x => x.startsWith('POST /alerts/decision') && x.includes('crash')), 'crash approvals never relayed as generic decisions');
 assert.deepEqual(await ev(() => ycCoverage()), []);
-const ids = await ev(() => YC.list.filter(c => /^crash\./.test(c.id)).map(c => c.id)); assert.deepEqual(ids.sort(), ['crash.approve', 'crash.list', 'crash.send', 'crash.setup', 'crash.status']);
+const ids = await ev(() => YC.list.filter(c => /^crash\./.test(c.id)).map(c => c.id)); assert.deepEqual(ids.sort(), ['crash.approve', 'crash.list', 'crash.release', 'crash.relpol', 'crash.send', 'crash.setup', 'crash.status']);
 console.log(out.join('\n')); console.log('errors:', errs); assert.deepEqual(errs, []); console.log('crash handoff: all passed'); await b.close(); srv.close();
