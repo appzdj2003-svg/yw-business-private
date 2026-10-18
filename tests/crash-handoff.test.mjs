@@ -11,7 +11,7 @@ const HUNT = { ...CRASH, package: 'com.yourworld.hunt', app: 'Your World Hunt', 
 const tk = (id, from, subject, box, x = {}) => ({ id, from, fromName: '', subject, priority: 'medium', slaH: box === 'reply' ? 48 : null, receivedAt: NOW - 3600e3, sla: 'ok', unread: true, status: 'open', snippet: subject, thread: [{ from, at: NOW - 3600e3, body: subject }], box, boxBy: 'rule', boxWhy: 'rule', boxConf: 0.9, unsub: { kind: 'none', label: 'No unsubscribe offered', oneTap: false, cleanup: false }, ...x });
 const crashT = (id, c, subj, at) => tk(id, 'firebase-noreply@google.com', subj, 'reply', { priority: 'high', slaH: 4, crash: c, tags: ['Crash'], handoff: null, unsub: KEEP, receivedAt: at, boxWhy: 'crash report (Firebase Crashlytics) · urgent' });
 const TS = [crashT('S-e15fcf7a', CRASH, 'Trending stability issues for 2026-10-17 - Android com.yourworld.weatheranalyzer', NOW - 1800e3), crashT('S-hunt0001', HUNT, 'New fatal issue - Android com.yourworld.hunt', NOW - 7200e3), tk('S-jane0001', 'jane@gmail.com', 'App crashes on launch', 'reply')];
-let HCFG = { configured: false }, ACTS = []; const reqs = [];
+let HCFG = { configured: false }, ACTS = [], CONNS = []; const reqs = [];
 const H = (id, st, extra = {}) => { const t = TS.find(x => x.id === id), h = t.handoff ||= { status: st, timeline: [], bot: null }; h.status = st; h.label = { approved: 'Approved — ready to send', handing: 'Handing off…', researching: 'Researching', building: 'Building fix', internal: 'Sent to Internal', production: 'Sent to Production', fixed: 'Fixed', blocked: 'Blocked' }[st] || st; Object.assign(h, extra); h.timeline.push({ at: Date.now(), status: st, text: h.label + (extra.version ? ' (' + extra.version + ')' : '') }); return h; };
 const ctx = await b.newContext(DESK ? { viewport: { width: 1440, height: 900 } } : { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }); const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
 await pg.addInitScript(() => { localStorage.setItem('ywUnlock', '1'); localStorage.setItem('ywYorriSpeak', '0'); localStorage.setItem('ywMockData', '0'); window.confirm = () => true; });
@@ -22,6 +22,7 @@ await ctx.route(SV + '/**', async r => { const q = r.request(), u = new URL(q.ur
   else if (p[0] === 'tickets' && p[2] === 'crash' && p[3] === 'approve') { const h = H(p[1], 'approved', { approvedAt: Date.now(), approvedVia: bd.via }); body = { ok: true, handoff: h, suggestedBot: TS.find(x => x.id === p[1]).crash.suggestedBot }; }
   else if (p[0] === 'tickets' && p[2] === 'crash' && p[3] === 'send') { if (!HCFG.configured) { status = 409; body = { error: 'Grok Bot handoff isn’t set up: Settings → Connections → Grok Bot handoff' }; } else body = { ok: true, handoff: H(p[1], 'handing', { bot: bd.bot }) }; }
   else if (p[0] === 'tickets' && p.length === 2) body = TS.find(x => x.id === p[1]);
+  else if (u.pathname === '/handoff/connections') { if (M === 'POST') { const c = { id: bd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), name: bd.name, host: new URL(bd.url).hostname, header: bd.header, keySet: !!bd.key, scope: bd.scope, kinds: bd.kinds, bot: bd.bot, enabled: bd.enabled, ready: !!(bd.enabled && bd.key) }; CONNS.push(c); HCFG = { configured: c.ready, host: c.host, header: c.header, keySet: true }; status = 201; body = { ok: true, connection: c }; } else body = { connections: CONNS }; }
   else if (u.pathname === '/handoff/config') { if (M === 'POST') HCFG = { configured: true, host: new URL(bd.url).hostname, header: bd.header, keySet: true, at: Date.now() }; if (M === 'DELETE') HCFG = { configured: false }; body = HCFG; }
   else if (u.pathname === '/alerts/actions') body = { actions: ACTS.filter(a => a.at > +u.searchParams.get('since')) };
   else if (u.pathname === '/inboxes') body = { inboxes: [{ id: 'yw-support', label: 'Support', address: 'yo•••@gmail.com', kind: 'support', canSend: true, builtin: true }] };
@@ -57,14 +58,15 @@ await ev(() => document.querySelector('#supModal [data-cra]').click()); await wt
 assert.ok(reqs.some(x => x.startsWith('POST /tickets/S-e15fcf7a/crash/approve')), 'approve hit the server'); D = await dlg(); assert.equal(D.crs, 'Send to WeatherAI'); assert.match(D.t, /Approved\. Send it to WeatherAI/);
 assert.ok(!(await ev(() => queue.some(a => a.crash && a.crash.id === 'S-e15fcf7a'))), 'decision card cleared');
 // Not set up yet → clear error, nothing sent
-await ev(() => { HO.st = { configured: false }; supModal(); document.querySelector('#supModal [data-crs]').click() }); await wt(800); D = await dlg(); assert.match(D.t, /Not handed off: .*Grok Bot handoff/); assert.match(D.t, /Set up the webhook first/);
+await ev(() => { HO.st = { configured: false }; supModal(); document.querySelector('#supModal [data-crs]').click() }); await wt(800); D = await dlg(); assert.match(D.t, /Not handed off: .*Grok Bot handoff/); assert.match(D.t, /No Grok Bot handoff covers this inbox/);
 await ev(() => document.querySelector('#supModal [data-supx]').click()); await wt(300);
 // Settings → Connections → Grok Bot handoff: save URL + key; key never kept in the browser
 l0: { let l = await say('open Grok Bot handoff settings', 900); assert.match(l, /Opened Grok Bot handoff/); }
-assert.match(await ev(() => document.querySelector('#hoCard summary').innerText), /Grok Bot handoff\s*not set up/);
-await ev(() => { document.querySelector('#hoUrl').value = 'https://api2.cursor.sh/automations/webhook/abc123'; document.querySelector('#hoKey').value = 'sender-key-ABCDEFGHIJKLMNOP'; document.querySelector('[data-ho="save"]').click() }); await wt(800);
-assert.ok(reqs.some(x => x.startsWith('POST /handoff/config') && x.includes('"key":"sender-key-ABCDEFGHIJKLMNOP"') && x.includes('"header":"Authorization"')));
-let card = await ev(() => document.querySelector('#hoCard').innerText); assert.match(card, /connected · api2\.cursor\.sh/); assert.match(card, /Authorization: Bearer ••••/); assert.doesNotMatch(card, /sender-key|abc123/);
+await wt(600); assert.match(await ev(() => document.querySelector('#hoCard summary').innerText), /Grok Bot handoffs\s*not set up/);
+await ev(() => document.querySelector('[data-ho="new"]').click()); await wt(300);
+await ev(() => { document.querySelector('#hoName').value = 'Crash fix handoff'; document.querySelector('#hoUrl').value = 'https://api2.cursor.sh/automations/webhook/abc123'; document.querySelector('#hoKey').value = 'sender-key-ABCDEFGHIJKLMNOP'; document.querySelector('[data-ho="save"]').click() }); await wt(800);
+assert.ok(reqs.some(x => x.startsWith('POST /handoff/connections') && x.includes('"key":"sender-key-ABCDEFGHIJKLMNOP"') && x.includes('"header":"Authorization"') && x.includes('"scope":["yw-support"]') && x.includes('"kinds":["crash"]')));
+let card = await ev(() => document.querySelector('#hoCard').innerText); assert.match(card, /1 connection · 1 on/); assert.match(card, /Crash fix handoff[\s\S]*api2\.cursor\.sh/); assert.match(card, /Authorization: Bearer ••••/); assert.doesNotMatch(card, /sender-key|abc123/);
 assert.ok(!(await ev(() => JSON.stringify(localStorage))).includes('sender-key-ABCDEFGHIJKLMNOP'), 'key not in localStorage'); assert.ok(!(await ev(() => JSON.stringify(localStorage))).includes('abc123'), 'URL not in localStorage');
 await pg.screenshot({ path: '/tmp/cr_conn' + (DESK ? '_d' : '') + '.png' }); await ev(() => ywSettings(false));
 // Send → Handing off…
