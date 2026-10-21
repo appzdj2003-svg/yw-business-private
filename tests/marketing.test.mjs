@@ -51,7 +51,7 @@ const rooms = await ev(() => bizStore.businesses.find(b => b.id === 'yw-apps').r
 // Not connected: CTA + empty states, no invented numbers
 let l = await say('open marketing'); assert.match(l, /Opened Your World Apps › Marketing/); await wt(600);
 let t = await room(); out.push('off: ' + t.slice(0, 400)); assert.match(t, /Connect Plausible/); assert.match(t, /weather\.yourworldapps\.si/); assert.match(t, /Settings → API keys → New API key → Stats API/);
-assert.match(t, /TikTok — — 0/); assert.match(t, /No posts logged for Weather Radar yet/); assert.doesNotMatch(t, /SAMPLE|LIVE/);
+assert.match(t, /TikTok — — — 0/); assert.match(t, /No posts logged for Weather Radar yet/); assert.doesNotMatch(t, /SAMPLE|LIVE/);
 l = await say('how is marketing doing'); assert.match(l, /Plausible isn’t connected yet, so there are no site numbers.*0 posts logged/);
 // Connect Plausible from the CTA → Settings card; key goes to the server only
 await click('[data-mk="connect"]'); await wt(500); assert.ok(await ev(() => document.querySelector('#mkCard').open));
@@ -64,7 +64,7 @@ assert.ok(reqs.some(x => x.startsWith('POST /marketing/plausible') && x.includes
 await ev(() => ywSettings(false));
 // Live data
 l = await say('open marketing', 1500); t = await room(); out.push('live: ' + t.slice(0, 700));
-assert.match(t, /LIVE/); assert.match(t, /41 visitors 52 visits 97 pageviews 2 Play clicks 2% visitors → Play/); assert.match(t, /TikTok best so far 12 1 0/); assert.match(t, /Instagram Reels 4 1 0/);
+assert.match(t, /LIVE/); assert.match(t, /41 visitors 52 visits 97 pageviews 2 Play clicks 2% visitors → Play/); assert.match(t, /TikTok best so far — 12 1 0/); assert.match(t, /Instagram Reels — 4 1 0/);
 assert.match(t, /Top pages \/ 30 \/outlook\.html 9/i); assert.match(t, /Sources Direct \/ None 18 tiktok 12/i); assert.match(t, /Other UTM ?newsletter \/ email \/ oct 5/i);
 l = await say('which platform is working best'); assert.match(l, /For Weather Radar \(7 days\), TikTok is working best: 12 visitors and 1 Play click\. Then Instagram Reels \(4 visitors, 1 Play click\)\./);
 l = await say('how is marketing doing'); assert.match(l, /Weather Radar site, last 7 days: 41 visitors, 97 pageviews, 2 Play-button clicks\. Best platform so far: TikTok with 12 visitors and 1 Play click\. 0 posts logged/);
@@ -79,7 +79,7 @@ l = await say('log a tiktok post wx-rain-eta'); assert.match(l, /New post for We
 assert.equal(await ev(() => document.querySelector('#mkFSlug').value), 'wx-rain-eta'); await type('#mkFNotes', 'first launch video'); await click('[data-mk="save"]'); await wt(800);
 let pp = reqs.filter(x => x.startsWith('POST /marketing/posts')); assert.equal(pp.length, 1); let pb = JSON.parse(pp[0].slice(pp[0].indexOf('{')));
 assert.deepEqual([pb.app, pb.platform, pb.slug, pb.status, pb.notes, pb.link], ['weather', 'tiktok', 'wx-rain-eta', 'posted', 'first launch video', 'https://weather.yourworldapps.si/?utm_source=tiktok&utm_medium=social&utm_campaign=wx-rain-eta']);
-t = await room(); assert.match(t, /Logged TikTok · wx-rain-eta/); assert.match(t, /TikTok wx-rain-eta posted Visits 10 Play clicks 1/i); assert.match(t, /TikTok best so far 12 1 1/);
+t = await room(); assert.match(t, /Logged TikTok · wx-rain-eta/); assert.match(t, /TikTok wx-rain-eta posted Visits 10 Play clicks 1/i); assert.match(t, /TikTok best so far — 12 1 1/);
 // Add from the form (Log a post button) with planned status
 await click('[data-mk="add"]'); await wt(200); await type('#mkFPl', 'x'); await type('#mkFSlug', 'wx-outlook-live'); await type('#mkFSt', 'planned'); await click('[data-mk="save"]'); await wt(800);
 t = await room(); assert.match(t, /X wx-outlook-live planned Visits 0 Play clicks 0/i);
