@@ -69,7 +69,7 @@ assert.deepEqual(await ev(() => [...document.querySelectorAll('#mkChannels a')].
 l = await say('how many followers do we have on tiktok'); assert.match(l, /TikTok @yourworldapps: no followers or view counts — no data source connected\. 1 posts logged, 1 posted\./); assert.doesNotMatch(l, /YouTube/);
 l = await say('show our channels'); assert.match(l, /YouTube @yourworldapps: no subscribers or view counts — no data source connected.*TikTok @yourworldapps/);
 // Post log: platform chips; TikTok post with its post URL
-t = await room(); assert.match(t, /All 3 TikTok 1 YouTube 1 Instagram 1/); assert.match(t, /2026-10-21 TikTok wx-launches-ultra posted Visits 8 Play clicks 3 post/i);
+t = await room(); assert.match(t, /All 3 TikTok 1 YouTube 1 Instagram 1/); assert.match(t, /2026-10-21 TikTok wx-launches-ultra posted Views — Visits 8 Play clicks 3 post/i);
 await click('[data-mk="pf"][data-v="tiktok"]'); await wt(300); let cards = await ev(() => [...document.querySelectorAll('.mk-post')].map(x => x.dataset.mkpost)); assert.deepEqual(cards, ['P1']);
 assert.equal(await ev(() => document.querySelector('[data-mkpost="P1"] a').href), 'https://www.tiktok.com/@yourworldapps/video/7699217873545350413');
 await click('[data-mk="pf"][data-v=""]'); await wt(300); assert.equal(await ev(() => document.querySelectorAll('.mk-post').length), 3);
@@ -88,7 +88,7 @@ assert.match(t, /No posts logged for Market Analyzer yet/); assert.match(t, /Mar
 l = await say('log a youtube post for market analyzer ma-short-oct21'); assert.match(l, /New post for Market Analyzer: YouTube Shorts · ma-short-oct21 · posted/);
 await type('#mkFUrl', 'https://youtube.com/shorts/oVyaP1owlvA'); await click('[data-mk="save"]'); await wt(800);
 pb = JSON.parse(reqs.filter(x => x.startsWith('POST /marketing/posts')).pop().replace(/^[^{]*/, '')); assert.deepEqual([pb.app, pb.platform, pb.slug, pb.postUrl, pb.link], ['market', 'youtube', 'ma-short-oct21', 'https://youtube.com/shorts/oVyaP1owlvA', '']);
-t = await room(); assert.match(t, /2026-10-\d\d YouTube Shorts ma-short-oct21 posted Visits — Play clicks — post/i); assert.match(t, /All 1 YouTube 1/);
+t = await room(); assert.match(t, /2026-10-\d\d YouTube Shorts ma-short-oct21 posted Views — Visits — Play clicks — post/i); assert.match(t, /All 1 YouTube 1/);
 l = await say('how is marketing doing for market analyzer'); assert.match(l, /Market Analyzer/); assert.doesNotMatch(l, /\d+ visitors/);
 await click('[data-mk="app"][data-id="weather"]'); await wt(500);
 // YouTube Data API key slot (settings) → server only; then real counts appear

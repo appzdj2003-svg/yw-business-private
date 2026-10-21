@@ -79,10 +79,10 @@ l = await say('log a tiktok post wx-rain-eta'); assert.match(l, /New post for We
 assert.equal(await ev(() => document.querySelector('#mkFSlug').value), 'wx-rain-eta'); await type('#mkFNotes', 'first launch video'); await click('[data-mk="save"]'); await wt(800);
 let pp = reqs.filter(x => x.startsWith('POST /marketing/posts')); assert.equal(pp.length, 1); let pb = JSON.parse(pp[0].slice(pp[0].indexOf('{')));
 assert.deepEqual([pb.app, pb.platform, pb.slug, pb.status, pb.notes, pb.link], ['weather', 'tiktok', 'wx-rain-eta', 'posted', 'first launch video', 'https://weather.yourworldapps.si/?utm_source=tiktok&utm_medium=social&utm_campaign=wx-rain-eta']);
-t = await room(); assert.match(t, /Logged TikTok · wx-rain-eta/); assert.match(t, /TikTok wx-rain-eta posted Visits 10 Play clicks 1/i); assert.match(t, /TikTok best so far — 12 1 1/);
+t = await room(); assert.match(t, /Logged TikTok · wx-rain-eta/); assert.match(t, /TikTok wx-rain-eta posted Views — Visits 10 Play clicks 1/i); assert.match(t, /TikTok best so far — 12 1 1/);
 // Add from the form (Log a post button) with planned status
 await click('[data-mk="add"]'); await wt(200); await type('#mkFPl', 'x'); await type('#mkFSlug', 'wx-outlook-live'); await type('#mkFSt', 'planned'); await click('[data-mk="save"]'); await wt(800);
-t = await room(); assert.match(t, /X wx-outlook-live planned Visits 0 Play clicks 0/i);
+t = await room(); assert.match(t, /X wx-outlook-live planned Views — Visits 0 Play clicks 0/i);
 // Edit → PUT
 await click('[data-mkedit="P2"]'); await wt(200); assert.equal(await ev(() => document.querySelector('#mkFSlug').value), 'wx-outlook-live'); await type('#mkFSt', 'drafted'); await click('[data-mk="save"]'); await wt(800);
 assert.ok(reqs.some(x => x.startsWith('PUT /marketing/posts/P2') && x.includes('"status":"drafted"'))); t = await room(); assert.match(t, /Saved changes to X · wx-outlook-live/); assert.match(t, /wx-outlook-live drafted/i);
