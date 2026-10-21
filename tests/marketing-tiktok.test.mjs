@@ -60,7 +60,7 @@ assert.match(t, /Instagram Reels — ?0 0 0 1 planned\/drafted|Instagram Reels 0
 assert.match(t, /8 more platforms with no visits or posts yet — Facebook, X, Reddit, LinkedIn, Medium, Quora, Hacker News, Directories/);
 assert.equal(await ev(() => [...document.querySelectorAll('.mk-full .mk-pl[data-mkpl]')].map(x => x.dataset.mkpl).slice(0, 2).join()), 'tiktok,youtube');
 assert.match(t, /tiktok\.com → TikTok/); assert.match(t, /\/go\/\?src=tiktok counts as TikTok/);
-await ev(() => document.querySelector('[data-mkpl="tiktok"]').open = true); await wt(200); t = await room(); assert.match(t, /Plausible sources: TikTok, tiktok, vm\.tiktok\.com/); assert.match(t, /wx-launches-ultra 8 3 logged/);
+await ev(() => document.querySelector('[data-mkpl="tiktok"]').open = true); await wt(200); t = await room(); assert.match(t, /Sources: TikTok, tiktok, vm\.tiktok\.com/); assert.match(t, /wx-launches-ultra 8 3 logged/);
 // Channels: both @yourworldapps accounts, no invented numbers
 let ch = await ev(() => document.querySelector('#mkChannels').innerText.replace(/\s+/g, ' ')); out.push('channels: ' + ch);
 assert.match(ch, /Channels YouTube @yourworldapps Your World Apps — subscribers — views — videos no data source connected/i); assert.match(ch, /TikTok @yourworldapps Your World Apps — followers — views — videos no data source connected — TikTok has no public stats API/i);

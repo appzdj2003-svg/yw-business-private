@@ -14,10 +14,10 @@ const TS0 = '2026-10-17T15:00:00.000Z'; const OLD = [{ ts: TS0, at: 1, decision:
 let P = await run('0', OLD); await P.ev(() => setPageView('command')); await P.pg.waitForTimeout(600);
 assert.deepEqual(await P.ev(() => queue.map(a => a.title)), [], 'nothing seeded with mock off');
 for (const t of ['run payroll', 'pay vendor bills', 'hire 2 engineers']) { await P.ev(t => ask(t), t); await P.pg.waitForTimeout(500); const l = await last(P); out.push('mock off » ' + t + '\n   ' + l.slice(0, 200)); assert.match(l, /sample data only.*didn’t queue anything/, t); }
-assert.equal(await P.ev(() => queue.length), 0); await P.ev(() => ask('send the NDA')); await P.pg.waitForTimeout(900); assert.match(await last(P), /SAMPLE.*sample figures — not from your connected data/);
+assert.equal(await P.ev(() => queue.length), 0); await P.ev(() => ask('send the NDA')); await P.pg.waitForTimeout(900); assert.match(await last(P), /sample data only — nothing real is connected for it/); assert.doesNotMatch(await last(P), /\bSAMPLE\b/);
 await P.ev(() => { queue.push({ t: ['t3', 'T3'], title: 'Run Friday payroll · $71,880', why: '' }); draw() }); assert.equal(await P.ev(() => queue.length), 0, 'stale sample purged on draw');
 const V = await P.ev(() => JSON.parse(localStorage.getItem('ywVaultAudit')));
-assert.deepEqual(V.map(e => [e.decision, !!e.sample]), [['SAMPLE · APPROVED (nothing ran)', true], ['SAMPLE · APPROVED (nothing ran)', true], ['HANDED OFF to WeatherAI', false], ['APPROVED', false]]); out.push('vault relabel: ' + V.map(e => e.decision).join(' | '));
+assert.deepEqual(V.map(e => [e.decision, !!e.sample]), [['HANDED OFF to WeatherAI', false], ['APPROVED', false]], 'mock off: sample Vault entries cleared, real ones kept'); assert.equal((await P.ev(() => JSON.parse(localStorage.getItem('ywMockPurged')))).vault, 2); out.push('vault relabel: ' + V.map(e => e.decision).join(' | '));
 assert.ok(!reqs.some(x => /alerts\/decision/.test(x))); assert.deepEqual(P.errs, []); await P.ctx.close();
 // 2) Mock ON: seeded items carry a SAMPLE badge; approving says "Sample … nothing ran" (never "Done … Report filed"), Vault entry marked sample; nothing relayed
 P = await run('1'); await P.ev(() => setPageView('command')); await P.pg.waitForTimeout(800);

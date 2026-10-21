@@ -34,7 +34,7 @@ const last = () => ev(() => [...document.querySelectorAll('#log p.y')].pop().inn
 const say = async (t, ms = 1000) => { await ev(t => ask(t), t); await wt(ms); const l = await last(); out.push('» ' + t + '\n   ' + l.slice(0, 300)); return l };
 // Tabs: Inbox after Connections; active tab fully visible in the scrollable bar
 await ev(() => { ywSettings(true); setTab('general') }); await wt(300);
-assert.deepEqual(await ev(() => [...document.querySelectorAll('#setTabs [data-stab]')].map(b => b.textContent)), ['General', 'Yorri', 'Connections', 'Inbox', 'Alerts', 'Organize', 'Advanced']);
+assert.deepEqual(await ev(() => [...document.querySelectorAll('#setTabs [data-stab]')].map(b => b.textContent)), ['General', 'Businesses & rooms', 'Connections', 'Alerts & push', 'Handoffs', 'Growth', 'Inbox sorting', 'Yorri & AI', 'Security & Vault', 'Advanced']);
 const vis = k => ev(k => { setTab(k); const T = document.querySelector('#setTabs'), bt = T.querySelector(`[data-stab="${k}"]`), a = T.getBoundingClientRect(), c = bt.getBoundingClientRect(); return c.left >= a.left - 1 && c.right <= a.right + 1 }, k);
 for (const k of ['advanced', 'organize', 'inbox', 'yorri', 'general']) { await wt(50); assert.ok(await vis(k), k + ' tab fully visible'); }
 if (!DESK) { await ev(() => setTab('general')); await wt(400); assert.ok(await ev(() => document.querySelector('.st-wrap').classList.contains('st-fr')), 'right fade shows more tabs'); }

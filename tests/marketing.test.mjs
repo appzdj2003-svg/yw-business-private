@@ -50,16 +50,16 @@ const type = (sel, v) => ev(([s, v]) => { const i = document.querySelector(s); i
 const rooms = await ev(() => bizStore.businesses.find(b => b.id === 'yw-apps').rooms.map(r => r.type + ':' + r.label)); const gi = rooms.indexOf('growth:Growth'); assert.ok(gi >= 0 && rooms[gi + 1] === 'marketing:Marketing', JSON.stringify(rooms));
 // Not connected: CTA + empty states, no invented numbers
 let l = await say('open marketing'); assert.match(l, /Opened Your World Apps › Marketing/); await wt(600);
-let t = await room(); out.push('off: ' + t.slice(0, 400)); assert.match(t, /Connect Plausible/); assert.match(t, /weather\.yourworldapps\.si/); assert.match(t, /Settings → API keys → New API key → Stats API/);
+let t = await room(); out.push('off: ' + t.slice(0, 400)); assert.match(t, /Google Analytics not connected/); assert.match(t, /weather\.yourworldapps\.si/); assert.match(t, /Settings → Connections → GA4 & Play/); assert.match(t, /Plausible key is only an optional fallback/);
 assert.match(t, /TikTok — — — 0/); assert.match(t, /No posts logged for Weather Radar yet/); assert.doesNotMatch(t, /SAMPLE|LIVE/);
-l = await say('how is marketing doing'); assert.match(l, /Plausible isn’t connected yet, so there are no site numbers.*0 posts logged/);
+l = await say('how is marketing doing'); assert.match(l, /Google Analytics isn’t linked for this site yet, so there are no site numbers.*0 posts logged/);
 // Connect Plausible from the CTA → Settings card; key goes to the server only
 await click('[data-mk="connect"]'); await wt(500); assert.ok(await ev(() => document.querySelector('#mkCard').open));
-let s = await ev(() => document.querySelector('#mkCard').innerText.replace(/\s+/g, ' ')); assert.match(s, /Marketing Plausible not connected · 2 apps/); assert.match(s, /Stats API/); assert.match(s, /PLAUSIBLE_API_KEY/);
+let s = await ev(() => document.querySelector('#mkCard').innerText.replace(/\s+/g, ' ')); assert.match(s, /Marketing traffic not linked · 2 apps/); assert.match(s, /Plausible key \(optional fallback\)/); assert.match(s, /Stats API/); assert.match(s, /PLAUSIBLE_API_KEY/);
 assert.equal(await ev(() => document.querySelector('#mkKeyIn').type), 'password');
 await type('#mkKeyIn', 'short'); await click('[data-mks="key"]'); await wt(400); assert.match(await ev(() => document.querySelector('#mkCard').innerText), /Not saved: Paste the whole/);
 const KEY = 'plausible-live-key-0123456789abcdef'; await type('#mkKeyIn', KEY); await click('[data-mks="key"]'); await wt(1500);
-s = await ev(() => document.querySelector('#mkCard').innerText.replace(/\s+/g, ' ')); assert.match(s, /Connected — key stored encrypted on your server/); assert.match(s, /Plausible connected/);
+s = await ev(() => document.querySelector('#mkCard').innerText.replace(/\s+/g, ' ')); assert.match(s, /Connected — key stored encrypted on your server/); assert.match(s, /optional fallback/);
 assert.ok(reqs.some(x => x.startsWith('POST /marketing/plausible') && x.includes(KEY))); assert.ok(!(await ev(() => JSON.stringify(localStorage))).includes(KEY), 'key never stored in the browser');
 await ev(() => ywSettings(false));
 // Live data
@@ -91,8 +91,8 @@ await click('[data-mkdel="P2"]'); await wt(800); assert.match(dialogs.pop(), /De
 t = await room(); assert.doesNotMatch(t, /wx-outlook-live drafted/i); assert.match(t, /Deleted X · wx-outlook-live/);
 assert.ok(await ev(() => JSON.parse(localStorage.getItem('ywVaultAudit') || '[]').some(a => a.lane === 'Marketing' && /POST LOGGED/.test(a.decision))));
 // App picker: Hunt is connected but empty
-await click('[data-mk="app"][data-id="hunt"]'); await wt(900); t = await room(); assert.match(t, /hunt\.yourworldapps\.si/); assert.match(t, /No visitors yet — Plausible is connected — no visitors in this range yet/); assert.match(t, /No page views yet/);
-l = await say('how is marketing doing for hunt'); assert.match(l, /Hunt: Plausible is connected but recorded no visitors in the last 7 days/);
+await click('[data-mk="app"][data-id="hunt"]'); await wt(900); t = await room(); assert.match(t, /hunt\.yourworldapps\.si/); assert.match(t, /No visits yet — Google Analytics is linked — no visits on this site in this range yet/); assert.match(t, /No page views yet/);
+l = await say('how is marketing doing for hunt'); assert.match(l, /Hunt: Google Analytics is linked but recorded no visits in the last 7 days/);
 await click('[data-mk="app"][data-id="weather"]'); await wt(400);
 // Growth hand-off: marketing rule (41 visitors, 1 tapped Play = 2% < 5%)
 const F = await ev(() => grFocus().items.find(f => f.rule === 'marketing')); assert.ok(F, 'marketing focus item'); out.push('focus: ' + JSON.stringify(F));
