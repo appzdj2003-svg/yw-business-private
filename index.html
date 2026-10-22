@@ -434,6 +434,17 @@ body.arr-on .arr-item.arr-drag{animation:none;opacity:.92;box-shadow:0 12px 32px
 body.car-layout .arr-ctl button{min-width:56px;min-height:56px;font-size:20px}
 body.car-layout #arrBar button{min-height:56px;padding:0 20px;font-size:17px}
 body.arr-on main{padding-bottom:96px}
+#arrTray{position:fixed;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top));z-index:100002;max-height:60vh;overflow:auto;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 12px 36px #000c}
+#arrTray[hidden]{display:none}#arrTray h5{margin:0 0 6px;font-size:13px;color:var(--mut);font-weight:600;overflow-wrap:anywhere}
+#arrTray .at-l{display:flex;flex-wrap:wrap;gap:8px}#arrTray .at-b{min-height:48px;padding:6px 14px;border-radius:12px;border:2px dashed var(--line);background:var(--card2,var(--panel));color:var(--txt);font:inherit;cursor:pointer;max-width:100%;text-align:left;overflow-wrap:anywhere}
+#arrTray .at-b.kid{border-style:dotted}#arrTray .at-b.kid::before{content:'› ';color:var(--mut)}#arrTray .at-b[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+#arrTray .at-x{min-height:44px;margin-top:8px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--txt);font:inherit}
+.arr-hot,#arrTray .at-b.arr-hot{outline:3px solid var(--teal,#1fd3c6)!important;outline-offset:2px;background:color-mix(in srgb,var(--teal,#1fd3c6) 22%,var(--panel))!important}
+body.car-layout #arrTray .at-b{min-height:60px;font-size:18px;padding:8px 20px}body.car-layout #arrTray .at-x{min-height:56px}
+.arr-ctl .arr-to{font-size:13px;padding:0 10px}body.car-layout .arr-ctl .arr-to{font-size:16px}
+#ywToast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:100003;display:flex;gap:10px;align-items:center;max-width:calc(100vw - 24px);box-sizing:border-box;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--txt);box-shadow:0 10px 30px #000c;font-size:14px}
+#ywToast[hidden]{display:none}#ywToast span{min-width:0;overflow-wrap:anywhere}#ywToast button{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card2,var(--panel));color:var(--txt);font:inherit;font-weight:700;cursor:pointer;flex:none}
+body.car-layout #ywToast{font-size:17px}body.car-layout #ywToast button{min-height:56px}
 body.arr-on .card.arr-item,body.arr-on .mk-box.arr-item,body.arr-on .gr-app.arr-item,body.arr-on section.bizrow.arr-item{padding-top:56px}body.arr-on .biztile.arr-item{padding-bottom:54px}body.arr-on .biztile>.arr-ctl{top:auto;bottom:4px}
 body.car-layout.arr-on .card.arr-item,body.car-layout.arr-on .mk-box.arr-item,body.car-layout.arr-on section.bizrow.arr-item{padding-top:68px}body.car-layout.arr-on .biztile.arr-item{padding-bottom:66px}
 @media (min-width:521px){#arrBar{flex-wrap:nowrap;white-space:nowrap}}
@@ -443,7 +454,7 @@ body.car-layout.arr-on .card.arr-item,body.car-layout.arr-on .mk-box.arr-item,bo
 .mk-prov{color:var(--teal,#1fd3c6);border-color:color-mix(in srgb,var(--teal,#1fd3c6) 45%,transparent)}
 .mk-ga4{margin:2px 0 4px}
 </style>
-<div id="arrBar" hidden role="toolbar" aria-label="Arrange screen"><span id="arrMsg" aria-live="polite">Drag ⠿ or use ↑ ↓ to move boxes.</span><button type="button" id="arrReset">Reset layout</button><button type="button" id="arrCancel">Cancel</button><button type="button" id="arrDone">Done</button></div>
+<div id="arrTray" hidden aria-label="Move room to a business"></div><div id="ywToast" hidden role="status" aria-live="polite"></div><div id="arrBar" hidden role="toolbar" aria-label="Arrange screen"><span id="arrMsg" aria-live="polite">Drag ⠿ or use ↑ ↓ to move boxes.</span><button type="button" id="arrReset">Reset layout</button><button type="button" id="arrCancel">Cancel</button><button type="button" id="arrDone">Done</button></div>
 <div id="setPage" role="dialog" aria-label="Settings"><div class="wrap">
 <div style="display:flex;align-items:center;gap:10px"><h2>Settings</h2><button type="button" class="sbt" id="setClose" style="margin-left:auto">✕ Close</button></div>
 <p class="tip">Saved in this browser and synced to pop-out screens. Say "open Settings" / "close Settings".</p>
@@ -709,7 +720,7 @@ function roomBody(b,room,board){if(room.type==='growth')return growthRender(boar
  if(st==='mock')return layoutHTML(Object.assign({},room,{_noConn:true}),b.name);
  return roomNotConnected(k)}
 function bizCard(b,label,room,keep,board){if(!room)return cardHTML(label+' · '+b.name,roomNotConnected(''),keep);const {st,k}=roomState(b,room);
- return `<div class="card ${keep?'keep':''}"><h3>${esc(label)} · ${esc(b.name)} ${roomChip(st,k)}</h3>${roomBody(b,room,board)}</div>`}
+ return `<div class="card ${keep?'keep':''}" data-room="${esc(b.id+'/'+room.id)}"><h3>${esc(label)} · ${esc(b.name)} ${roomChip(st,k)}</h3>${roomBody(b,room,board)}</div>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-roomopen],[data-cxgo]');if(!t)return;
  if(t.dataset.roomopen){roomView=t.dataset.roomopen;draw();window.scrollTo({top:0});return}
  const k=t.dataset.cxgo;if(!k||k==='finance'){ywSettings(true);connOpen(k);return}setTab('connections');const bid=k.split('/')[0];CX.open[bid]=true;CX.roomOpen[k]=true;const bb=ogB(bid);if(bb&&bb.parent)CX.open[bb.parent]=true;ywSettings(true);connRender();
@@ -921,7 +932,7 @@ function qsRender(){const o=a11yGet(),t=$('#qsTheme'),sc=$('#qsScale');if(t)t.in
  const fd=$('#qsFs');if(fd)fd.checked=localStorage.getItem('ywFsDefault')==='1'}
 document.addEventListener('change',e=>{const id=e.target.id;if(id==='qsTheme'){const b=document.querySelector(`#optTheme [data-theme-set="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsScale'){const b=document.querySelector(`#optScale [data-scale="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsFs'){localStorage.setItem('ywFsDefault',e.target.checked?'1':'0')}});
 function llmHome(){const h=$('#llmHome'),p=$('#llmPanel');if(h&&p&&p.parentNode!==h){h.appendChild(p)}if(p){p.style.display='block';try{llmUI()}catch(e){}}}
-const SITE_BUILD='2026-10-21 · Settings regrouped, Arrange screen, Mock-off clean-up, GA4 marketing traffic';
+const SITE_BUILD='2026-10-21 · Move rooms between businesses (Arrange drag/drop, Move to…, Yorri)';
 async function advAbout(){const a=$('#advAbout');if(!a)return;let sv='not connected';const s=smsServer();if(s){try{const j=await (await fetch(s.url+'/healthz')).json();sv=j.build||'unknown'}catch(e){sv='unreachable'}}a.textContent=`Site build ${SITE_BUILD} · Server build ${sv}`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#advLayout,#advUnlink');if(!t)return;
  if(t.id==='advLayout'){orgRender();const b=document.querySelector('[data-og="reset"]');if(b)b.click();return}
@@ -951,7 +962,7 @@ function arrHas(){const S=arrAll()[arrScope()];return !!(S&&Object.keys(S).lengt
 function arrMsg(t){const m=$('#arrMsg');if(m)m.textContent=t}
 function arrDecorate(){document.querySelectorAll('.arr-ctl').forEach(x=>x.remove());document.querySelectorAll('.arr-item').forEach(x=>x.classList.remove('arr-item'));
  for(const o of arrConts())for(const it of arrItems(o.el)){it.classList.add('arr-item');const k=arrKey(it).replace(/^(h:|biz:|#)/,'');const c=document.createElement('div');c.className='arr-ctl';
-  c.innerHTML=`<button type="button" class="arr-mv" data-arrmv="-1" aria-label="Move ${esc(k)} earlier">↑</button><button type="button" class="arr-mv" data-arrmv="1" aria-label="Move ${esc(k)} later">↓</button><button type="button" class="arr-h" aria-label="Drag ${esc(k)} (arrow keys move it)">⠿</button>`;it.appendChild(c)}}
+  c.innerHTML=(it.dataset.room?`<button type="button" class="arr-to" data-arrto="${esc(it.dataset.room)}" aria-label="Move ${esc(k)} to another business" aria-haspopup="dialog">Move to…</button>`:'')+`<button type="button" class="arr-mv" data-arrmv="-1" aria-label="Move ${esc(k)} earlier">↑</button><button type="button" class="arr-mv" data-arrmv="1" aria-label="Move ${esc(k)} later">↓</button><button type="button" class="arr-h" aria-label="Drag ${esc(k)} (arrow keys move it)">⠿</button>`;it.appendChild(c)}}
 function arrEnter(why){if(ARR.on)return;ARR.on=true;ARR.dirty=false;ARR.changed=false;document.body.classList.add('arr-on');const b=$('#arrBar');if(b)b.hidden=false;arrDecorate();
  arrMsg(why==='lp'?'Arranging — drag ⠿ or use ↑ ↓, then Done.':'Drag ⠿ or use ↑ ↓ to move boxes, then Done.');const f=document.querySelector('.arr-ctl .arr-h');if(f&&why!=='lp')try{f.focus({preventScroll:true})}catch(e){}}
 function arrExit(save){if(!ARR.on)return;if(save){const all=arrAll(),sc=arrScope(),S={};for(const o of arrConts())S[arrCkey(o)]=arrItems(o.el).map(arrKey);all[sc]=S;arrSaveAll(all);try{broadcast({type:'arrange'})}catch(e){}}
@@ -962,6 +973,7 @@ function arrInfoRender(){const i=$('#arrInfo');if(!i)return;const n=Object.keys(
 function arrMove(it,d){const c=it.parentElement,L=arrItems(c),i=L.indexOf(it),j=i+d;if(i<0||j<0||j>=L.length)return false;if(d<0)c.insertBefore(it,L[j]);else c.insertBefore(it,L[j].nextSibling);ARR.changed=true;return true}
 // clicks inside the board do nothing while arranging (no accidental opens), except the arrange controls
 document.addEventListener('click',e=>{if(!ARR.on)return;const t=e.target;if(!t.closest||t.closest('#arrBar')||!t.closest('#board'))return;e.preventDefault();e.stopPropagation();
+ const to=t.closest('[data-arrto]');if(to){rmTrayOpen(to.dataset.arrto,'pick');return}
  const mv=t.closest('[data-arrmv]');if(mv){const it=mv.closest('.arr-item');if(it&&arrMove(it,+mv.dataset.arrmv)){arrMsg('Moved. Done saves.');mv.focus()}}},true);
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-arr],[data-arrmv],#arrDone,#arrCancel,#arrReset,#setArrange,#setArrReset,#setArrResetAll');if(!t)return;
  if(t.dataset.arr==='on'){arrEnter('btn');return}
@@ -977,18 +989,69 @@ document.addEventListener('pointerdown',e=>{if(e.button>0)return;const t=e.targe
   // the innermost arrange item under a mouse press is the one that moves
   e.preventDefault();ARR.drag={it,id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};try{(h||it).setPointerCapture(e.pointerId)}catch(x){}ARR.drag.cap=h||it;it.classList.add('arr-drag');return}
  if(t.closest('input,select,textarea,a,summary,label,[contenteditable="true"],.seg,.room-bar')||(t.closest('button')&&!t.closest('.biztile')))return;
- const it=arrItemAt(t);if(!it)return;clearTimeout(ARR.lp&&ARR.lp.tm);ARR.lp={x:e.clientX,y:e.clientY,id:e.pointerId,sy:scrollY,fired:false,tm:setTimeout(()=>{if(!ARR.lp)return;ARR.lp.fired=true;try{navigator.vibrate&&navigator.vibrate(18)}catch(x){}arrEnter('lp')},400)}},true);
+ const it=arrItemAt(t);if(!it)return;clearTimeout(ARR.lp&&ARR.lp.tm);ARR.lp={x:e.clientX,y:e.clientY,id:e.pointerId,sy:scrollY,fired:false,tm:setTimeout(()=>{if(!ARR.lp)return;ARR.lp.fired=true;try{navigator.vibrate&&navigator.vibrate(18)}catch(x){}arrEnter('lp');
+  // keep the same finger: long-press, then drag (Android style)
+  const L=ARR.lp,el=it;if(el&&el.classList.contains('arr-item')){ARR.drag={it:el,id:L.id,x:L.x,y:L.y,moved:false,cap:el};try{el.setPointerCapture(L.id)}catch(x){}el.classList.add('arr-drag')}},400)}},true);
+// while a drag is live the page must not scroll (otherwise touch would cancel the pointer)
+document.addEventListener('touchmove',e=>{if(ARR.drag)e.preventDefault()},{passive:false});
 function arrLpCancel(){if(ARR.lp&&!ARR.lp.fired){clearTimeout(ARR.lp.tm);ARR.lp=null}}
 document.addEventListener('pointermove',e=>{const L=ARR.lp;if(L&&!L.fired&&(Math.abs(e.clientX-L.x)>8||Math.abs(e.clientY-L.y)>8))arrLpCancel();const D=ARR.drag;if(!D||e.pointerId!==D.id)return;e.preventDefault();
- if(Math.abs(e.clientX-D.x)+Math.abs(e.clientY-D.y)>4)D.moved=true;const c=D.it.parentElement,L2=arrItems(c).filter(x=>x!==D.it);
+ if(Math.abs(e.clientX-D.x)+Math.abs(e.clientY-D.y)>4){if(!D.moved&&D.it.dataset.room)rmTrayOpen(D.it.dataset.room,'drag');D.moved=true}
+ if(D.it.dataset.room){const hot=rmDropAt(e.clientX,e.clientY,D.it);document.querySelectorAll('.arr-hot').forEach(x=>{if(x!==hot)x.classList.remove('arr-hot')});D.hot=hot;if(hot){hot.classList.add('arr-hot');return}}
+ const c=D.it.parentElement,L2=arrItems(c).filter(x=>x!==D.it);
  for(const o of L2){const r=o.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)continue;const wide=r.width>c.clientWidth*0.6,before=wide?e.clientY<r.top+r.height/2:e.clientX<r.left+r.width/2;
   if(before){if(D.it.nextElementSibling!==o){c.insertBefore(D.it,o);ARR.changed=true}}else if(o.nextElementSibling!==D.it){c.insertBefore(D.it,o.nextElementSibling);ARR.changed=true}break}
  const m=70;if(e.clientY<m)scrollBy(0,-14);else if(e.clientY>innerHeight-m)scrollBy(0,14)},{passive:false});
-function arrDragEnd(e){if(ARR.lp&&!ARR.lp.fired)arrLpCancel();else if(ARR.lp&&ARR.lp.fired)setTimeout(()=>{ARR.lp=null},0);const D=ARR.drag;if(!D||(e&&e.pointerId!==D.id))return;D.it.classList.remove('arr-drag');try{D.cap.releasePointerCapture(D.id)}catch(x){}ARR.drag=null;if(D.moved)arrMsg('Moved. Done saves.')}
+function arrDragEnd(e){if(ARR.lp&&!ARR.lp.fired)arrLpCancel();else if(ARR.lp&&ARR.lp.fired)setTimeout(()=>{ARR.lp=null},0);const D=ARR.drag;if(!D||(e&&e.pointerId!==D.id))return;D.it.classList.remove('arr-drag');try{D.cap.releasePointerCapture(D.id)}catch(x){}ARR.drag=null;
+ document.querySelectorAll('.arr-hot').forEach(x=>x.classList.remove('arr-hot'));const T=$('#arrTray');if(T&&T.dataset.mode==='drag')rmTrayClose();
+ if(D.hot&&D.it.dataset.room&&e&&e.type==='pointerup'){const to=rmDropBiz(D.hot);if(to){setTimeout(()=>rmMoveUI(D.it.dataset.room,to,'drag'),0);return}}if(D.moved)arrMsg('Moved. Done saves.')}
 document.addEventListener('pointerup',arrDragEnd,true);document.addEventListener('pointercancel',arrDragEnd,true);
 addEventListener('scroll',()=>{if(ARR.lp&&!ARR.lp.fired&&Math.abs(scrollY-ARR.lp.sy)>4)arrLpCancel()},{passive:true});
 window.addEventListener('storage',e=>{if(e.key===LS_ARR&&!ARR.on)draw()});
 
+/* ==== Move rooms between businesses (Arrange mode drag/drop, Move to… picker, Yorri "move <room> to <business>") ====
+   Drop targets: the business tray (shown while dragging / as the picker), business tiles on the Command board, and the business tabs/crumb.
+   A move keeps the room object (id, type, role, data) and its connection (orgMoveConn); built-in rooms stay built-in. Undo toast; Vault logs ROOM MOVED (not an approval);
+   syncs like Organize (saveBiz → storage event + device sync, broadcast 'biz' → pop-outs). */
+function rmFind(key){const [bid,rid]=String(key||'').split('/');const b=bizStore.businesses.find(x=>x.id===bid),r=b&&(b.rooms||[]).find(x=>x.id===rid);return b&&r?{b,r}:null}
+function rmLabel(b){const p=bizParent(b)&&ogB(bizParent(b));return (p?p.name+' › ':'')+b.name}
+// null = fine; {block:'why'} = refused; {warn:'what changes'} = allowed after a confirm
+function rmCheck(key,toId){const f=rmFind(key),T=bizStore.businesses.find(x=>x.id===toId);if(!f)return {block:'That room no longer exists.'};if(!T)return {block:'That business no longer exists.'};const {b,r}=f;
+ if(b.id===T.id)return {block:r.label+' is already in '+T.name+'.'};
+ if(r.type==='calendar'){if((T.rooms||[]).some(x=>x.type==='calendar'))return {block:T.name+' already has its own Calendar room. Each business’s Calendar shows that business’s events, so there’s nothing to move.'};return {warn:'Calendar rooms show their business’s events — in '+T.name+' it will show '+T.name+'’s calendar instead of '+b.name+'’s.'}}
+ try{const nm=b.name+' › '+r.label,ib=(INB.list||[]).find(x=>!x.builtin&&x.room===nm);if(ib)return {block:'This room shows the “'+(ib.label||ib.id)+'” inbox, which the server links by name to “'+nm+'”. Moving it would disconnect that inbox. Re-link the inbox in Settings → Inbox sorting first, or rename it there.'}}catch(e){}
+ if(r.role==='support')return {warn:'Support keeps the same inbox and ticket routing (it’s the Your World Apps support inbox) — only where the room shows changes. Yorri and the Support box will point to '+T.name+'.'};
+ if(r.type==='maint')return {warn:'Maintenance shows Safe Rack’s eMaint work orders (and its maintenance mail). That stays the same data — it will just appear under '+T.name+'.'};
+ if(r.type==='growth'||r.type==='marketing')return {warn:(r.type==='growth'?'Growth':'Marketing')+' covers all Your World apps; the data stays the same and just shows under '+T.name+'.'};
+ return null}
+function rmMove(key,toId,opt){opt=opt||{};const f=rmFind(key);if(!f)return {ok:false,msg:'That room no longer exists.'};const c=rmCheck(key,toId);if(c&&c.block)return {ok:false,msg:c.block};
+ const {b,r}=f,T=bizStore.businesses.find(x=>x.id===toId),idx=b.rooms.indexOf(r),lab=r.label;orgMoveRoom(b.id,r.id,T.id);
+ const msg='Moved '+lab+(r.label!==lab?' (now “'+r.label+'”, the name was taken)':'')+' from '+rmLabel(b)+' to '+rmLabel(T)+'.';
+ if(!opt.undo)audit({decision:'ROOM MOVED',tier:'T0',title:lab+': '+rmLabel(b)+' → '+rmLabel(T),lane:'Organize',move:true});else audit({decision:'ROOM MOVE UNDONE',tier:'T0',title:lab+': back to '+rmLabel(T),lane:'Organize',move:true});
+ RM.last={key:T.id+'/'+r.id,from:b.id,idx,label:lab};return {ok:true,msg,undo:RM.last}}
+const RM={last:null,tt:0};
+function rmUndo(u){u=u||RM.last;if(!u)return;const f=rmFind(u.key);if(!f)return;const {b,r}=f,A=bizStore.businesses.find(x=>x.id===u.from);if(!A)return;
+ const i=b.rooms.indexOf(r);b.rooms.splice(i,1);r.label=u.label;A.rooms.splice(Math.min(u.idx,A.rooms.length),0,r);orgMoveConn(b.id,A.id,r.id);
+ audit({decision:'ROOM MOVE UNDONE',tier:'T0',title:u.label+': back to '+rmLabel(A),lane:'Organize',move:true});RM.last=null;orgCommit('Moved '+u.label+' back to '+A.name+'.');toast('Moved '+esc(u.label)+' back to '+esc(rmLabel(A))+'.')}
+function toast(html,undo){const T=$('#ywToast');if(!T)return;clearTimeout(RM.tt);T.innerHTML=`<span>${html}</span>`+(undo?'<button type="button" id="toastUndo">Undo</button>':'');T.hidden=false;RM.tu=undo||null;RM.tt=setTimeout(()=>{T.hidden=true},undo?10000:4000)}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#toastUndo');if(!t)return;const u=RM.tu;$('#ywToast').hidden=true;rmUndo(u)});
+// UI path (drag/picker): confirm warnings, leave arrange mode (saving the order), move, toast
+function rmMoveUI(key,toId,via){const c=rmCheck(key,toId),f=rmFind(key);if(c&&c.block){toast('Can’t move: '+esc(c.block));arrMsg('Not moved — '+c.block);rmTrayClose();return false}
+ if(c&&c.warn&&!confirm('Move '+(f?f.r.label:'room')+' to '+rmLabel(bizStore.businesses.find(x=>x.id===toId))+'?\n\n'+c.warn))return false;
+ rmTrayClose();if(ARR.on)arrExit(true);const r=rmMove(key,toId);if(r.ok)toast(esc(r.msg),r.undo);else toast('Can’t move: '+esc(r.msg));return r.ok}
+function rmDropBiz(el){return el&&(el.dataset.arrdrop||el.dataset.bizgo||el.dataset.bznav)||null}
+function rmDropAt(x,y,self){for(const el of document.elementsFromPoint(x,y)){if(self&&self.contains(el))continue;const d=el.closest&&el.closest('#arrTray .at-b[data-arrdrop]:not([aria-disabled="true"]),#board .biztile[data-bizgo],#bizNav [data-bznav]');if(d&&!(self&&self.contains(d)))return d}return null}
+function rmTrayOpen(key,mode){const T=$('#arrTray'),f=rmFind(key);if(!T||!f)return;T.dataset.mode=mode;T.dataset.key=key;T.setAttribute('role',mode==='pick'?'dialog':'region');T.setAttribute('aria-modal',mode==='pick'?'true':'false');
+ const bs=bizOrdered();T.innerHTML=`<h5 id="arrTrayH">${mode==='pick'?'Move <b>'+esc(f.r.label)+'</b> to…':'Drop <b>'+esc(f.r.label)+'</b> on a business to move it'}</h5><div class="at-l">${bs.map(b=>{const here=b.id===f.b.id;return `<button type="button" class="at-b${bizParent(b)?' kid':''}" data-arrdrop="${esc(b.id)}"${here?' aria-disabled="true"':''} aria-label="${esc(rmLabel(b))}${here?' (already here)':''}">${esc(b.name)}${here?' · here':''}</button>`}).join('')}</div>${mode==='pick'?'<button type="button" class="at-x" id="arrTrayX">Cancel</button>':''}`;
+ T.hidden=false;if(mode==='pick'){const f1=T.querySelector('.at-b:not([aria-disabled="true"])');if(f1)f1.focus()}}
+function rmTrayClose(){const T=$('#arrTray');if(T){T.hidden=true;T.innerHTML='';delete T.dataset.mode}}
+document.addEventListener('click',e=>{const T=$('#arrTray');if(!T||T.hidden)return;const x=e.target.closest&&e.target.closest('#arrTrayX');if(x){rmTrayClose();return}
+ const d=e.target.closest&&e.target.closest('#arrTray [data-arrdrop]');if(!d)return;if(d.getAttribute('aria-disabled')==='true'){toast('Already in '+esc(d.textContent.replace(' · here',''))+'.');return}rmMoveUI(T.dataset.key,d.dataset.arrdrop,'pick')});
+document.addEventListener('keydown',e=>{const T=$('#arrTray');if(e.key==='Escape'&&T&&!T.hidden&&T.dataset.mode==='pick'){e.stopPropagation();e.preventDefault();rmTrayClose()}},true);
+// Yorri: move <room> to <business>
+function rmBizByName(q){q=String(q||'').toLowerCase().replace(/^(?:the\s+)?/,'').replace(/\s+(?:business|app|sub-?business)$/,'').trim();const B=bizStore.businesses;
+ return B.find(b=>b.name.toLowerCase()===q||b.id===q)||(()=>{const L=B.filter(b=>b.name.toLowerCase().startsWith(q)||b.name.toLowerCase().split(/\s+/).includes(q));return L.length===1?L[0]:null})()}
+function rmRoomsByName(q,from){q=String(q||'').toLowerCase().replace(/^(?:the|my)\s+/,'').replace(/\s+room$/,'').trim();const out=[];for(const b of bizStore.businesses){if(from&&b!==from)continue;for(const r of b.rooms||[])if(r.label.toLowerCase()===q)out.push({b,r})}return out}
 /* ==== Security & Vault, placement log, Connections jump ==== */
 function secRender(){const B=$('#secBox');if(!B)return;const yn=v=>v?'<span class="cx-ok">set</span>':'<span class="cx-st">not set</span>';let sv=null;try{sv=smsServer()}catch(e){}
  const A=auditList(),smp=A.filter(e=>e.sample).length,toks=Object.values(connAll()).filter(c=>c&&c.token).length;let llm=false;try{llm=!!llmCfg().key}catch(e){}
@@ -3185,6 +3248,15 @@ YC.list.unshift({id:'arr.on',group:'Navigation',cov:['set:layH'],ex:['arrange sc
 YC.list.unshift({id:'arr.reset',group:'Navigation',cov:['set:layH'],ex:['reset layout','reset all layouts'],help:'Puts the boxes on this screen back in the default order (or every screen with “reset all layouts”). Businesses and rooms are not changed.',
  match:(r,l)=>{if(/^reset\s+(?:all|every)\s+(?:screen\s+)?(?:layouts?|screens?)[.!]?$/.test(l))return {all:true};return /^reset\s+(?:the\s+|this\s+|my\s+)?(?:screen\s+)?(?:layout|box(?:es)?(?:\s+order)?|screen|arrangement)[.!]?$/.test(l)?{all:false}:null},
  run:m=>{const had=m.all?Object.keys(arrAll()).length:arrHas();arrReset(!!m.all);say('Yorri',m.all?(had?'Reset the box order on every screen.':'Every screen already uses the default order.'):(had?'Reset the box order on <b>'+esc(roomView)+'</b>.':'<b>'+esc(roomView)+'</b> already uses the default order.'))}});
+YC.list.unshift({id:'org.moveroom',group:'Navigation',cov:['set:orgH'],ex:['move Tickets to Weather Radar','move Storm board from Weather Radar to Hunt'],help:'Moves a room to another business or sub-business (same as dragging it onto a business in Arrange mode). Keeps its data and connection; warns or refuses when a move would change or break something. Undo from the toast.',
+ match:(r,l)=>{const m=l.match(/^(?:yorri\s+)?(?:please\s+)?move\s+(?:the\s+)?(.+?)(?:\s+room)?(?:\s+from\s+(.+?))?\s+(?:to|into|under)\s+(.+?)[.!]?$/);if(!m)return null;const T=rmBizByName(m[3]);if(!T)return null;const F=m[2]?rmBizByName(m[2]):null;if(m[2]&&!F)return null;
+  const L=rmRoomsByName(m[1],F);if(!L.length)return null;return {T,L}},
+ run:({T,L})=>{let f=L.length===1?L[0]:L.find(x=>x.b.id===bizStore.activeId);if(!f)return say('Yorri','More than one business has a room called <b>'+esc(L[0].r.label)+'</b> ('+L.map(x=>esc(x.b.name)).join(', ')+'). Say “move '+esc(L[0].r.label)+' from <i>business</i> to '+esc(T.name)+'”.');
+  const key=f.b.id+'/'+f.r.id,c=rmCheck(key,T.id);if(c&&c.block)return say('Yorri','I didn’t move it: '+esc(c.block));
+  const r=rmMove(key,T.id);if(!r.ok)return say('Yorri','I didn’t move it: '+esc(r.msg));toast(esc(r.msg),r.undo);say('Yorri',esc(r.msg)+(c&&c.warn?' Note: '+esc(c.warn):'')+' Tap <b>Undo</b> on the toast, or say <b>undo room move</b>.')}});
+YC.list.unshift({id:'org.moveundo',group:'Navigation',cov:['set:orgH'],ex:['undo room move'],help:'Puts the last moved room back where it was.',match:(r,l)=>/^(?:yorri\s+)?undo\s+(?:the\s+|that\s+|last\s+)?(?:room\s+)?move[.!]?$/.test(l),
+ run:()=>{if(!RM.last)return say('Yorri','There’s no room move to undo.');const u=RM.last;rmUndo(u);say('Yorri','Moved <b>'+esc(u.label)+'</b> back.')}});
+
 ycAdd({id:'nav.sync',group:'Navigation',cov:['card:dsCard'],ex:['open device sync'],help:'Settings → Connections → Device sync.',match:(r,l)=>/\b(open|show)\s+(?:device\s+)?sync\b/.test(l),run:()=>{ycCard('dsCard');say('Yorri','Opened <b>Device sync</b>.')}});
 ycAdd({id:'nav.settings',group:'Navigation',cov:['set:advH','set:aiH','set:orgH'],ex:['open settings','open advanced settings','open Yorri AI settings','open organize'],help:'Opens Settings or a section.',match:(r,l)=>{const m=l.match(/^(?:open|go to|show)\s+(?:the\s+)?(settings|advanced(?:\s+settings)?|(?:yorri\s+)?ai(?:\s+settings)?|grok(?:\s+settings)?|organi[sz]e(?:r)?|general(?:\s+settings)?|accessibility|appearance)$/);return m?m[1]:null},run:m=>{
   if(/advanced/.test(m)){ycSec('advanced','advH');return say('Yorri','Opened <b>Advanced</b> settings.')}if(/ai|grok/.test(m)){ycSec('yorri','aiH',llmHome);return say('Yorri','Opened <b>Yorri AI</b> settings.')}
