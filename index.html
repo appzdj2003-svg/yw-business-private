@@ -14,6 +14,12 @@ header{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:
 .topnav button.act{color:var(--ink);background:var(--teal);border-color:var(--teal);font-weight:700}
 .topnav button:not(.act):hover{color:var(--teal);box-shadow:0 0 12px color-mix(in srgb,var(--teal) 20%,transparent)}
 nav.rooms{display:flex;gap:6px;padding:10px 18px;overflow-x:auto;border-bottom:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.ins-box{grid-column:1/-1;border-color:var(--teal)}.ins-box h3 .spk-t{margin-left:6px}.ins-h{font-size:1.15em;font-weight:600;margin:4px 0 8px}
+.ins-r{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:6px 0;border-radius:10px;background:var(--panel);border-left:4px solid var(--line)}.ins-t{flex:1;min-width:0}.ins-t small{display:block;color:var(--mut);margin-top:2px}
+.ins-r.sv-cr,.ins-r.sv-hi{border-left-color:#ff5d5d}.ins-r.sv-md{border-left-color:#f5b942}.ins-r.sv-lo{border-left-color:var(--teal)}.ins-new{box-shadow:0 0 0 1px var(--teal) inset}.ins-nb{font-size:.7em;background:var(--teal);color:var(--ink);border-radius:6px;padding:1px 6px;vertical-align:middle}
+.ins-a{background:var(--teal);color:var(--ink);border:0;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;white-space:nowrap}.ins-bots{margin-top:10px;border-top:1px solid var(--line);padding-top:6px}.ins-bots h5{margin:2px 0 4px;color:var(--mut)}.ins-bt{padding:3px 0}.ins-bt small{color:var(--mut)}.ins-sk{margin-top:6px;font-size:.8em}
+nav.rooms button[data-ins]::after{content:attr(data-ins);margin-left:6px;font-size:.75em;background:var(--line);color:var(--ink);border-radius:9px;padding:1px 6px}nav.rooms button.ins-hi[data-ins]::after{background:#ff5d5d;color:#fff}
+body.car-layout .ins-r{padding:12px;font-size:1.15em}body.car-layout .ins-a{padding:12px 18px;font-size:1.05em}
 nav.rooms button{background:var(--panel);color:var(--mut);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap;transition:all .2s}
 nav.rooms button.act{color:var(--ink);background:var(--teal);border-color:var(--teal)}
 nav.rooms button.act:hover,.topnav button.act:hover{color:var(--ink)}
@@ -2752,7 +2758,9 @@ function draw0(){if(typeof dedupeQ==='function')dedupeQ();try{sampleQPurge()}cat
     else html=list.map(({label,room})=>bizCard(b,label,room,isSat,roomView==='Business Board'&&!isSat&&list.length>1)).join('');
   }
   {const rk=pageView+'|'+roomView;if(rk!==lastRoomKey){lastRoomKey=rk;ROOMSUB='room'}if(singleRoom()&&ROOMSUB==='cal'){const sc=roomScope();html=`<div class="card keep"><h3>${esc(roomView)} · Calendar ${roomChip('live')}</h3>${calHTML(sc)}</div>`}html=roomBarHTML()+html;if(document.body.classList.contains('fs')){const fq=$('#fsCrumb');if(fq)fq.textContent=(document.querySelector('.room-crumb')||{}).textContent||''}}
+  if(!isSat&&(roomView==='Command Board'||roomView==='Business Board'))html=insBoxHTML()+html;
   $('#board').innerHTML=html;{const c=document.querySelector('#board .room-crumb'),fc=$('#fsCrumb');if(c&&fc)fc.textContent=c.textContent}
+  try{insBadges()}catch(e){}
   if($('#pend'))$('#pend').textContent=queue.length+' AWAITING YOUR DECISION';
   if($('#dq')){
     $('#dq').classList.toggle('decide',queue.length>0);
@@ -2984,7 +2992,7 @@ try{const o=await llmCall([{role:'user',content:'Reply with: OK'}],c);$('#llmSta
    ycCoverage() lists anything in Settings/rooms with no entry (checked by the headless test). */
 const YC={list:[],pending:null};
 function ycAdd(c){YC.list.push(c);return c}
-const YC_GROUPS=['Calendar','KPIs','Growth','Marketing','Finance','Support & eMaint','Alerts','Navigation','Voice & display','Decisions & lanes','Help'];
+const YC_GROUPS=['Briefing','Calendar','KPIs','Growth','Marketing','Finance','Support & eMaint','Alerts','Navigation','Voice & display','Decisions & lanes','Help'];
 function ycClean(t){return String(t||'').replace(/[“”]/g,'"').replace(/[’]/g,"'").replace(/^\s*(hey\s+|ok\s+)?yorri[\s,:]+/i,'').replace(/[.!?]+\s*$/,'').trim()}
 const YC_WD=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'],YC_MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'],YC_MON='(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|august|aug|september|sept|sep|october|oct|november|nov|december|dec)';
 const ycMid=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x};
@@ -3499,6 +3507,52 @@ ycAdd({id:'dec.approve',group:'Decisions & lanes',ex:['Yorri approve','approve T
 ycAdd({id:'dec.lanes',group:'Decisions & lanes',ex:['hire 5 engineers','run payroll','briefing','summarize legal risks'],help:'Proposes plans into your decision queue and summarizes HR, Payroll, Legal, Vault and the briefing (mock or live).'});
 ycAdd({id:'cal.agenda',group:'Calendar',cov:['room:Calendar'],ex:['what’s on tomorrow','what do I have Friday','what’s on this week'],help:'Reads your schedule for a day or week, from every calendar and room.',match:(r,l)=>/\bwhat(?:'?s| is| do i have| have i got| am i doing)\b.*\b(on|planned|scheduled|happening|have|calendar|agenda)?\b/.test(l)&&(new RegExp('\\b'+WDRE+'\\b').test(l)||/\b(calendar|agenda|schedule)\b/.test(l))&&!/\bkpis?|users?|revenue|cash|tickets?\b/.test(l)||/^(?:my\s+)?(?:agenda|schedule)\b/.test(l),run:(m,r)=>ycAgenda(r)});
 ycAdd({id:'cal.open',group:'Calendar',cov:['room:Calendar'],ex:['open Tuesday','show tomorrow','open Oct 20'],help:'Opens the Day sheet for that date.',match:(r,l)=>{const m=l.match(new RegExp('^(?:open|show|go\\s+to)\\s+(?:the\\s+)?(?:day\\s+)?(?:for\\s+)?('+WDRE+')(?:\\s+on\\s+(?:the|my)\\s+calendar)?$'));return m},run:(m,r)=>{const d=ycDay(r);dayOpen(dayKey(d.d.getTime()),{all:true});say('Yorri',`Opened ${esc(calDay(d.d))}. Swipe or use the arrows for other days; say <b>what’s on</b> to hear it.`)}});
+/* ===== Insights: "What matters now" + bot feed + since-you-were-away (real data only, from GET /insights) ===== */
+const INS={v:null,err:'',at:0,busy:false,greeted:false,open:true};
+const INS_SEEN='ywInsSeen',INS_ROOM={support:'Support',calendar:'Calendar',marketing:'Marketing',growth:'Growth',rnd:'R&D',acquisitions:'Acquisitions',decisions:null,settings:null,bots:null};
+function insSeen(){try{return JSON.parse(localStorage.getItem(INS_SEEN)||'{}')}catch(e){return {}}}
+function insKey(s){return s.id+'|'+s.title}
+function insNew(){const v=INS.v;if(!v)return [];const seen=insSeen();if(!seen.at)return [];return v.signals.filter(s=>!seen.k||!seen.k.includes(insKey(s)))}
+function insMarkSeen(){if(!INS.v)return;try{localStorage.setItem(INS_SEEN,JSON.stringify({at:Date.now(),k:INS.v.signals.map(insKey).slice(0,200)}))}catch(e){}draw()}
+async function insLoad(fresh){if(INS.busy||!smsServer())return;INS.busy=true;try{{const r=await svReq('GET','/insights'+(fresh?'?fresh=1':''));INS.v=(r&&Array.isArray(r.signals))?Object.assign({briefing:{headline:''},fromBots:[]},r):null}INS.err='';INS.at=Date.now();if(!insSeen().at)insMarkSeen()}catch(e){INS.err=String(e.message||e).slice(0,140)}INS.busy=false;insGreet();draw()}
+function insRoomLabel(s){const t=INS_ROOM[s.room];if(t===undefined)return null;return t}
+function insGo(i){const s=INS.v&&INS.v.signals[i];if(!s)return;const l=s.link||'/';
+  if(/^https:\/\//.test(l)){window.open(l,'_blank','noopener');return}
+  if(/decisions=1/.test(l)){const d=$('#dq');if(d)d.scrollIntoView({behavior:'smooth',block:'center'});return}
+  const m=l.match(/[?&]room=([^&]+)/);if(m){const want=(INS_ROOM[decodeURIComponent(m[1])]||decodeURIComponent(m[1])).toLowerCase();const b=[...$('#nav').children].find(x=>x.textContent.toLowerCase()===want||x.textContent.toLowerCase().includes(want));
+    if(b){b.click();return}if(pageView!=='apps'&&$('#navApps')){$('#navApps').click();setTimeout(()=>{const c=[...$('#nav').children].find(x=>x.textContent.toLowerCase().includes(want));if(c)c.click()},60);return}}
+  location.href=l}
+const INS_SV={critical:'cr',high:'hi',medium:'md',low:'lo',info:'in'};
+function insBoxHTML(){if(!smsServer())return '';const v=INS.v;
+  if(!v)return `<div class="card ins-box keep"><h3>What matters now <span class="mono">LIVE</span></h3><p class="cx-st">${INS.err?'Could not load insights: '+esc(INS.err):'Reading every room…'}</p></div>`;
+  const nw=new Set(insNew().map(insKey)),top=v.signals.filter(s=>s.severity!=='info').slice(0,carLayout?3:5),bots=(v.fromBots||[]).slice(0,4);
+  const row=(s)=>{const i=v.signals.indexOf(s);return `<div class="ins-r sv-${INS_SV[s.severity]||'in'}${nw.has(insKey(s))?' ins-new':''}"><div class="ins-t"><b>${esc(s.title)}</b>${nw.has(insKey(s))?' <span class="ins-nb">NEW</span>':''}${s.why&&!carLayout?`<small>${esc(s.why)}</small>`:''}</div><button type="button" class="ins-a" data-insgo="${i}">${esc(s.actionType==='approve'?'Review':s.actionType==='draft'?'Draft':'Open')}</button></div>`};
+  const age=Math.max(0,Math.round((Date.now()-v.asOf)/6e4));
+  return `<div class="card ins-box keep"><h3>What matters now <span class="mono">LIVE · ${age?age+' min ago':'just now'}</span><button type="button" class="spk-t" data-insact="refresh" title="Refresh">↻</button>${nw.size?`<button type="button" class="spk-t" data-insact="seen">✓ ${nw.size} new · mark seen</button>`:''}</h3>
+  <p class="ins-h">${esc(v.briefing.headline)}</p>${top.length?top.map(row).join(''):'<p class="cx-st">Nothing urgent across your rooms.</p>'}
+  ${bots.length?`<div class="ins-bots"><h5>From your bots</h5>${bots.map(b=>`<div class="ins-bt"><b>${esc(b.bot)}</b> ${esc(b.title)}${b.detail&&!carLayout?` <small>${esc(b.detail)}</small>`:''}</div>`).join('')}</div>`:''}
+  ${v.skipped&&v.skipped.length&&!carLayout?`<p class="cx-st ins-sk">Not read: ${v.skipped.map(x=>esc(x.source)).join(', ')}</p>`:''}</div>`}
+function insBadges(){const v=INS.v;if(!v||!$('#nav'))return;[...$('#nav').children].forEach(b=>{const n=b.textContent.toLowerCase();let c=0,hi=false,top='';
+  for(const s of v.signals){const L=insRoomLabel(s);if(!L||s.severity==='info')continue;if(n===L.toLowerCase()||n.includes(L.toLowerCase())){c++;if(['high','critical'].includes(s.severity))hi=true;if(!top)top=s.title}}
+  if(c){b.dataset.ins=c;b.classList.toggle('ins-hi',hi);b.title=top}else{delete b.dataset.ins;b.classList.remove('ins-hi')}})}
+function insGreet(){if(INS.greeted||!INS.v||!$('#log'))return;INS.greeted=true;const v=INS.v,top=v.signals.filter(s=>s.severity!=='info').slice(0,3),nw=insNew().length;
+  const t=`<b>${esc(v.briefing.headline)}.</b> `+(top.length?top.map((s,i)=>`${i+1}. ${esc(s.title)}`).join(' · '):'Nothing urgent.')+(nw?` <i>(${nw} new since you were last here)</i>`:'')+' Say <b>brief me</b> for more.';
+  $('#log').insertAdjacentHTML('beforeend',`<p class="y"><b>Yorri:</b> ${t}</p>`);$('#log').scrollTop=1e9} // text only: no auto speech
+document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-insgo],[data-insact]');if(!g)return;if(g.dataset.insgo!=null)insGo(+g.dataset.insgo);else if(g.dataset.insact==='refresh')insLoad(true);else if(g.dataset.insact==='seen')insMarkSeen()});
+setTimeout(()=>insLoad(false),1200);setInterval(()=>{if(!document.hidden)insLoad(false)},3*6e4);
+async function insReady(){if(!INS.v||Date.now()-INS.at>9e4)await insLoad(true);return INS.v}
+ycAdd({id:'ins.brief',group:'Briefing',ex:['brief me','what matters','what matters now'],help:'Reads every room (Support, drafts, decisions, Marketing, Growth/GA4, Calendar, R&D, Acquisitions, your bots) and gives the top things that need you, ranked.',
+ match:(r,l)=>/^(?:yorri[, ]+)?(?:brief me|give me (?:a|the) brief(?:ing)?|what matters(?: now| today)?|what needs me|what should i (?:do|focus on)(?: now| today)?|morning brief(?:ing)?)\??$/.test(l),
+ run:async()=>{if(!smsServer())return say('Yorri','Connect the Support server in Connections first — the briefing only uses live data.');const v=await insReady();if(!v)return say('Yorri','I could not read the rooms: '+esc(INS.err));
+  const top=v.signals.filter(s=>s.severity!=='info').slice(0,5);say('Yorri',`<b>${esc(v.briefing.headline)}.</b> `+(top.length?top.map((s,i)=>`${i+1}. ${esc(s.title)}${s.suggestedAction?' — '+esc(s.suggestedAction):''}`).join(' · '):'Nothing urgent across your rooms.'))}});
+ycAdd({id:'ins.new',group:'Briefing',ex:["what's new since yesterday",'what did I miss','what changed'],help:'Lists signals that are new since you last marked the briefing seen on this device, plus bot updates from the last day.',
+ match:(r,l)=>/^(?:yorri[, ]+)?(?:what'?s new(?: since (?:yesterday|last time|i was (?:away|gone)))?|what did i miss|what changed(?: since yesterday)?|anything new)\??$/.test(l),
+ run:async()=>{if(!smsServer())return say('Yorri','Connect the Support server in Connections first.');const v=await insReady();if(!v)return say('Yorri','I could not read the rooms: '+esc(INS.err));
+  const nw=insNew(),bots=(v.fromBots||[]).filter(b=>Date.now()-b.at<864e5);if(!nw.length&&!bots.length)return say('Yorri','Nothing new since you last checked.');
+  say('Yorri',(nw.length?`<b>${nw.length} new:</b> `+nw.slice(0,5).map(s=>esc(s.title)).join(' · '):'')+(bots.length?` <b>From your bots:</b> `+bots.slice(0,4).map(b=>esc(b.bot+': '+b.title)).join(' · '):'')+'. Say <b>mark seen</b> to clear.')}});
+ycAdd({id:'ins.seen',group:'Briefing',ex:['mark seen'],help:'Marks the current briefing as seen on this device, so “what’s new” starts fresh.',match:(r,l)=>/^(?:mark (?:it |all |everything )?(?:as )?seen|clear new)$/.test(l),run:()=>{insMarkSeen();say('Yorri','Marked seen.')}});
+ycAdd({id:'ins.bots',group:'Briefing',ex:['what are my bots saying','bot updates'],help:'Latest updates pushed by your other Your World bots (WeatherAI, HuntAI, TikTok Marketing, …).',match:(r,l)=>/^(?:what are (?:my )?bots saying|bot updates|updates from (?:my )?bots|from my bots)\??$/.test(l),
+ run:async()=>{const v=await insReady();const b=(v&&v.fromBots)||[];say('Yorri',b.length?b.slice(0,5).map(x=>`<b>${esc(x.bot)}</b>: ${esc(x.title)}`).join(' · '):'No bot updates yet. Bots post to <b>POST /signals</b> on the server.')}});
 ycAdd({id:'help',group:'Help',cov:['set:ycH'],ex:['Yorri what can you do','help'],help:'Lists commands by group. The full list with search is here in Settings.',match:(r,l)=>/^(?:help|commands|what can you do|what can i say|what do you do|list commands|show commands|what are (?:your|the) commands)\b/.test(l),run:()=>ycHelp()});
 
 function ask(t){
