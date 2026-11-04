@@ -96,13 +96,13 @@ const by = id => st.biz.find(b => b.id === id);
 assert.equal(by('weather').parent, 'yw-apps'); assert.equal(by('hunt').parent, 'yw-apps'); assert.equal(by('safe-rack').parent, ''); assert.equal(by('yw-apps').parent, '');
 assert.ok(by('yw-apps').rooms.includes('yw-marketing') && !by('hunt').rooms.includes('yw-marketing'), 'Marketing moved to Your World Apps');
 assert.ok(by('safe-rack').rooms.includes('sr-maint') && !by('weather').rooms.includes('sr-maint'), 'Maintenance moved to Safe Rack');
-assert.ok(by('weather').rooms.includes('w1') && by('hunt').rooms.includes('h1'), 'other rooms stay put'); assert.equal(st.biz.reduce((n, b) => n + b.rooms.length, 0), 11, 'no room lost (+R&D, Acquisitions from ywSeedRA)');
+assert.ok(by('weather').rooms.includes('w1') && by('hunt').rooms.includes('h1'), 'other rooms stay put'); assert.ok(by('music') && !by('music').parent, 'Music is a top-level peer'); assert.equal(st.biz.reduce((n, b) => n + b.rooms.length, 0), 17, 'no room lost (+R&D, Acquisitions from ywSeedRA, +6 Music rooms)');
 assert.ok(st.conn.includes('yw-apps/yw-marketing') && !st.conn.includes('hunt/yw-marketing'), 'connection moved with its room');
 assert.deepEqual(st.audit, ['Real decision · keep me'], 'only sample Vault entries removed'); assert.deepEqual(st.sup, ['S-16bb688f'], 'only stub-ticket state removed');
 assert.ok(st.purged.vault === 2 && st.purged.sampleTickets === 1, JSON.stringify(st.purged));
 assert.equal(await T1.ev(() => bizStore.businesses.find(b => b.id === 'yw-apps').rooms.find(r => r.id === 'yw-marketing').type), 'marketing', 'built-in room keeps its type');
 await T1.ev(() => { location.reload() }); await T1.wt(5000);
-assert.equal(await T1.ev(() => bizStore.businesses.reduce((n, b) => n + b.rooms.length, 0)), 11, 'one-time fix: nothing changes on reload');
+assert.equal(await T1.ev(() => bizStore.businesses.reduce((n, b) => n + b.rooms.length, 0)), 17, 'one-time fix: nothing changes on reload');
 // a business the user nested elsewhere / renamed is never moved again: user moves Hunt back to top level
 await T1.ev(() => { delete bizStore.businesses.find(b => b.id === 'hunt').parent; saveBiz(); location.reload() }); await T1.wt(5000);
 assert.equal(await T1.ev(() => bizStore.businesses.find(b => b.id === 'hunt').parent || ''), '', 'user choice kept after the one-time fix');
@@ -113,7 +113,7 @@ const H2 = await scanAll(T2, 'server'); assert.deepEqual(T2.errs, []);
 const nc = await T2.ev(() => { bizStore.activeId = 'safe-rack'; setPageView('apps'); roomView = 'Business Board'; draw(); return document.querySelector('#board').innerText });
 console.log('hits', JSON.stringify(H1.concat(H2), null, 1)); assert.deepEqual(H1.concat(H2), [], 'no sample/demo/stub text with Mock data off');
 // fresh seed puts Weather Radar + Hunt under Your World Apps
-assert.deepEqual(await T2.ev(() => bizStore.businesses.map(b => b.id + ':' + (b.parent || ''))), ['yw-apps:', 'weather:yw-apps', 'hunt:yw-apps', 'safe-rack:']);
+assert.deepEqual(await T2.ev(() => bizStore.businesses.map(b => b.id + ':' + (b.parent || ''))), ['yw-apps:', 'weather:yw-apps', 'hunt:yw-apps', 'safe-rack:', 'music:']);
 await T2.ctx.close();
 // 3) Mock data ON (no server): SAMPLE data is back and labelled
 const T3 = await open(true, null, '1');
