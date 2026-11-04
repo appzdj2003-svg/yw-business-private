@@ -2626,7 +2626,7 @@ const muN=v=>v==null?null:Number(v).toLocaleString();
 const muW='<span class="cx-st">waiting for data</span>';
 const muArt=id=>((MU.s&&MU.s.artists)||[]).find(a=>a.id===id);
 const muAsOf=d=>d?`<small class="cx-st">as of ${esc(d)}</small>`:'';
-function muTile(lbl,v,asof,src){return `<div><b>${v==null?'—':esc(muN(v))}</b><small>${esc(lbl)}</small>${v==null?'<small class="cx-st">waiting for data</small>':asof?`<small class="cx-st">as of ${esc(asof)}${src?' · '+esc(src):''}</small>`:''}</div>`}
+function muTile(lbl,v,asof,src){return `<div><b>${v==null?'—':esc(muN(v))}</b><small>${esc(lbl)}</small>${v==null?'<small class="cx-st" style="display:block">waiting for data</small>':asof?`<small class="cx-st" style="display:block">as of ${esc(asof)}${src?' · '+esc(src):''}</small>`:''}</div>`}
 function muYtAsOf(a){return a&&a.youtube&&a.youtube.asOf?new Date(a.youtube.asOf).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}
 function muTiles(a){const m=a.manual||{},y=a.youtube||{},P=a.platforms||[],ya=muYtAsOf(a);let h='';
  if(P.includes('spotify'))h+=muTile('Spotify monthly listeners',m.spotify_monthly_listeners.value,m.spotify_monthly_listeners.asOf,'reported')+muTile('Spotify followers',m.spotify_followers.value,m.spotify_followers.asOf,'reported');
