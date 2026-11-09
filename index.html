@@ -1495,8 +1495,10 @@ document.addEventListener('drop',e=>{if(!OGD)return;const nz=e.target.closest&&e
  if(d.kind==='biz'){const bs=bizStore.businesses,i=bs.findIndex(x=>x.id===d.b),j=bs.findIndex(x=>x.id===g.dataset.ogb);if(i<0||j<0||i===j)return orgRender();if(bizParent(bs[i])!==bizParent(bs[j])){const g2=bizParent(bs[j])?null:bs[j];if(g2&&bizNest(bs[i],g2.id)){OG.force=g2.id;orgCommit('Moved '+bs[i].name+' under '+g2.name+'.')}else orgRender();return}const [x]=bs.splice(i,1);bs.splice(j,0,x);orgCommit('Moved '+x.name+'.');return}
  const to=g.dataset.ogb,B=ogB(to);let idx=r?B.rooms.findIndex(x=>x.id===r.dataset.ogr):B.rooms.length;if(d.b===to){const from=B.rooms.findIndex(x=>x.id===d.r);if(from<idx)idx--}orgMoveRoom(d.b,d.r,to,idx)});
 
+// A room is live when its own connection is live, or it runs on the connected Support server and has live data (roomState).
+function bizLive(b){return (b.rooms||[]).filter(r=>{const c=connGet(connKey(b.id,r.id));if(c.live&&c.url)return true;try{return roomState(b,r).st==='live'}catch(e){return false}}).length}
 function bizTilesHTML(){const bs=bizTop();if(!bs.length)return '';
- return `<section class="bizrow" aria-label="Businesses"><h3>Businesses</h3>${bs.map(b=>{const rooms=b.rooms||[],live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));return c.live&&c.url}).length;
+ return `<section class="bizrow" aria-label="Businesses"><h3>Businesses</h3>${bs.map(b=>{const rooms=b.rooms||[],live=bizLive(b);
   return `<button type="button" class="biztile" data-bizgo="${esc(b.id)}" aria-label="Open ${esc(b.name)}: ${bizCount(b)}, ${live} live"><b>${esc(b.name)}</b><small><span class="cx-dot ${live?'live':''}" aria-hidden="true"></span>${bizCount(b)} · ${live?live+' live':mockOn?'sample':'not connected'}</small></button>`}).join('')}</section>`}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-bizgo],#backCmd');if(!t)return;
  if(t.id==='backCmd'){setPageView('command');roomView='Command Board';draw();return}
@@ -1512,7 +1514,7 @@ function connMigrate(){if(!roomFind(supRoomPred)){const y=bizStore.businesses.fi
  const dflt=(k,type)=>{if(!o[k]){o[k]={type,url:'',token:'',live:false};ch=true}};dflt(SUP_KEY(),'support');dflt(MT_KEY(),'emaint');if(ch)connSave(o)}
 function connState(c){if(c.live&&c.url)return c.result&&!c.result.ok?['err','Error']:['live','Live'];return c.type==='none'?['','Not connected']:['sample','Sample']}
 function connRender(){cxGroupsRender();const L=$('#connList');if(!L)return;L.querySelectorAll('details[data-cxb]').forEach(d=>CX.open[d.dataset.cxb]=d.open);L.querySelectorAll('details[data-cxr]').forEach(d=>CX.roomOpen[d.dataset.cxr]=d.open);const all=connAll();
- L.innerHTML=bizOrdered().map(b=>{const rooms=b.rooms||[];const live=rooms.filter(r=>{const c=connGet(connKey(b.id,r.id));if(c.live&&c.url)return true;try{return roomState(b,r).st==='live'}catch(e){return false}}).length;
+ L.innerHTML=bizOrdered().map(b=>{const rooms=b.rooms||[];const live=bizLive(b);
   return `<details class="cx-biz${bizParent(b)?' og-child':''}" data-cxb="${esc(b.id)}"${CX.open[b.id]?' open':''}><summary aria-label="${esc(b.name)}, ${live} of ${rooms.length} rooms live">${bizParent(b)?'<span class="cx-n" aria-hidden="true">'+esc(ogB(bizParent(b)).name)+' ›</span> ':''}${esc(b.name)} <span class="cx-n">${live}/${rooms.length} live</span></summary>${!smsServer()&&rooms.length?`<p class="cx-help" style="padding:6px 14px">Most rooms here read from your Support server, which isn’t connected on this browser. ${srvBtn()}</p>`:''}`+
   (rooms.length?rooms.map(r=>{const k=connKey(b.id,r.id),c=connGet(k),[cls,lab]=connState(c),id='cx'+k.replace(/[^a-z0-9]/gi,'_');
    return `<details class="cx-room" data-cxr="${esc(k)}"${CX.roomOpen[k]?' open':''}><summary aria-label="${esc(r.label)}: ${lab}. Edit"><span class="cx-dot ${cls}" aria-hidden="true"></span>${esc(r.label)} <span class="cx-st">${lab}</span></summary>
@@ -3944,7 +3946,7 @@ async function rsRestore(code,auto){if(!rsOk()){RS.msg='Restore needs a secure (
   if(!blob){RS.busy=false;RS.has=false;if(rsPayload()){const salt=crypto.getRandomValues(new Uint8Array(16));await rsKeyPut({id,key:await rsKeyOf(base,salt),salt});const ok=await rsSave(null,true);RS.msg=ok?'Restore copy saved from this browser.':'Couldn’t save the restore copy yet.';RS.err=!ok;rsRender();if(auto)rsToast('');return ok}
    RS.msg='No restore copy on the server yet. Connect once on a working browser and tap “Save for access-code restore”.';RS.err=true;rsRender();if(auto)rsToast(RS.msg,true);return false}
   const salt=rsUnb64(blob.salt),key=await rsKeyOf(base,salt);let p;try{p=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:rsUnb64(blob.iv)},key,rsUnb64(blob.ct))))}catch(e){throw new Error('this access code can’t unlock the restore copy (it was saved with a different code)')}
-  await rsKeyPut({id,key,salt});RS.has=true;
+  await rsKeyPut({id,key,salt});RS.has=true;try{_lsSet.call(localStorage,'ywRsAt',String(Date.now()))}catch(e){}
   let changed=false;const d=dsGet();
   if(p.ds&&p.ds.url&&p.ds.token&&!(d.linked&&d.token)){dsSet({url:p.ds.url,token:p.ds.token,xai:!!p.ds.xai,linked:true,rev:0});changed=true;try{const {j}=await dsReq('GET');if(j.bundle){dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable})}}catch(e){}}
   {const all=connAll();let ch=false;for(const[k,v]of Object.entries(p.conn||{})){const L=all[k]||{};if(!L.url&&v.url||!L.token&&v.token&&(!L.url||L.url===v.url)){all[k]=Object.assign({},L,{type:L.type&&L.type!=='none'?L.type:v.type,url:L.url||v.url,token:L.token||v.token,live:L.url?!!L.live:!!v.live});ch=true}}if(ch){connSave(all);changed=true}}
