@@ -21,6 +21,7 @@ await ctx.route('**/*', r => r.request().url().startsWith('http://127.0.0.1:8147
 await ctx.route(SV + '/**', async r => { const q = r.request(), u = new URL(q.url()), M = q.method(), bd = q.postData() ? JSON.parse(q.postData()) : null; reqs.push(M + ' ' + u.pathname + u.search + (bd ? ' ' + q.postData() : ''));
   let body = {}, status = 200;
   if (u.pathname === '/tickets') body = TS; else if (u.pathname === '/kpi/growth') body = GROWTH;
+  else if (u.pathname === '/appstore/stats') body = { apps: [] };
   else if (u.pathname === '/kpi/summary') body = { configured: true, asOf: NOW, ga4: { apps: [] }, appstore: { configured: false } };
   else if (u.pathname === '/kpi/status') body = { play: { configured: false }, ga4: { configured: true, apps: [{ id: 'hunt', label: 'Hunt', biz: 'hunt', propertyId: '559431330' }, { id: 'weather-radar', label: 'Weather Radar', biz: 'weather', propertyId: '559303196' }] }, appstore: { configured: false, note: 'Not connected' } };
   else if (u.pathname === '/kpi/config') body = { play: { configured: false }, ga4: { configured: true, apps: [] } };
