@@ -33,6 +33,14 @@ for l in L:
 errs=[l for l in L if re.search(r'ASC (SALES|SUBSCRIPTION)\S* \S+: HTTP',l)]
 if day: b['date']=day
 elif errs: b['reportPending']=True; b['note']=('Sales/subscription reports unavailable: '+(re.search(r'"detail" : "([^"]+)',errs[0]) or [0,'error'])[1])[:200]
+# Public catalog (read-only facts); sales still come from ASC reports when key is linked
+b.setdefault('storeUrl','https://apps.apple.com/us/app/your-world-weather-radar/id6822555783')
+b.setdefault('bundleId','com.yourworld.weatherradar')
+b['free']=True; b['priceLabel']='Free'
+b['subs']=[{'id':'ywweather_premium','name':'Premium monthly','price':'$4.99','status':'Approved / Live','trial':'7-day'},
+           {'id':'ywweather_premium_yearly','name':'Premium yearly','price':'$47.99','status':'Waiting for Review','offer':'WEATHER30'}]
+if not b.get('subStatus'):
+  b['subStatus']='Monthly $4.99 live · Yearly $47.99 Waiting for Review · offer WEATHER30'
 print(json.dumps(b))
 PY
 )
