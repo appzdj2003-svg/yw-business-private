@@ -1,7 +1,10 @@
 // Headless check: access-code restore + Device sync → Support server + Connection status.
 // (1) fresh profile: gate → code → encrypted restore copy fetched by id, decrypted in the page → Support connection + Device sync restored → App Growth LIVE (not SAMPLE).
 // (2) Device-sync-only profile whose server bundle has empty Support URLs (the real bug) → Support connection filled from the sync link; KPIs/Finance/Calendars not "needs server".
-// (3) unlocked, nothing stored → "needs server" rows have a Connect button that opens the server form; status list red rows; wrong code feedback; Yorri commands. All network mocked; test code only.
+// (3) unlocked, nothing stored → "needs server" rows have a Connect button that opens the server form; status list red rows; wrong code feedback; Yorri commands.
+// (4) unsaved site token in #csTok + access code + Save (before Connect) writes the restore copy.
+// (5) unlock (code in memory) then Connect auto-saves the restore copy.
+// (6) restore follow-up /config 401 shows a clear “token was rejected” message. All network mocked; test code only.
 import { chromium } from '/node_modules/playwright-core/index.mjs'; import http from 'node:http'; import fs from 'node:fs'; import assert from 'node:assert'; import crypto from 'node:crypto';
 const CODE = 'Test-Code-Kr-4242', HASH = crypto.createHash('sha256').update(CODE).digest('hex');
 const html = String(fs.readFileSync(process.env.HTML || new URL('../index.html', import.meta.url))).replace(/var H="[0-9a-f]{64}"/, 'var H="' + HASH + '"');
@@ -17,15 +20,16 @@ const BLOB = { v: 1, alg: 'PBKDF2-SHA256/AES-GCM', it: 310000, salt: b64(salt), 
 const BUNDLE = { conn: { 'yw-apps/support': { type: 'support', url: '', live: false } }, xai: { key: 'xai-restored-key', base: 'https://api.x.ai/v1', model: 'grok-4' }, mod: { conn: NOW - 864e5, xai: 1 } };
 const GROWTH = { asOf: NOW, play: { configured: false }, appstore: { configured: false }, apps: [{ id: 'weather-radar', label: 'Weather Radar', biz: 'weather', propertyId: '559303196', ga4: { hasData: true, totals: { d7: { activeUsers: 54, newUsers: 40, sessions: 133, userEngagementDuration: 9000, engagementRate: .6 }, d28: { activeUsers: 90, newUsers: 70, sessions: 200, userEngagementDuration: 12000, engagementRate: .6 } }, daily: [], countries: [], versions: [], platform: [], events: [], screens: [], retention: {}, activeUsers7: 54 } }] };
 let failures = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); if (!c) failures++; };
-async function ctxFor(init) {
+async function ctxFor(init, opt = {}) {
   const ctx = await b.newContext(CAR ? { viewport: { width: 1180, height: 900 } } : { viewport: { width: 1440, height: 900 } }); const reqs = [];
   await ctx.addInitScript(([init, car]) => { if (sessionStorage.getItem('krInit')) return; sessionStorage.setItem('krInit', '1'); localStorage.setItem('ywYorriSpeak', '0'); if (car) localStorage.setItem('ywCarLayout', '1'); for (const [k, v] of Object.entries(init)) localStorage.setItem(k, v); }, [init, CAR]);
   await ctx.route('**/*', r => r.request().url().startsWith('http://127.0.0.1:' + PORT) ? r.continue() : r.abort());
   await ctx.route(SV + '/**', async r => { const q = r.request(), u = new URL(q.url()), M = q.method(), auth = q.headers().authorization || ''; reqs.push(M + ' ' + u.pathname + (auth ? ' [auth]' : ''));
     const J = (s, o) => r.fulfill({ status: s, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(o) });
-    if (u.pathname === '/restore/' + ID && M === 'GET') return J(200, { blob: BLOB, savedAt: NOW });
+    if (u.pathname === '/restore/' + ID && M === 'GET') return J(opt.noBlob ? 404 : 200, opt.noBlob ? { error: 'no restore copy' } : { blob: BLOB, savedAt: NOW });
     if (u.pathname.startsWith('/restore/') && M === 'GET') return J(404, { error: 'no restore copy' });
     if (u.pathname.startsWith('/restore/') && M === 'PUT') return J(auth === 'Bearer ' + TOK ? 200 : 401, { ok: true, savedAt: NOW });
+    if (u.pathname === '/config' && M === 'GET' && opt.config401 && auth === 'Bearer ' + TOK) return J(401, { error: 'unauthorized' });
     if (auth !== 'Bearer ' + TOK) return J(401, { error: 'unauthorized' });
     if (u.pathname === '/config' && M === 'GET') return J(200, { store: 'gmail', durable: true, rev: 5, savedAt: NOW, bundle: BUNDLE });
     if (u.pathname === '/config' && M === 'PUT') { const bd = JSON.parse(q.postData()); reqs.push('PUTCONF ' + JSON.stringify(bd.bundle.conn)); return J(200, { ok: true, rev: 6, savedAt: NOW, durable: true, bundle: bd.bundle }); }
@@ -89,5 +93,38 @@ const shot = (pg, n) => process.env.SHOTS ? pg.screenshot({ path: process.env.SH
   ok(await pg.evaluate(() => !!smsServer()), 'Restore from access code on an already-unlocked browser connects the server');
   const say = await pg.evaluate(async () => { const m = YC.list.find(c => c.id === 'conn.status'); return !!m.match(null, "what's not linked") && !!YC.list.find(c => c.id === 'conn.restore').match(null, 'restore my keys') });
   ok(say, 'Yorri: "what\'s not linked" and "restore my keys" match');
+  ok(!errs.length, 'no page errors: ' + errs.join(' | ')); await ctx.close(); }
+// (4) unsaved token in the Site token box + Save, before Connect
+{ const { ctx, pg, reqs, errs } = await ctxFor({ ywUnlock: '1' }, { noBlob: true });
+  await pg.goto('http://127.0.0.1:' + PORT + '/'); await pg.waitForTimeout(1500);
+  await pg.evaluate(() => { ywSettings(true); setTab('connections'); csGo('srv'); });
+  await pg.waitForSelector('#csTok');
+  await pg.fill('#csTok', TOK); await pg.fill('#csCode', CODE);
+  const still = await pg.evaluate(() => (document.querySelector('#csTok') || {}).value === 't'.repeat(40));
+  await pg.click('#csSrv [data-rs="save"]');
+  await pg.waitForFunction(() => (document.body.innerText || '').includes('Saved. On any browser') || (document.body.innerText || '').includes('nothing to save'), null, { timeout: 30000 }).catch(() => {});
+  ok(reqs.some(x => x === 'PUT /restore/' + ID + ' [auth]'), 'Save before Connect PUTs the restore copy using the token from the box');
+  ok(still, 'token box was still filled when Save started (form not wiped first)');
+  ok(!/nothing to save/i.test(await pg.evaluate(() => document.body.innerText)), 'Save did not say there was nothing to save');
+  ok(!errs.length, 'no page errors: ' + errs.join(' | ')); await ctx.close(); }
+// (5) unlock (access code in memory) then Connect auto-saves the restore copy
+{ const { ctx, pg, reqs, errs } = await ctxFor({}, { noBlob: true });
+  await pg.goto('http://127.0.0.1:' + PORT + '/');
+  await pg.fill('#ywCode', CODE); await pg.click('#ywGate button');
+  await pg.waitForTimeout(2000);
+  await pg.evaluate(() => { ywSettings(true); setTab('connections'); csGo('srv'); });
+  await pg.waitForSelector('#csTok');
+  await pg.fill('#csTok', TOK);
+  await pg.click('#csConnect');
+  await pg.waitForTimeout(5000);
+  ok(reqs.some(x => x === 'PUT /restore/' + ID + ' [auth]'), 'Connect after unlock auto-saves the restore copy (session access code, not stored)');
+  ok(!errs.length, 'no page errors: ' + errs.join(' | ')); await ctx.close(); }
+// (6) restore /config 401 is not silent
+{ const { ctx, pg, errs } = await ctxFor({}, { config401: true });
+  await pg.goto('http://127.0.0.1:' + PORT + '/');
+  await pg.fill('#ywCode', CODE); await pg.click('#ywGate button');
+  await pg.waitForFunction(() => /saved site token was rejected|may have changed on Render/i.test(document.body.innerText || ''), null, { timeout: 30000 }).catch(() => {});
+  const msg = await pg.evaluate(() => document.body.innerText || '');
+  ok(/saved site token was rejected/i.test(msg) && /Render/i.test(msg), 'restore /config 401 shows a clear rejected-token message');
   ok(!errs.length, 'no page errors: ' + errs.join(' | ')); await ctx.close(); }
 await b.close(); srv.close(); if (failures) { console.log(failures + ' FAILED'); process.exitCode = 1; } else console.log('ALL PASS');

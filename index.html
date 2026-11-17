@@ -859,8 +859,8 @@ async function dsPush(){const d=dsGet();if(!d.linked)return;DSU.busy=true;dsRend
 async function dsConnect(){const url=($('#dsUrl').value||'').trim(),tok=($('#dsTok').value||'').trim()||dsGet().token||'';const xai=$('#dsXai').checked;
  if(!/^https:\/\/|^http:\/\/(127\.0\.0\.1|localhost)/.test(url)){DSU.msg='Enter the server URL (https://…)';DSU.err=true;return dsRender()}if(!tok){DSU.msg='Enter the site token';DSU.err=true;return dsRender()}
  dsSet({url,token:tok,xai,linked:false});DSU.busy=true;DSU.msg='Connecting… (a sleeping server can take ~30s)';DSU.err=false;dsRender();
- try{const {j}=await dsReq('GET');if(j.bundle){dsApply(j.bundle);dsSet({linked:true,rev:j.rev,savedAt:j.savedAt,durable:j.durable});DSU.msg='Synced. Reloading with your settings…';dsRender();setTimeout(()=>location.reload(),600);return}
-  dsSet({linked:true,rev:j.rev||0});await dsPush();DSU.msg='Linked. This device’s settings were uploaded.';DSU.err=false}
+ try{const {j}=await dsReq('GET');if(j.bundle){dsApply(j.bundle);dsSet({linked:true,rev:j.rev,savedAt:j.savedAt,durable:j.durable});await rsAfterConnect();DSU.msg='Synced. Reloading with your settings…';dsRender();setTimeout(()=>location.reload(),600);return}
+  dsSet({linked:true,rev:j.rev||0});await dsPush();await rsAfterConnect();DSU.msg='Linked. This device’s settings were uploaded.';DSU.err=false}
  catch(e){dsSet({linked:false});DSU.msg='Couldn’t connect: '+String(e.message||e).slice(0,80);DSU.err=true}DSU.busy=false;dsRender()}
 function dsLiveApply(){try{loadBiz();refreshBizSelect();ensureAssignments();if(dsFillSup())connAfter(SUP_KEY());draw()}catch(e){}}
 async function dsPullOnLoad(){const d=dsGet();if(!d.linked)return;if(dsTimer){clearTimeout(dsTimer);dsTimer=null;await dsPush()}try{const {j}=await dsReq('GET');if(j.rev>(dsGet().rev||0)&&j.bundle){const ch=dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable});if(ch)dsLiveApply();{const lm=dsMod(),rm=j.bundle.mod||{};if(Object.keys(lm).some(k=>(lm[k]||0)>(rm[k]||0)))dsQueue()}}
@@ -3820,10 +3820,10 @@ YC.list.unshift({id:'org.moveundo',group:'Navigation',cov:['set:orgH'],ex:['undo
 ycAdd({id:'conn.status',group:'Connections',cov:['card:csCard'],ex:['show connections status','what’s not linked','connection status'],help:'Settings → Connections → Connection status: every connection and key the deck uses with a green (linked) or red (missing) light and a Set up button for each. Yorri reads out what isn’t linked. Values are never shown.',
  match:(r,l)=>/\b(?:connections?|keys?)\s+status\b|\bstatus\s+of\s+(?:my\s+)?(?:connections?|keys)\b|\bwhat(?:’|'|\s+i)?s\s+not\s+(?:linked|connected|set\s*up)\b|\bwhat\s+(?:isn(?:’|')?t|is\s+not)\s+(?:linked|connected)\b|\b(?:missing|broken)\s+(?:keys|connections)\b/.test(l),
  run:async()=>{csGo('status');await csLoad(true);say('Yorri',csSay())}});
-ycAdd({id:'conn.restore',group:'Connections',cov:['card:csCard'],ex:['restore my keys','save restore copy'],help:'Access-code restore: on a new browser, the car or after clearing the cache, the access code brings back the server link, tokens and Grok key (encrypted with your code; the server can’t read them). “Restore my keys” opens it on a browser that’s already unlocked; “save restore copy” updates the saved copy from this browser.',
+ycAdd({id:'conn.restore',group:'Connections',cov:['card:csCard'],ex:['restore my keys','save restore copy'],help:'Access-code restore: the site token in the box can be saved with your access code even before Connect. After a successful Connect, the copy is saved automatically if you just unlocked, otherwise you’re asked once to type the code. On a new browser, the car or after clearing the cache, the access code then brings back the server link, tokens and Grok key (encrypted with your code; the server can’t read them).',
  match:(r,l)=>{const m=/\b(restore|bring\s+back|recover)\s+(?:my\s+|the\s+)?(?:keys|connections?|settings|tokens?)\b/.test(l),s=/\b(?:save|update|refresh)\s+(?:the\s+|my\s+)?(?:access[- ]code\s+)?restore(?:\s+copy)?\b/.test(l);return m||s?{save:s&&!m}:null},
- run:a=>{if(a&&a.save){csGo('restore');say('Yorri','Opened <b>Device sync</b>. Type your access code and tap <b>Save for access-code restore</b>. After that it refreshes itself when a key changes.');return}
-  if(smsServer()&&dsGet().linked){csGo('restore');say('Yorri','This browser is already connected. To save its keys for other browsers, type your access code under Device sync and tap <b>Save for access-code restore</b>.');return}
+ run:a=>{if(a&&a.save){csGo('restore');say('Yorri','Opened <b>Device sync</b>. You can paste the site token in the box and tap <b>Save for access-code restore</b> with your access code, even before Connect. If you just unlocked, Connect saves the copy automatically.');return}
+  if(smsServer()&&dsGet().linked){csGo('restore');say('Yorri','This browser is already connected. To save its keys for other browsers, type your access code and tap <b>Save for access-code restore</b>.');return}
   csGo('srv');say('Yorri','Type your access code and tap <b>Restore from access code</b>. In the car: tap the box, use the yoke mic or keyboard, then tap Restore.')}});
 ycAdd({id:'nav.sync',group:'Navigation',cov:['card:dsCard'],ex:['open device sync'],help:'Settings → Connections → Device sync.',match:(r,l)=>/\b(open|show)\s+(?:device\s+)?sync\b/.test(l),run:()=>{ycCard('dsCard');say('Yorri','Opened <b>Device sync</b>.')}});
 ycAdd({id:'nav.settings',group:'Navigation',cov:['set:advH','set:aiH','set:orgH'],ex:['open settings','open advanced settings','open Yorri AI settings','open organize'],help:'Opens Settings or a section.',match:(r,l)=>{const m=l.match(/^(?:open|go to|show)\s+(?:the\s+)?(settings|advanced(?:\s+settings)?|(?:yorri\s+)?ai(?:\s+settings)?|grok(?:\s+settings)?|organi[sz]e(?:r)?|general(?:\s+settings)?|accessibility|appearance)$/);return m?m[1]:null},run:m=>{
@@ -4063,7 +4063,7 @@ function dsFillSup(){const d=dsGet();if(!d.linked||!d.url||!d.token)return false
  const o=connAll();o[k]=Object.assign(c,{type:'support',url:c.url||d.url,token:d.token,live:true});connSave(o);return true}
 /* ==== Access-code restore. One encrypted copy of {server link, tokens, AI key} lives on the server as ciphertext only.
    Key = PBKDF2-SHA256(access code, random salt, 310k) → AES-256-GCM, in this browser. Lookup id = PBKDF2(code, fixed label). The server can't decrypt it. */
-const RS_IT=310000,RS_ALG='PBKDF2-SHA256/AES-GCM',RS={busy:false,msg:'',err:false,has:null,at:0};let rsTimer=null;
+const RS_IT=310000,RS_ALG='PBKDF2-SHA256/AES-GCM',RS={busy:false,msg:'',err:false,has:null,at:0,prompted:false};let rsTimer=null,rsSessionCode='';
 const rsB64=u=>btoa(String.fromCharCode(...new Uint8Array(u))),rsUnb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 const rsOk=()=>!!(window.crypto&&crypto.subtle&&window.isSecureContext!==false);
 async function rsBase(code){return crypto.subtle.importKey('raw',new TextEncoder().encode(code),'PBKDF2',false,['deriveBits','deriveKey'])}
@@ -4071,22 +4071,26 @@ async function rsIdOf(base){const b=await crypto.subtle.deriveBits({name:'PBKDF2
 async function rsKeyOf(base,salt){return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:RS_IT},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
 function rsIdb(mode,fn){return new Promise((res,rej)=>{let q;try{q=indexedDB.open('ywRestore',1)}catch(e){return rej(e)}q.onupgradeneeded=()=>q.result.createObjectStore('k');q.onerror=()=>rej(q.error);q.onsuccess=()=>{const db=q.result,tx=db.transaction('k',mode),st=tx.objectStore('k'),r=fn(st);tx.oncomplete=()=>{db.close();res(r&&r.result)};tx.onerror=()=>{db.close();rej(tx.error)}}})}
 const rsKeyGet=()=>rsIdb('readonly',st=>st.get('key')).catch(()=>null),rsKeyPut=v=>rsIdb('readwrite',st=>st.put(v,'key')).catch(()=>null);
+function rsTyped(){const v=id=>(($('#'+id)||{}).value||'').trim();return {token:v('csTok')||v('dsTok'),url:(v('csUrl')||v('dsUrl')||'').replace(/\/+$/,'')}}
 function rsPayload(){const d=dsGet(),all=connAll(),conn={};for(const[k,v]of Object.entries(all))if(v&&(v.token||v.url))conn[k]={type:v.type,url:v.url||'',token:v.token||'',live:!!v.live};
- const sup=smsServer(),ds=d.linked&&d.token?{url:d.url,token:d.token,xai:!!d.xai}:sup?{url:sup.url,token:sup.token,xai:!!d.xai}:null;let llm=null;if(d.xai){try{llm=JSON.parse(localStorage.getItem('ywLlm')||'null')}catch(e){}}
+ const typ=rsTyped(),formUrl=(typ.url||DS_DEF_URL).replace(/\/+$/,''),sup=smsServer();
+ const ds=d.linked&&d.token?{url:d.url,token:d.token,xai:!!d.xai}:sup?{url:sup.url,token:sup.token,xai:!!d.xai}:typ.token?{url:formUrl,token:typ.token,xai:!!d.xai}:null;
+ if(ds&&typ.token){const k=SUP_KEY(),L=conn[k];if(!L||!L.token)conn[k]={type:(L&&L.type)||'support',url:(L&&L.url)||ds.url,token:typ.token,live:true}}
+ let llm=null;if(d.xai){try{llm=JSON.parse(localStorage.getItem('ywLlm')||'null')}catch(e){}}
  return ds?{v:1,at:Date.now(),ds,conn,llm}:null}
-async function rsSrvURL(){const d=dsGet(),s=smsServer();return ((d.linked&&d.url)||(s&&s.url)||DS_DEF_URL).replace(/\/+$/,'')}
+async function rsSrvURL(){const d=dsGet(),s=smsServer(),typ=rsTyped();return ((d.linked&&d.url)||(s&&s.url)||typ.url||DS_DEF_URL).replace(/\/+$/,'')}
 async function rsFetch(id){const u=await rsSrvURL();let last;for(let i=0;i<2;i++){try{const r=await fetch(u+'/restore/'+id,{signal:AbortSignal.timeout?AbortSignal.timeout(60e3):undefined});if(r.status===404)return null;if(r.status===429)throw new Error('too many tries — wait a few minutes');if(!r.ok)throw new Error('HTTP '+r.status);return (await r.json()).blob}catch(e){last=e;if(/too many/.test(e.message))break}}throw last}
 // Save (or refresh) the encrypted copy. With a code: derive and remember the key (non-extractable) for automatic refreshes later.
-async function rsSave(code,quiet){const p=rsPayload();if(!p){if(!quiet){RS.msg='Connect the Support server or Device sync first — there’s nothing to save yet.';RS.err=true;rsRender()}return false}
+async function rsSave(code,quiet){const used=String(code||rsSessionCode||'').trim(),p=rsPayload();if(!p){if(!quiet){RS.msg='Connect the Support server or Device sync first — there’s nothing to save yet.';RS.err=true;rsRender()}return false}
  if(!rsOk()){if(!quiet){RS.msg='Needs a secure (https) page.';RS.err=true;rsRender()}return false}
- let K=await rsKeyGet();if(code){const base=await rsBase(code),id=await rsIdOf(base);let old=null;try{old=await rsFetch(id)}catch(e){}const salt=old&&old.salt?rsUnb64(old.salt):K&&K.id===id&&K.salt||crypto.getRandomValues(new Uint8Array(16));K={id,key:await rsKeyOf(base,salt),salt};await rsKeyPut(K)}
+ let K=await rsKeyGet();if(used){const base=await rsBase(used),id=await rsIdOf(base);let old=null;try{old=await rsFetch(id)}catch(e){}const salt=old&&old.salt?rsUnb64(old.salt):K&&K.id===id&&K.salt||crypto.getRandomValues(new Uint8Array(16));K={id,key:await rsKeyOf(base,salt),salt};await rsKeyPut(K)}
  if(!K||!K.key){if(!quiet){RS.msg='Enter your access code to save the restore copy.';RS.err=true;rsRender()}return false}
  try{const old=await rsFetch(K.id);if(old&&old.salt===rsB64(K.salt)){const o=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:rsUnb64(old.iv)},K.key,rsUnb64(old.ct))));for(const[k,v]of Object.entries(o.conn||{}))if(!p.conn[k])p.conn[k]=v;if(!p.llm&&o.llm)p.llm=o.llm}}catch(e){} // keep what other browsers saved; nothing is dropped
  const iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},K.key,new TextEncoder().encode(JSON.stringify(p)));
  const blob={v:1,alg:RS_ALG,it:RS_IT,salt:rsB64(K.salt),iv:rsB64(iv),ct:rsB64(ct)};const tok=p.ds.token,u=await rsSrvURL();
  try{const r=await fetch(u+'/restore/'+K.id,{method:'PUT',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify({blob})});if(!r.ok){const j=await r.json().catch(()=>({}));
 throw new Error(j.error||('HTTP '+r.status))}
-  RS.has=true;RS.at=Date.now();try{_lsSet.call(localStorage,'ywRsAt',String(RS.at))}catch(e){}if(!quiet){RS.msg='Saved. On any browser, the access code now restores everything.';RS.err=false}rsRender();return true}
+  RS.has=true;RS.at=Date.now();rsSessionCode='';try{_lsSet.call(localStorage,'ywRsAt',String(RS.at))}catch(e){}if(!quiet){RS.msg='Saved. On any browser, the access code now restores everything.';RS.err=false}rsRender();return true}
  catch(e){if(!quiet){RS.msg='Couldn’t save: '+String(e.message||e).slice(0,80);RS.err=true;rsRender()}return false}}
 /* Yorri: search consoles */
 YC.list.unshift({id:'search.sync',group:'Growth',cov:['card:scCard','room:Growth'],ex:['Yorri sync search','sync Google Search Console','sync Bing'],help:'Pull Google Search Console + Bing Webmaster now (read-only) and report clicks, impressions, top query and indexing.',
@@ -4127,29 +4131,30 @@ async function rsRestore(code,auto){if(!rsOk()){RS.msg='Restore needs a secure (
   const salt=rsUnb64(blob.salt),key=await rsKeyOf(base,salt);let p;try{p=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:rsUnb64(blob.iv)},key,rsUnb64(blob.ct))))}catch(e){throw new Error('this access code can’t unlock the restore copy (it was saved with a different code)')}
   await rsKeyPut({id,key,salt});RS.has=true;try{_lsSet.call(localStorage,'ywRsAt',String(Date.now()))}catch(e){}
   let changed=false;const d=dsGet();
-  if(p.ds&&p.ds.url&&p.ds.token&&!(d.linked&&d.token)){dsSet({url:p.ds.url,token:p.ds.token,xai:!!p.ds.xai,linked:true,rev:0});changed=true;try{const {j}=await dsReq('GET');if(j.bundle){dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable})}}catch(e){}}
+  if(p.ds&&p.ds.url&&p.ds.token&&!(d.linked&&d.token)){dsSet({url:p.ds.url,token:p.ds.token,xai:!!p.ds.xai,linked:true,rev:0});changed=true;try{const {j}=await dsReq('GET');if(j.bundle){dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable})}}catch(e){if(/token rejected|\b401\b|unauthorized/i.test(String(e.message||e)))throw new Error('The saved site token was rejected. It may have changed on Render. Re-enter it in Settings → Connections, then save the restore copy again.');}}
   {const all=connAll();let ch=false;for(const[k,v]of Object.entries(p.conn||{})){const L=all[k]||{};if(!L.url&&v.url||!L.token&&v.token&&(!L.url||L.url===v.url)){all[k]=Object.assign({},L,{type:L.type&&L.type!=='none'?L.type:v.type,url:L.url||v.url,token:L.token||v.token,live:L.url?!!L.live:!!v.live});ch=true}}if(ch){connSave(all);changed=true}}
   if(dsFillSup())changed=true;
   if(p.llm&&p.llm.key&&!llmCfg().key){try{localStorage.setItem('ywLlm',JSON.stringify(p.llm))}catch(e){}changed=true}
   if(dsGet().linked){dsTouch('conn');try{await dsPush()}catch(e){}}
   RS.busy=false;RS.msg=changed?'Restored. Reloading with your connections…':'Everything was already set on this browser.';RS.err=false;rsRender();
   if(changed&&!sessionStorage.getItem('ywRsReloaded')){sessionStorage.setItem('ywRsReloaded','1');rsToast(RS.msg);setTimeout(()=>location.reload(),700)}else if(auto)rsToast('');return true}
- catch(e){RS.busy=false;RS.msg='Couldn’t restore: '+String(e.message||e).slice(0,120);RS.err=true;rsRender();rsToast(RS.msg,true);return false}}
+ catch(e){RS.busy=false;RS.msg='Couldn’t restore: '+String(e.message||e).slice(0,200);RS.err=true;rsRender();rsToast(RS.msg,true);return false}}
 function rsToast(t,bad){let n=$('#rsToast');if(!t){if(n)n.remove();return}if(!n){n=document.createElement('div');n.id='rsToast';n.setAttribute('role','status');n.setAttribute('aria-live','polite');document.body.appendChild(n)}n.className=bad?'bad':'';n.innerHTML=esc(t)+(bad?' <button type="button" class="og-b" data-csgo="srv">Open connection</button> <button type="button" class="og-b" data-rsx>✕</button>':'');if(!bad)setTimeout(()=>{if(n.isConnected&&!n.classList.contains('bad'))n.remove()},12e3)}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-rsx]'))rsToast('')});
 // The unlock gate hands over the code it just checked (in memory only, never stored).
-function rsFromGate(){const c=window.ywLastCode;if(!c)return;try{delete window.ywLastCode}catch(e){window.ywLastCode=''}const d=dsGet();
+function rsFromGate(){const c=window.ywLastCode;if(!c)return;try{delete window.ywLastCode}catch(e){window.ywLastCode=''}rsSessionCode=c;const d=dsGet();
  if(d.linked&&d.token&&smsServer()&&llmCfg().key){rsRestore(c,false).catch(()=>{});return}rsRestore(c,true)}
+async function rsAfterConnect(){if(rsSessionCode){await rsSave(rsSessionCode,false);return}if(RS.prompted)return;RS.prompted=true;RS.msg='Type your access code and tap “Save for access-code restore” so you won’t have to paste the site token again.';RS.err=false;rsRender();const n=$('#csCode')||$('#rsCode');if(n)try{n.focus()}catch(e){}}
 document.addEventListener('yw-unlock-code',rsFromGate);
 function rsRender(){const B=$('#rsBox');if(B)B.innerHTML=rsHTML('rs');try{csRender()}catch(e){}}
 function rsHTML(px){px=px||'rs';const at=+localStorage.getItem('ywRsAt')||RS.at;const st=RS.busy?'Working…':RS.msg?`<span class="${RS.err?'cx-bad':'cx-ok'}">${esc(RS.msg)}</span>`:at?`<span class="cx-ok">Restore copy saved · ${esc(new Date(at).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</span>`:'Not saved from this browser yet.';
- return `<p class="cx-help">Access-code restore: on a new browser, a car, or after clearing the cache, typing your access code is the only step — the server link, tokens${dsGet().xai?' and Grok key':''} come back automatically. They’re encrypted with your access code; the server can’t read them. It refreshes itself when you change a key here.</p>
+ return `<p class="cx-help">Access-code restore: paste the site token (even before Connect) and tap Save with your access code, or Connect after unlocking — the copy is saved automatically if you just typed the code, otherwise you’ll be asked once. On a new browser, the car, or after clearing the cache, the access code is then the only step — the server link, tokens${dsGet().xai?' and Grok key':''} come back. They’re encrypted with your access code; the server can’t read them.</p>
  <label for="${px}Code">Access code</label><input id="${px}Code" class="rs-code" type="password" autocomplete="current-password" placeholder="Needed once per browser to save or restore">
  <span></span><div class="cx-act"><button type="button" class="sbt" data-rs="save"${RS.busy?' disabled':''}>Save for access-code restore</button><button type="button" class="sbt" data-rs="restore"${RS.busy?' disabled':''}>Restore from access code</button><span role="status" aria-live="polite">${st}</span></div>`}
 async function rsCodeOk(v){if(!v)return false;return !!(window.ywCodeOk&&await window.ywCodeOk(v))}
 document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-rs]');if(!t)return;const F=t.closest('.cx-form'),i=F&&F.querySelector('.rs-code'),v=(i&&i.value||'').trim(),fid=i&&i.id;
  if(!(await rsCodeOk(v))){RS.msg=v?'That access code isn’t right.':'Enter your access code.';RS.err=true;rsRender();const n=fid&&document.getElementById(fid);if(n)n.focus();return}
- if(t.dataset.rs==='save'){RS.busy=true;RS.msg='';rsRender();RS.busy=false;await rsSave(v)}else{sessionStorage.removeItem('ywRsReloaded');await rsRestore(v,false)}});
+ if(t.dataset.rs==='save'){RS.busy=true;RS.msg='';try{await rsSave(v)}finally{RS.busy=false;rsRender()}}else{sessionStorage.removeItem('ywRsReloaded');await rsRestore(v,false)}});
 
 /* ==== Connection status: every connection/key the deck uses, read live (server ones from the server's own status endpoints; secrets never shown). */
 const CS={st:{},busy:false,at:0,err:''};
@@ -4197,7 +4202,7 @@ function csRender(){const B=$('#csBox');if(!B)return;const wasOpen=$('#csCard')?
 async function csConnect(){const url=($('#csUrl').value||'').trim().replace(/\/+$/,''),tok=($('#csTok').value||'').trim();CS.err='';
  if(!/^https:\/\//.test(url)){CS.err='Enter the server URL (https://…)';return csRender()}if(!tok){CS.err='Enter the site token';return csRender()}
  connSet(SUP_KEY(),{type:'support',url,token:tok,live:true});CS.err='';const d=dsGet();if(!d.linked){dsSet({url,token:tok,xai:d.xai!==false,linked:false});try{const {j}=await dsReq('GET');dsSet({linked:true,rev:0});if(j.bundle){dsApply(j.bundle);dsSet({rev:j.rev,savedAt:j.savedAt,durable:j.durable})}dsFillSup();dsTouch('conn');dsQueue()}catch(e){dsSet({linked:false})}}
- connAfter(SUP_KEY());rsQueue();csLoad(true);try{finStatus();kpiStatus();calxStatus();mkRefresh&&mkRefresh(false)}catch(e){}grRefresh(true);dsRender()}
+ connAfter(SUP_KEY());rsQueue();await rsAfterConnect();csLoad(true);try{finStatus();kpiStatus();calxStatus();mkRefresh&&mkRefresh(false)}catch(e){}grRefresh(true);dsRender()}
 function csGo(k){ywSettings(true);setTab('connections');const J={sync:'#dsCard',kpi:'#kpiCard',sc:'#scCard',mk:'#mkCard',cal:'#calCard',fin:'#finCard',infra:'#infCard',ops:'[data-cxg="ops"]',inbox:'[data-cxg="inbox"]'};
  const foc=(n,sel)=>{if(!n)return;if(n.tagName==='DETAILS')n.open=true;n.scrollIntoView({block:'start'});const f=(sel&&n.querySelector(sel))||n.querySelector('summary,input,button');if(f)try{f.focus({preventScroll:true})}catch(e){}};
  if(k==='refresh'){csLoad(true);return}
