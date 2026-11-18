@@ -60,7 +60,8 @@ assert.match(s, /Marketing Google Analytics · 3 apps/); assert.match(s, /Websit
 assert.match(s, /Plausible key \(optional fallback\)/i); assert.ok(reqs.some(x => x.startsWith('GET /kpi/streams')));
 await ev(() => document.querySelector('[data-cxj="ai"]').click()); await wt(200); assert.equal(await ev(() => localStorage.getItem('ywSetTab')), 'yorri');
 // Search
-await ev(() => { const i = document.querySelector('#setSearch'); i.value = 'vault'; i.dispatchEvent(new Event('input', { bubbles: true })) }); await wt(200); assert.ok((await vis()).includes('Security & Vault'));
+await ev(() => { const i = document.querySelector('#setSearch'); i.value = 'vault'; i.dispatchEvent(new Event('input', { bubbles: true })) }); await wt(400); assert.ok((await vis()).includes('Security & Vault'));
+assert.match(await ev(() => (document.querySelector('#setSearchMeta') || {}).innerText || ''), /results? for “vault”/i);
 // Security & Vault: status only, never values
 await ev(() => setTab('security')); await wt(300); s = await ev(() => document.querySelector('#secBox').innerText.replace(/\s+/g, ' '));
 assert.match(s, /Support server token set/); assert.match(s, /xAI \(Grok\) key set/); assert.match(s, /Lock this device/);

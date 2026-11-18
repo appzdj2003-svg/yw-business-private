@@ -219,6 +219,15 @@ html.a11y-contrast .cx-biz,html.a11y-contrast .cx-form input,html.a11y-contrast 
 #setTabs button:focus-visible,#setSearch:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 #setSearch{flex:1 1 200px;min-width:160px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;font:inherit}
 body.car-layout #setTabs button,body.car-layout #setSearch,body.car-layout #setClose{min-height:48px;padding:10px 16px;font-size:15px}
+#setSearchMeta{flex:1 1 100%;margin:8px 0 0;padding:0 0 8px;color:var(--mut);font-size:13px;line-height:1.4}
+#setSearchMeta .set-hits{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+#setSearchMeta .set-hit{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-height:44px;cursor:pointer;font:inherit;text-align:left;flex:0 1 auto;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+#setSearchMeta .set-none{color:var(--amber)}
+#setPage mark.set-hl{background:var(--amber);color:var(--ink);border-radius:3px;padding:0 2px;box-shadow:0 0 0 1px color-mix(in srgb,var(--amber) 35%,transparent)}
+#setPage .set-hid{display:none!important}
+#setPage .set-flash{outline:2px solid var(--amber);outline-offset:2px;border-radius:10px}
+body.car-layout #setSearchMeta .set-hit{min-height:48px;padding:10px 16px;font-size:15px}
+
 #setPage section[hidden]{display:none}
 #setPage .qs-sel{display:inline-flex;align-items:center;gap:6px;color:var(--mut)}#setPage .qs-sel select{min-height:44px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
 .fin-p{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:var(--card2)}
@@ -502,7 +511,7 @@ body.car-layout .as-grid{grid-template-columns:1fr}body.car-layout [data-sc],bod
 <div id="setPage" role="dialog" aria-label="Settings"><div class="wrap">
 <div class="set-stick"><div class="set-head"><h2>Settings</h2><button type="button" class="sbt" id="setClose">✕ Close</button></div>
 <p class="tip">Saved in this browser and synced to pop-out screens. Say "open Settings" / "close Settings".</p>
-<div class="set-bar"><div class="st-wrap"><div role="tablist" id="setTabs" aria-label="Settings sections"></div></div><input type="search" id="setSearch" placeholder="Search settings" aria-label="Search settings"></div></div>
+<div class="set-bar"><div class="st-wrap"><div role="tablist" id="setTabs" aria-label="Settings sections"></div></div><input type="search" id="setSearch" placeholder="Search settings" aria-label="Search settings"></div><div id="setSearchMeta" class="set-meta" hidden role="status" aria-live="polite"></div></div>
 <section data-tab="general" aria-labelledby="qsH"><h4 id="qsH">Quick switches</h4><div class="opts">
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
@@ -983,7 +992,8 @@ setTimeout(()=>{if(location.search)ywDeepLink(location.href)},800);
 const SET_TABS=[['general','General'],['organize','Businesses & rooms'],['connections','Connections'],['alerts','Alerts & push'],['handoffs','Handoffs'],['growth','Growth'],['inbox','Inbox sorting'],['yorri','Yorri & AI'],['security','Security & Vault'],['advanced','Advanced']];
 const SET_ALIAS={businesses:'organize',rooms:'organize',business:'organize',layout:'general',appearance:'general',display:'general',theme:'general',car:'general',push:'alerts',notifications:'alerts',sms:'alerts',texts:'alerts',handoff:'handoffs',webhooks:'handoffs',webhook:'handoffs',vault:'security',security:'security',privacy:'security',ai:'yorri',voice:'yorri',grok:'yorri',inboxes:'inbox',sorting:'inbox',connection:'connections',keys:'connections',integrations:'connections',sync:'connections'};
 function setTabsRender(){const T=$('#setTabs');if(!T||T.childElementCount)return;T.innerHTML=SET_TABS.map(([k,l])=>`<button type="button" role="tab" id="stab_${k}" data-stab="${k}" aria-controls="setPage" aria-selected="false" tabindex="-1">${l}</button>`).join('')}
-function setTab(k,scroll){setTabsRender();k=SET_ALIAS[k]||k;if(!SET_TABS.some(x=>x[0]===k))k='general';const q=$('#setSearch');if(q&&q.value){q.value='';}
+function setTab(k,scroll){setTabsRender();k=SET_ALIAS[k]||k;if(!SET_TABS.some(x=>x[0]===k))k='general';const q=$('#setSearch');if(q&&q.value)q.value='';
+ try{setSearchReset(false)}catch(e){}
  document.querySelectorAll('#setPage section[data-tab]').forEach(sec=>{sec.hidden=sec.dataset.tab!==k});
  document.querySelectorAll('#setTabs [data-stab]').forEach(b=>{const on=b.dataset.stab===k;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});setTabsFocus(k);
  try{localStorage.setItem('ywSetTab',k)}catch(e){}if(scroll!==false){const P=$('#setPage');if(P)P.scrollTop=0}if(k==='connections'){finStatus();kpiStatus();calxStatus();try{scRender();scLoad(false)}catch(e){}try{csRender();csLoad(false)}catch(e){}}if(k==='inbox')inbLoad();if(k==='growth')try{grSetRender();if(!GR.at&&!GR.busy)grRefresh(true)}catch(e){}if(k==='handoffs')try{hoRender();if(!HO.st&&!HO.busy)hoLoad()}catch(e){}if(k==='security')try{secRender()}catch(e){}if(k==='organize')try{placeLogRender()}catch(e){}if(k==='general')try{arrInfoRender()}catch(e){}}
@@ -992,8 +1002,63 @@ function setTabsFocus(k){const b=$('#setTabs')&&$('#setTabs').querySelector(`[da
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-stab]');if(b)setTab(b.dataset.stab)});
 document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('#setTabs [data-stab]');if(!b)return;const L=[...document.querySelectorAll('#setTabs [data-stab]')];let i=L.indexOf(b);
  if(e.key==='ArrowRight')i=(i+1)%L.length;else if(e.key==='ArrowLeft')i=(i-1+L.length)%L.length;else if(e.key==='Home')i=0;else if(e.key==='End')i=L.length-1;else return;e.preventDefault();setTab(L[i].dataset.stab);L[i].focus()});
-document.addEventListener('input',e=>{if(e.target.id!=='setSearch')return;const q=e.target.value.trim().toLowerCase();
- const tl=k=>((SET_TABS.find(x=>x[0]===k)||[])[1]||'').toLowerCase();document.querySelectorAll('#setPage section[data-tab]').forEach(sec=>{sec.hidden=q?!(sec.textContent.toLowerCase().includes(q)||tl(sec.dataset.tab).includes(q)):sec.dataset.tab!==(localStorage.getItem('ywSetTab')||'general')})});
+const SET_SEARCH_SYN={apple:['app store','app store connect'],vendor:['vendor number','app store connect'],google:['ga4','google analytics','google search console','google play'],ga4:['google analytics'],text:['twilio','sms','text alerts'],sms:['twilio','text alerts'],key:['api key','site token','connections'],token:['site token','connections'],keys:['connections','api key'],spotify:['spotify web api','music'],bing:['bing webmaster','search consoles']};
+const SET_UNIT_SEL='details.cx-biz,details[data-ogb],details[data-cxb],details[data-cxr],.fin-p,.sgrp,.sm-card,li.cs-row,.as-sec,.sc-sec,.cs-srv,#setPage section[data-tab]>.opts';
+let SET_WARM=null,SET_OBS=null,SET_OBS_T=null,SET_APPLYING=false;
+function setSearchWatch(on){if(SET_OBS){SET_OBS.disconnect();SET_OBS=null}clearTimeout(SET_OBS_T);if(!on)return;const P=$('#setPage');if(!P||!window.MutationObserver)return;SET_OBS=new MutationObserver(()=>{if(SET_APPLYING)return;clearTimeout(SET_OBS_T);SET_OBS_T=setTimeout(()=>{const i=$('#setSearch'),q=i&&i.value.trim();if(q)setSearchApply(q)},50)});SET_OBS.observe(P,{childList:true,subtree:true})}
+
+function setSearchTerms(q){const t=new Set([q]);const add=w=>{(SET_SEARCH_SYN[w]||[]).forEach(s=>t.add(s))};add(q);q.split(/\s+/).forEach(add);return[...t]}
+function setSearchHay(el){if(!el)return '';if(!el.nodeType)return String(el.textContent||'').toLowerCase().replace(/\s+/g,' ').trim();let t='';const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode(n){const p=n.parentNode;if(!p||/^(SCRIPT|STYLE|TEXTAREA)$/.test(p.nodeName))return NodeFilter.FILTER_REJECT;if(p.closest&&p.closest('#ycList,#ycQ,#setSearch,#setSearchMeta'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}});while(walk.nextNode())t+=' '+walk.currentNode.nodeValue;return t.toLowerCase().replace(/\s+/g,' ').trim()}
+function setSearchHit(hay,q,terms){return hay.includes(q)||terms.some(t=>t!==q&&hay.includes(t))}
+function setUnmark(root){(root||document).querySelectorAll('mark.set-hl').forEach(m=>{const p=m.parentNode;if(!p)return;while(m.firstChild)p.insertBefore(m.firstChild,m);p.removeChild(m);p.normalize()})}
+function setMark(el,needles){if(!el||!needles||!needles.length)return;const parts=needles.filter(Boolean).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));if(!parts.length)return;const re=new RegExp(parts.sort((a,b)=>b.length-a.length).join('|'),'gi');const skip=n=>{const p=n.parentNode;return!p||/^(SCRIPT|STYLE|TEXTAREA|INPUT|MARK)$/.test(p.nodeName)||(p.closest&&p.closest('mark.set-hl'))};const has=s=>{try{return new RegExp(re.source,'i').test(s)}catch(e){return false}};const walk=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode:n=>skip(n)?NodeFilter.FILTER_REJECT:has(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_SKIP});const nodes=[];while(walk.nextNode())nodes.push(walk.currentNode);nodes.forEach(n=>{const t=n.nodeValue,frag=document.createDocumentFragment();re.lastIndex=0;let i=0,m;while((m=re.exec(t))){if(m.index>i)frag.appendChild(document.createTextNode(t.slice(i,m.index)));const mk=document.createElement('mark');mk.className='set-hl';mk.textContent=m[0];frag.appendChild(mk);i=re.lastIndex}if(i<t.length)frag.appendChild(document.createTextNode(t.slice(i)));n.parentNode.replaceChild(frag,n)})}
+function setSearchTitle(el,sec){const lab=((SET_TABS.find(x=>x[0]===sec.dataset.tab)||[])[1]||'');const n=el.querySelector('h5,h6,summary .og-name,.cs-l,h4');let t='';if(n&&n.classList&&n.classList.contains('cs-l'))t=(n.childNodes[0]&&n.childNodes[0].textContent||n.textContent||'');else if(n)t=n.textContent||'';else if(el.matches&&el.matches('.opts'))t=((sec.querySelector('h4')||{}).textContent||'');else t=((el.querySelector('summary')||el).textContent||'');t=String(t).replace(/\s+/g,' ').trim().slice(0,56);return lab+(t?': '+t:'')}
+function setSearchReset(restoreTab){setSearchWatch(false);const P=$('#setPage');if(!P)return;SET_APPLYING=true;setUnmark(P);P.querySelectorAll('.set-hid').forEach(n=>n.classList.remove('set-hid'));P.querySelectorAll('[data-set-rid]').forEach(n=>n.removeAttribute('data-set-rid'));P.querySelectorAll('details[data-set-opened]').forEach(d=>{d.open=false;d.removeAttribute('data-set-opened')});P.querySelectorAll('.set-flash').forEach(n=>n.classList.remove('set-flash'));const m=$('#setSearchMeta');if(m){m.hidden=true;m.innerHTML=''}if(restoreTab!==false){const k=localStorage.getItem('ywSetTab')||'general';P.querySelectorAll('section[data-tab]').forEach(sec=>{sec.hidden=sec.dataset.tab!==k})}SET_APPLYING=false}
+function setPreserve(fn){const keep={};document.querySelectorAll('#setPage input,#setPage textarea,#setPage select').forEach(n=>{if(!n.id||n.id==='setSearch'||n.id==='ycQ'||n.type==='file')return;keep[n.id]=(n.type==='checkbox'||n.type==='radio')?{c:n.checked}:{v:n.value}});const ae=document.activeElement&&document.activeElement.id;const apply=()=>{for(const[id,s]of Object.entries(keep)){const n=document.getElementById(id);if(!n)continue;if('c'in s)n.checked=s.c;else if(n.value!==s.v)n.value=s.v}if(ae){const n=document.getElementById(ae);if(n)try{n.focus({preventScroll:true})}catch(e){}}};const out=fn();if(out&&out.then)return out.then(v=>{apply();return v});apply();return out}
+function setEnsureAll(){if(SET_WARM===true)return Promise.resolve();if(SET_WARM&&SET_WARM.then)return SET_WARM;const empty=id=>{const n=$(id);return n&&!n.childElementCount},run=(fn)=>{try{return fn()}catch(e){}};
+ SET_WARM=setPreserve(()=>{const jobs=[];const add=p=>{if(p&&p.then)jobs.push(Promise.resolve(p).catch(()=>{}))};
+  if(!$('#kpiBox'))run(()=>connRender());
+  add(empty('#finBox')?run(()=>finStatus()):null);
+  add(run(()=>kpiStatus()));
+  add(run(()=>calxStatus()));
+  add(empty('#scBox')?run(()=>{scRender();return scLoad(false)}):null);
+  add(empty('#csBox')?run(()=>{csRender();return csLoad(false)}):null);
+  add(empty('#inbBox')?run(()=>inbLoad()):null);
+  add(empty('#grBox')?run(()=>{grSetRender();if(!GR.at&&!GR.busy)return grRefresh(true)}):null);
+  add(empty('#hoBox')?run(()=>{hoRender();if(!HO.st&&!HO.busy)return hoLoad()}):null);
+  add(empty('#secBox')?run(()=>secRender()):null);
+  add(empty('#placeLog')||($('#placeLog')&&!$('#placeLog').textContent)?run(()=>placeLogRender()):null);
+  add(run(()=>arrInfoRender()));
+  add(empty('#mkBox')?run(()=>{mkSetRender();if(!MK.st&&!MK.busy.size)return mkRefresh(false)}):null);
+  add(empty('#infBox')?run(()=>{infSetRender();if(!INF.v&&!INF.busy)return infLoad(false)}):null);
+  add(empty('#smsBox')?run(()=>smsRender()):null);
+  add(empty('#syncBox')?run(()=>dsRender()):null);
+  add(empty('#orgList')?run(()=>orgRender()):null);
+  add(run(()=>llmHome()));
+  return Promise.all(jobs)}).then(()=>{SET_WARM=true}).catch(()=>{SET_WARM=true});
+ return SET_WARM}
+function setSearchApply(raw){const P=$('#setPage'),meta=$('#setSearchMeta'),q=String(raw||'').trim().toLowerCase();if(!P)return;if(!q){setSearchReset(true);return}
+ SET_APPLYING=true;setSearchWatch(true);setUnmark(P);P.querySelectorAll('.set-hid').forEach(n=>n.classList.remove('set-hid'));P.querySelectorAll('[data-set-rid]').forEach(n=>n.removeAttribute('data-set-rid'));P.querySelectorAll('details[data-set-opened]').forEach(d=>{d.open=false;d.removeAttribute('data-set-opened')});
+ const terms=setSearchTerms(q),secs=[...P.querySelectorAll('section[data-tab]')],hits=[];
+ const tabOnly=k=>{const lab=((SET_TABS.find(x=>x[0]===k)||[])[1]||'').toLowerCase(),al=Object.entries(SET_ALIAS).filter(([,v])=>v===k).map(([a])=>a);return k===q||lab===q||lab.replace(/&/g,' ').replace(/\s+/g,' ').trim()===q||al.includes(q)};
+ const markHit=(el,sec)=>{let d=el.closest&&el.closest('details');while(d&&P.contains(d)){if(!d.open){d.open=true;d.setAttribute('data-set-opened','1')}d=d.parentElement&&d.parentElement.closest('details')}
+  setMark(el,terms.filter(t=>setSearchHay(el).includes(t)));const id='sr'+hits.length;el.setAttribute('data-set-rid',id);hits.push({id,title:setSearchTitle(el,sec),el})};
+ const packs=secs.map(sec=>{const nodes=[...sec.querySelectorAll(SET_UNIT_SEL)],leaves=nodes.filter(n=>!nodes.some(o=>o!==n&&n.contains(o))),matched=[];
+  (leaves.length?leaves:[sec]).forEach(el=>{if(setSearchHit(setSearchHay(el),q,terms))matched.push(el)});
+  const head=setSearchHay({textContent:((sec.querySelector('h4')||{}).textContent||'')+' '+((sec.querySelector(':scope>.ex')||{}).textContent||'')});
+  return{sec,leaves,matched,head,tab:sec.dataset.tab}});
+ const any=packs.some(p=>p.matched.length);
+ packs.forEach(p=>{const{sec,leaves,matched,head,tab}=p;
+  if(matched.length){sec.hidden=false;(leaves.length?leaves:[]).forEach(el=>{if(!matched.includes(el))el.classList.add('set-hid')});matched.forEach(el=>markHit(el,sec));sec.querySelectorAll('details').forEach(d=>{if(!d.classList.contains('set-hid')&&!d.hasAttribute('data-set-rid')&&!d.querySelector('[data-set-rid]'))d.classList.add('set-hid')});return}
+  if(!any&&(tabOnly(tab)||setSearchHit(head,q,terms))){sec.hidden=false;const h=sec.querySelector('h4')||sec;markHit(h,sec);return}
+  sec.hidden=true});
+ if(meta){meta.hidden=false;meta.innerHTML=hits.length?`<div>${hits.length} result${hits.length===1?'':'s'} for “${esc(q)}”</div><div class="set-hits">${hits.slice(0,12).map(h=>`<button type="button" class="set-hit" data-set-jump="${esc(h.id)}" title="${esc(h.title)}">${esc(h.title)}</button>`).join('')}</div>`:`<div class="set-none">No settings match “${esc(q)}” — try: App Store, keys, theme, alerts</div>`}
+ if(hits[0]&&hits[0].el)try{hits[0].el.scrollIntoView({block:'center',behavior:'instant'})}catch(e){}SET_APPLYING=false}
+function setSearchRun(raw){const q=String(raw==null?(($('#setSearch')||{}).value||''):raw).trim();if(!q){setSearchReset(true);return}const still=()=>{const i=$('#setSearch');return i&&i.value.trim().toLowerCase()===q.toLowerCase()};const go=()=>{if(still())setSearchApply(q)};const p=setEnsureAll();go();if(p&&p.then)p.then(go);[400,1200].forEach(ms=>setTimeout(go,ms))}
+document.addEventListener('input',e=>{if(e.target.id==='setSearch')setSearchRun(e.target.value)});
+document.addEventListener('search',e=>{if(e.target.id==='setSearch')setSearchRun(e.target.value)});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-set-jump]');if(!b)return;const n=document.querySelector('[data-set-rid="'+b.dataset.setJump+'"]');if(!n)return;n.scrollIntoView({block:'center',behavior:'smooth'});n.classList.add('set-flash');setTimeout(()=>n.classList.remove('set-flash'),1200)});
+
 function qsRender(){const o=a11yGet(),t=$('#qsTheme'),sc=$('#qsScale');if(t)t.innerHTML=A11Y_THEMES.map(([v,l])=>`<option value="${v}"${o.theme===v?' selected':''}>${l}</option>`).join('');if(sc)sc.innerHTML=A11Y_SCALES.map(([v,l])=>`<option value="${v}"${o.scale==v?' selected':''}>${l}</option>`).join('');
  const fd=$('#qsFs');if(fd)fd.checked=localStorage.getItem('ywFsDefault')==='1'}
 document.addEventListener('change',e=>{const id=e.target.id;if(id==='qsTheme'){const b=document.querySelector(`#optTheme [data-theme-set="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsScale'){const b=document.querySelector(`#optScale [data-scale="${e.target.value}"]`);if(b)b.click();qsRender()}else if(id==='qsFs'){localStorage.setItem('ywFsDefault',e.target.checked?'1':'0')}});
@@ -3836,6 +3901,9 @@ const SET_HEAD={general:'layH',organize:'orgH',connections:'connH',alerts:'smsH'
 function setSectionFor(w){w=String(w||'').toLowerCase().replace(/&/g,' and ').replace(/\b(the|my|tab|section|page|settings?)\b/g,' ').replace(/\s+/g,' ').trim();if(!w)return null;
  const n=w.replace(/\band\b/g,' ').replace(/\s+/g,' ').trim();for(const [k,l] of SET_TABS){const L=l.toLowerCase().replace(/&/g,' ').replace(/\s+/g,' ').trim();if(n===k||n===L||n===L.replace(/ /g,''))return k}
  const f=n.split(' ').map(x=>SET_ALIAS[x]||(SET_TABS.some(t=>t[0]===x)?x:null)).find(Boolean);return f||null}
+YC.list.unshift({id:'set.search',group:'Navigation',cov:['set:layH','set:connH','set:smsH','set:appH'],ex:['search settings for vendor','find setting theme'],help:'Opens Settings and searches for a setting (vendor, App Store, keys, theme, alerts…). Say “search settings for …” or “find setting …”.',
+ match:(r,l)=>{const m=l.match(/^(?:yorri\s+)?(?:search|find|look\s*up)\s+(?:the\s+)?settings?\s+(?:for\s+|to\s+)?(.+?)[.!?]?$/)||l.match(/^(?:yorri\s+)?(?:search|find|look\s*up)\s+(?:a\s+|the\s+)?setting\s+(?:for\s+)?(.+?)[.!?]?$/);if(!m)return null;const q=m[1].replace(/^[\s“"']+|[\s”"'!.?]+$/g,'').trim();return q?{q}:null},
+ run:m=>{ywSettings(true);const i=$('#setSearch');if(i){i.value=m.q;setSearchRun(m.q);try{i.focus()}catch(e){}}say('Yorri','Searching Settings for <b>'+esc(m.q)+'</b>.')}});
 YC.list.unshift({id:'set.section',group:'Navigation',cov:['set:layH','set:hoH','set:grH','set:secH','set:orgH','set:connH','set:smsH','set:advH'],ex:['open settings security','open settings businesses','open settings handoffs','open settings general'],help:'Opens Settings on a section: General, Businesses & rooms, Connections, Alerts & push, Handoffs, Growth, Inbox sorting, Yorri & AI, Security & Vault, Advanced.',
  match:(r,l)=>{const m=l.match(/^(?:open|show|go to)\s+(?:the\s+)?settings?\s+(?:for\s+|on\s+|to\s+)?(.+?)[.!?]?$/)||l.match(/^(?:open|show|go to)\s+(?:the\s+)?(security|vault|security (?:and|&) vault|businesses(?: (?:and|&) rooms)?|rooms|handoffs?|general|appearance|layout|push|alerts (?:and|&) push)\s+settings[.!?]?$/);if(!m)return null;const k=setSectionFor(m[1]);return k?{k}:null},
  run:m=>{ycSec(m.k,SET_HEAD[m.k]||'setTabs');say('Yorri','Opened <b>Settings → '+esc((SET_TABS.find(x=>x[0]===m.k)||[])[1])+'</b>.')}});
@@ -4337,7 +4405,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
  const lg=$('#log');if(lg){lg.setAttribute('role','log');lg.setAttribute('aria-live','polite');lg.setAttribute('aria-label','Yorri conversation')}
  const tn=$('#navCommand')&&$('#navCommand').parentElement;if(tn)tn.setAttribute('aria-label','Main tabs');
  const qu=$('#queue');if(qu){qu.setAttribute('aria-live','polite');new MutationObserver(()=>qu.querySelectorAll('button[data-i],button[data-x],button[data-d]').forEach(b=>{const r=b.closest('.row'),ti=r&&r.querySelector('b');b.setAttribute('aria-label',(b.dataset.i!==undefined?'Approve ':b.dataset.d!==undefined?'Dismiss ':'Decline ')+(ti?ti.textContent:''))})).observe(qu,{childList:true,subtree:true});qu.dispatchEvent(new Event('x'))}})();
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('view-settings'))ywSettings(false)});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||!document.body.classList.contains('view-settings'))return;const q=$('#setSearch');if(q&&q.value){e.preventDefault();q.value='';setSearchReset(true);return}ywSettings(false)});
 window.addEventListener('storage',e=>{if(e.key==='ywA11y')a11yApply()});
 try{if(window.ywBC)ywBC.addEventListener('message',e=>{if(e.data&&e.data.type==='a11y')a11yApply(a11yGet())})}catch(e){}
 a11yApply(a11yGet());
