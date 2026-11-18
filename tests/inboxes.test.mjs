@@ -32,12 +32,18 @@ await pg.reload(); await pg.waitForTimeout(2000);
 const ev = (f, a) => pg.evaluate(f, a), wt = ms => pg.waitForTimeout(ms), out = [], tap = sel => DESK ? pg.click(sel) : pg.tap(sel);
 const last = () => ev(() => [...document.querySelectorAll('#log p.y')].pop().innerText.replace(/\s+/g, ' '));
 const say = async (t, ms = 1000) => { await ev(t => ask(t), t); await wt(ms); const l = await last(); out.push('» ' + t + '\n   ' + l.slice(0, 300)); return l };
-// Tabs: Inbox after Connections; active tab fully visible in the scrollable bar
+// Tabs: Inbox after Connections; the row wraps so every tab is fully visible (no horizontal clip / fade)
 await ev(() => { ywSettings(true); setTab('general') }); await wt(300);
 assert.deepEqual(await ev(() => [...document.querySelectorAll('#setTabs [data-stab]')].map(b => b.textContent)), ['General', 'Businesses & rooms', 'Connections', 'Alerts & push', 'Handoffs', 'Growth', 'Inbox sorting', 'Yorri & AI', 'Security & Vault', 'Advanced']);
-const vis = k => ev(k => { setTab(k); const T = document.querySelector('#setTabs'), bt = T.querySelector(`[data-stab="${k}"]`), a = T.getBoundingClientRect(), c = bt.getBoundingClientRect(); return c.left >= a.left - 1 && c.right <= a.right + 1 }, k);
+const vis = k => ev(k => { setTab(k); const T = document.querySelector('#setTabs'), bt = T.querySelector(`[data-stab="${k}"]`), a = T.getBoundingClientRect(), c = bt.getBoundingClientRect(); return c.left >= a.left - 1 && c.right <= a.right + 1 && c.top >= a.top - 1 && c.bottom <= a.bottom + 1 }, k);
 for (const k of ['advanced', 'organize', 'inbox', 'yorri', 'general']) { await wt(50); assert.ok(await vis(k), k + ' tab fully visible'); }
-if (!DESK) { await ev(() => setTab('general')); await wt(400); assert.ok(await ev(() => document.querySelector('.st-wrap').classList.contains('st-fr')), 'right fade shows more tabs'); }
+const wrap = await ev(() => { const T = document.querySelector('#setTabs'), cs = getComputedStyle(T), head = document.querySelector('.set-stick'), close = document.querySelector('#setClose'), P = document.querySelector('#setPage'); const btns = [...T.querySelectorAll('[data-stab]')]; return { wrap: cs.flexWrap, overflow: cs.overflowX, overflowY: cs.overflowY, scrollW: T.scrollWidth, clientW: T.clientWidth, minH: Math.min(...btns.map(b => b.getBoundingClientRect().height)), allInView: btns.every(b => { const a = T.getBoundingClientRect(), c = b.getBoundingClientRect(); return c.left >= a.left - 1 && c.right <= a.right + 1 && c.top >= a.top - 1 && c.bottom <= a.bottom + 1; }), headTop: head && head.getBoundingClientRect().top, closeTop: close && close.getBoundingClientRect().top, pageTop: P && P.getBoundingClientRect().top, sticky: head && getComputedStyle(head).position }; });
+assert.equal(wrap.wrap, 'wrap'); assert.ok(['visible', 'auto'].includes(wrap.overflow) && wrap.overflow !== 'hidden' && wrap.overflow !== 'scroll', 'no horizontal clip: ' + wrap.overflow);
+assert.ok(wrap.scrollW <= wrap.clientW + 1, 'tabs do not overflow horizontally ' + wrap.scrollW + '/' + wrap.clientW);
+assert.ok(wrap.allInView, 'every settings tab is on screen');
+assert.ok(wrap.minH >= 44, 'tab hit target ' + wrap.minH);
+assert.equal(wrap.sticky, 'sticky');
+assert.ok(wrap.headTop >= wrap.pageTop - 1 && wrap.closeTop >= wrap.pageTop - 1, 'Settings header/Close stay in the panel');
 await pg.screenshot({ path: '/tmp/ib_tabs' + (DESK ? '_d' : '') + '.png' });
 await ev(() => setTab('connections')); await wt(200); await ev(() => document.querySelector('#setPage section[data-tab="connections"] [data-stab="inbox"]').click()); await wt(1200);
 assert.equal(await ev(() => document.querySelector('#stab_inbox').getAttribute('aria-selected')), 'true');

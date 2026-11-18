@@ -130,7 +130,7 @@ html.a11y-large .card h3 span{float:none;display:inline-block;margin-left:6px}
 @media(min-width:1001px){html.a11y-large main{grid-template-columns:1fr}}html.a11y-large,html.a11y-large body{overflow-x:hidden}
 html.a11y-large .board{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}html.a11y-large main{padding:10px;grid-template-columns:minmax(0,1fr)!important}html.a11y-large .card,html.a11y-large .side,html.a11y-large .board{min-width:0}html.a11y-large .row>*{min-width:0;overflow-wrap:anywhere}html.a11y-large .row{flex-wrap:wrap;gap:4px}#spkF{overflow:hidden;line-height:1;padding:0}
 #setPage .ex{display:block;color:var(--mut);font-size:12px;margin:6px 0 2px}
-#setPage{display:none;position:fixed;inset:0;z-index:50;background:var(--ink);color:var(--txt);overflow:auto;padding:16px 18px 40px}
+#setPage{display:none;position:fixed;inset:0;z-index:50;background:var(--ink);color:var(--txt);overflow:auto;padding:0 18px 40px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 body.view-settings #setPage{display:block}
 .og-row{display:flex;align-items:center;gap:6px;padding:6px 12px 6px 20px;border-top:1px solid var(--line);color:var(--txt);flex-wrap:wrap}
 .og-row.drop,.cx-biz.drop{outline:2px dashed var(--teal);outline-offset:-2px}
@@ -209,13 +209,16 @@ html.a11y-contrast .cx-biz,html.a11y-contrast .cx-form input,html.a11y-contrast 
 #setPage .opts button[aria-pressed=true]{background:var(--teal);color:var(--ink);border-color:var(--teal);font-weight:700}
 #setPage .sw{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:6px;vertical-align:-2px;border:1px solid var(--mut)}
 #setPage .tip{color:var(--mut);font-size:12px;margin:8px 0 0}
-#setPage .set-bar{position:sticky;top:-16px;z-index:6;background:var(--ink);margin:10px -18px 0;padding:8px 18px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#setTabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;min-width:0;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}#setTabs::-webkit-scrollbar{display:none}.st-wrap{flex:1 1 auto;min-width:0;position:relative}.st-fr #setTabs{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.st-fl #setTabs{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}.st-fl.st-fr #setTabs{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
-#setTabs button{flex:0 0 auto;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:8px 14px;min-height:40px;font:inherit;cursor:pointer;white-space:nowrap}
+#setPage .set-stick{position:sticky;top:0;z-index:7;background:var(--ink);padding:16px 18px 0;margin:0 -18px}
+#setPage .set-head{display:flex;align-items:center;gap:10px}
+#setPage .set-head #setClose{margin-left:auto}
+#setPage .set-bar{margin:10px 0 0;padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+#setTabs{display:flex;flex-wrap:wrap;gap:6px;overflow:visible;min-width:0}.st-wrap{flex:1 1 100%;min-width:0}
+#setTabs button{flex:0 0 auto;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:8px 14px;min-height:44px;font:inherit;cursor:pointer;white-space:nowrap}
 #setTabs button[aria-selected=true]{background:var(--teal);color:var(--ink);border-color:var(--teal);font-weight:700}
 #setTabs button:focus-visible,#setSearch:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-#setSearch{flex:0 1 200px;min-width:120px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:40px;font:inherit}
-@media (max-width:600px){#setSearch{flex:1 1 100%}}
+#setSearch{flex:1 1 200px;min-width:160px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;font:inherit}
+body.car-layout #setTabs button,body.car-layout #setSearch,body.car-layout #setClose{min-height:48px;padding:10px 16px;font-size:15px}
 #setPage section[hidden]{display:none}
 #setPage .qs-sel{display:inline-flex;align-items:center;gap:6px;color:var(--mut)}#setPage .qs-sel select{min-height:44px;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit}
 .fin-p{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;background:var(--card2)}
@@ -497,9 +500,9 @@ body.car-layout .as-grid{grid-template-columns:1fr}body.car-layout [data-sc],bod
 </style>
 <div id="arrTray" hidden aria-label="Move room to a business"></div><div id="ywToast" hidden role="status" aria-live="polite"></div><div id="arrBar" hidden role="toolbar" aria-label="Arrange screen"><span id="arrMsg" aria-live="polite">Drag ⠿ or use ↑ ↓ to move boxes.</span><button type="button" id="arrReset">Reset layout</button><button type="button" id="arrCancel">Cancel</button><button type="button" id="arrDone">Done</button></div>
 <div id="setPage" role="dialog" aria-label="Settings"><div class="wrap">
-<div style="display:flex;align-items:center;gap:10px"><h2>Settings</h2><button type="button" class="sbt" id="setClose" style="margin-left:auto">✕ Close</button></div>
+<div class="set-stick"><div class="set-head"><h2>Settings</h2><button type="button" class="sbt" id="setClose">✕ Close</button></div>
 <p class="tip">Saved in this browser and synced to pop-out screens. Say "open Settings" / "close Settings".</p>
-<div class="set-bar"><div class="st-wrap"><div role="tablist" id="setTabs" aria-label="Settings sections"></div></div><input type="search" id="setSearch" placeholder="Search settings" aria-label="Search settings"></div>
+<div class="set-bar"><div class="st-wrap"><div role="tablist" id="setTabs" aria-label="Settings sections"></div></div><input type="search" id="setSearch" placeholder="Search settings" aria-label="Search settings"></div></div>
 <section data-tab="general" aria-labelledby="qsH"><h4 id="qsH">Quick switches</h4><div class="opts">
 <button type="button" class="sbt" data-proxy="#spkT" id="setSpk">Yorri voice</button>
 <button type="button" class="sbt" data-proxy="#carT" id="setCar">Car layout</button>
@@ -641,7 +644,7 @@ function kpiRender(){const B=$('#kpiBox');if(!B)return;const S=KPIL.st,M=KPIL.ms
  <div class="cx-st">${esc((S.appstore&&S.appstore.note)||'Needs a team API key with the Sales and Reports role (Issuer ID, Key ID, .p8). Create it in App Store Connect and paste it here — never in chat.')}</div>
  ${(S.appstore&&S.appstore.configured&&!KPIL.ascEdit)?`<div class="cx-st"><span class="cx-dot ${S.appstore.hasVendor?'live':'err'}" aria-hidden="true"></span> Vendor number ${S.appstore.hasVendor?'set (never shown again)':'not set — add it to pull App Store downloads'}</div><div class="opts"><button type="button" class="og-b" data-kpi="asc-edit">Replace / edit</button> <button type="button" class="og-b" data-kpi="asc-del">Remove</button></div>`:
  `<ol style="margin:6px 0 6px 1.1em;padding:0;font-size:.85rem"><li>App Store Connect → Users and Access → Integrations → App Store Connect API → <b>Generate API Key</b>.</li><li>Role: <b>Sales and Reports</b> (read-only sales/downloads). Download the .p8 once.</li><li>Paste Issuer ID, Key ID, the .p8, and your vendor number (Sales and Trends → Reports).</li></ol>
- <div class="cx-form"><label for="ascIssuer">Issuer ID</label><input id="ascIssuer" autocomplete="off" placeholder="UUID"><label for="ascKeyId">Key ID</label><input id="ascKeyId" autocomplete="off" placeholder="10 characters"><label for="ascVendor">Vendor number</label><input id="ascVendor" autocomplete="off" inputmode="numeric" placeholder="${(S.appstore&&S.appstore.hasVendor)?'leave blank to keep the saved number':'Sales and Trends → Reports (needed for downloads)'}"><label for="ascP8">.p8 private key</label><textarea id="ascP8" rows="4" autocomplete="off" placeholder="-----BEGIN PRIVATE KEY-----"></textarea><div><button type="button" class="og-b" data-kpi="asc-save">Save key</button>${(S.appstore&&S.appstore.configured)?' <button type="button" class="og-b" data-kpi="asc-cancel">Cancel</button>':''}</div></div>`}
+ <div class="cx-form"><label for="ascIssuer">Issuer ID</label><input id="ascIssuer" autocomplete="off" placeholder="${(S.appstore&&S.appstore.configured)?'leave blank to keep the saved one':'UUID'}"><label for="ascKeyId">Key ID</label><input id="ascKeyId" autocomplete="off" placeholder="${(S.appstore&&S.appstore.configured)?'leave blank to keep the saved one':'10 characters'}"><label for="ascVendor">Vendor number</label><input id="ascVendor" autocomplete="off" inputmode="numeric" placeholder="${(S.appstore&&S.appstore.hasVendor)?'leave blank to keep the saved number':'Sales and Trends → Reports (needed for downloads)'}"><label for="ascP8">.p8 private key</label><textarea id="ascP8" rows="4" autocomplete="off" placeholder="${(S.appstore&&S.appstore.configured)?'leave blank to keep the saved one':'-----BEGIN PRIVATE KEY-----'}"></textarea><div><button type="button" class="og-b" data-kpi="asc-save">Save key</button>${(S.appstore&&S.appstore.configured)?' <button type="button" class="og-b" data-kpi="asc-cancel">Cancel</button>':''}</div></div>`}
  ${msg('asc')}</div>
  </details>`}
 document.addEventListener('toggle',e=>{if(e.target.id==='kpiCard')CX.open.kpi=e.target.open},true);
@@ -985,9 +988,7 @@ function setTab(k,scroll){setTabsRender();k=SET_ALIAS[k]||k;if(!SET_TABS.some(x=
  document.querySelectorAll('#setTabs [data-stab]').forEach(b=>{const on=b.dataset.stab===k;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});setTabsFocus(k);
  try{localStorage.setItem('ywSetTab',k)}catch(e){}if(scroll!==false){const P=$('#setPage');if(P)P.scrollTop=0}if(k==='connections'){finStatus();kpiStatus();calxStatus();try{scRender();scLoad(false)}catch(e){}try{csRender();csLoad(false)}catch(e){}}if(k==='inbox')inbLoad();if(k==='growth')try{grSetRender();if(!GR.at&&!GR.busy)grRefresh(true)}catch(e){}if(k==='handoffs')try{hoRender();if(!HO.st&&!HO.busy)hoLoad()}catch(e){}if(k==='security')try{secRender()}catch(e){}if(k==='organize')try{placeLogRender()}catch(e){}if(k==='general')try{arrInfoRender()}catch(e){}}
 // Tab bar scrolls sideways on phones: centre the active tab and fade the edge that has more tabs.
-function setTabsFocus(k){const T=$('#setTabs'),b=T&&T.querySelector(`[data-stab="${k}"]`);if(!T||!b)return;const A=T.getBoundingClientRect(),C=b.getBoundingClientRect(),x=T.scrollLeft+(C.left-A.left)-(A.width-C.width)/2;try{T.scrollTo({left:Math.max(0,x),behavior:'instant'})}catch(e){T.scrollLeft=Math.max(0,x)}setTabsFade()}
-function setTabsFade(){const T=$('#setTabs');if(!T)return;const W=T.parentElement;if(!W)return;W.classList.toggle('st-fl',T.scrollLeft>4);W.classList.toggle('st-fr',T.scrollLeft+T.clientWidth<T.scrollWidth-4)}
-document.addEventListener('scroll',e=>{if(e.target&&e.target.id==='setTabs')setTabsFade()},true);window.addEventListener('resize',()=>setTabsFade());
+function setTabsFocus(k){const b=$('#setTabs')&&$('#setTabs').querySelector(`[data-stab="${k}"]`);if(b)try{b.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'})}catch(e){}}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-stab]');if(b)setTab(b.dataset.stab)});
 document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('#setTabs [data-stab]');if(!b)return;const L=[...document.querySelectorAll('#setTabs [data-stab]')];let i=L.indexOf(b);
  if(e.key==='ArrowRight')i=(i+1)%L.length;else if(e.key==='ArrowLeft')i=(i-1+L.length)%L.length;else if(e.key==='Home')i=0;else if(e.key==='End')i=L.length-1;else return;e.preventDefault();setTab(L[i].dataset.stab);L[i].focus()});
