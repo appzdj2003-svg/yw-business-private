@@ -2877,7 +2877,7 @@ async function mailLoad(force){
         const s=smsServer();
         if(!s){MAIL.err='Connect the Support server first.';MAIL.items=[];MAIL.at=Date.now();break}
         MAIL.err='';
-        try{const q=new URLSearchParams({limit:'200'});if(MAIL.label)q.set('label',MAIL.label);if(MAIL.q)q.set('q',MAIL.q);const j=await svReq('GET','/mail/list?'+q.toString());MAIL.items=j.items||[];MAIL.folders=j.folders||{};MAIL.unread=j.unread||0;MAIL.trashUnpulled=j.trashUnpulled||0;MAIL.at=Date.now();MAIL.err='';if(MAIL.sel){const keep={};for(const m of MAIL.items)if(MAIL.sel[m.id])keep[m.id]=1;MAIL.sel=keep}}catch(e){MAIL.err=String(e.message||e).slice(0,140);if(e&&e.off)MAIL.err=e.message;MAIL.at=Date.now()}
+        try{const q=new URLSearchParams({limit:'200'});if(MAIL.label)q.set('label',MAIL.label);if(MAIL.q)q.set('q',MAIL.q);const j=await svReq('GET','/mail/list?'+q.toString());MAIL.items=j.items||[];MAIL.folders=j.folders||{};MAIL.unread=j.unread||0;MAIL.trashUnpulled=j.trashUnpulled||0;MAIL.at=Date.now();MAIL.err='';if(MAIL.sel){const keep={};for(const m of MAIL.items)if(MAIL.sel[m.id]||MAIL.sel[String(m.id)])keep[m.id]=1;MAIL.sel=keep}mailDropStaleOpen()}catch(e){MAIL.err=String(e.message||e).slice(0,140);if(e&&e.off)MAIL.err=e.message;MAIL.at=Date.now()}
       }while(MAIL._again);
     }finally{
       MAIL.busy=false;MAIL._run=null;
@@ -2989,7 +2989,8 @@ function mailAsk(opts){if(MAIL._askDone)try{MAIL._askDone(false)}catch(e){}
  return new Promise(res=>{MAIL._ask=Object.assign({title:'Confirm',body:'',ok:'Delete',cancel:'Cancel',danger:true},opts||{});
   MAIL._askDone=ok=>{const fn=MAIL._askRes;MAIL._ask=null;MAIL._askRes=null;MAIL._askDone=null;if(typeof draw==='function')draw();if(fn)fn(!!ok)};
   MAIL._askRes=res;if(typeof draw==='function')draw()})}
-function mailClearOpen(ids){if(ids&&ids.includes(MAIL.open)){MAIL.open=null;MAIL.msg=null;MAIL.thread=[]}if(MAIL.sel)ids.forEach(id=>delete MAIL.sel[id])}
+function mailClearOpen(ids){const set=new Set((ids||[]).map(String));if(set.has(String(MAIL.open||''))){MAIL.open=null;MAIL.msg=null;MAIL.thread=[];MAIL.replying=false;MAIL.images=false;MAIL.ai=''}if(MAIL.sel)for(const id of set)delete MAIL.sel[id]}
+function mailDropStaleOpen(){if(!MAIL.open)return false;if((MAIL.items||[]).some(m=>String(m.id)===String(MAIL.open)))return false;MAIL.open=null;MAIL.msg=null;MAIL.thread=[];MAIL.replying=false;MAIL.images=false;MAIL.ai='';return true}
 async function mailMoveTrash(ids,need){ids=(Array.isArray(ids)?ids:[]).filter(Boolean);if(!ids.length)return false;
  if(need!==false){const n=ids.length,title=n>1?'Delete '+n+' emails?':'Delete this email?',body=n>1?`Move <b>${n} emails</b> to Trash? You can restore them. Trash is removed after 30 days once the PC has a copy. Logged to the Vault.`:`Move <b>${esc(mailSubjOf(ids[0]))}</b> to Trash? You can restore it. Trash is removed after 30 days once the PC has a copy. Logged to the Vault.`;
   if(!await mailAsk({title,body,ok:n>1?'Delete '+n:'Delete'}))return false}
@@ -3012,7 +3013,8 @@ async function mailEmptyTrash(){const n=(MAIL.folders&&MAIL.folders.trash)||0;if
 function mailBind(){const f=$('#mailHtml'),m=MAIL.msg;if(f&&m&&m.html){const key=String(m.id||MAIL.open||'')+'|'+(MAIL.images?'1':'0')+'|'+m.html.length;if(f.dataset.bind!==key){f.dataset.bind=key;f.dataset.mid=String(m.id||MAIL.open||'');f.dataset.img=String(!!MAIL.images);f.srcdoc='<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px/1.45 system-ui,sans-serif;color:#111;margin:12px;word-wrap:break-word}img{max-width:100%}</style></head><body>'+m.html+'</body></html>'}}
  const q=$('#mailQ');if(q&&!q.matches(':focus'))q.value=MAIL.q;const t=$('#mailTone');if(t)t.value=MAIL.tone}
 async function mailOpen(id){MAIL.open=id;MAIL.compose=false;MAIL.images=false;MAIL.ai='';MAIL.replying=false;MAIL.busy=true;if(typeof draw==='function')draw();
- try{const t=await svReq('GET','/mail/thread/'+encodeURIComponent(id));MAIL.thread=t.items||[];const m=await svReq('GET','/mail/message/'+encodeURIComponent(id));MAIL.msg=m;await svReq('POST','/mail/read',{ids:[id],read:true}).catch(()=>{});const it=MAIL.items.find(x=>x.id===id);if(it)it.seen=true}catch(e){MAIL.err=String(e.message||e).slice(0,140)}
+ if(MAIL.open!==id){MAIL.busy=false;return}
+ try{const t=await svReq('GET','/mail/thread/'+encodeURIComponent(id));if(MAIL.open!==id){MAIL.busy=false;return}MAIL.thread=t.items||[];const m=await svReq('GET','/mail/message/'+encodeURIComponent(id));if(MAIL.open!==id){MAIL.busy=false;return}MAIL.msg=m;await svReq('POST','/mail/read',{ids:[id],read:true}).catch(()=>{});const it=MAIL.items.find(x=>String(x.id)===String(id));if(it)it.seen=true}catch(e){MAIL.err=String(e.message||e).slice(0,140);if(/404|not found/i.test(MAIL.err)&&String(MAIL.open)===String(id)){MAIL.open=null;MAIL.msg=null;MAIL.thread=[]}}
  MAIL.busy=false;if(typeof draw==='function')draw();setTimeout(mailBind,0)}
 async function mailAi(kind){const c=llmCfg(),m=MAIL.msg;if(!m)return say('Yorri','Open an email first.');if(!c.key)return say('Yorri','Add a Grok key in Settings → Yorri & AI first.');
  const tone=($('#mailTone')&&$('#mailTone').value)||MAIL.tone,text=(m.text||m.snippet||'').slice(0,8000);
@@ -3070,10 +3072,10 @@ document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.c
   try{const r=await fetch(sv.url+'/mail/attachment/'+encodeURIComponent(t.dataset.maildl)+'/'+t.dataset.mailn,{headers:{Authorization:'Bearer '+sv.token}});const b=await r.blob();const u=URL.createObjectURL(b);const x=document.createElement('a');x.href=u;x.download=(MAIL.msg&&(MAIL.msg.attachments||[]).find(z=>String(z.n)===t.dataset.mailn)||{}).name||'attachment';x.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(err){say('Yorri','Download failed: '+esc(err.message))}return}
  const act=t.dataset.mailact;if(!act)return;
  if(act==='refresh'||act==='search'){const q=$('#mailQ');if(q)MAIL.q=q.value.trim();if(typeof draw==='function')draw();mailLoad(true);return}
- if(act==='compose'){MAIL.compose=true;MAIL.open=null;MAIL.cmp={to:'',subject:'',body:''};MAIL.draft='';MAIL.noSig=!(sigSt().autoAppend!==false);if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailTo');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
- if(act==='cancel'){MAIL.compose=false;if(typeof draw==='function')draw();return}
+ if(act==='compose'){MAIL.compose=true;MAIL.open=null;MAIL.msg=null;MAIL.thread=[];MAIL.cmp={to:'',subject:'',body:''};MAIL.draft='';MAIL.noSig=!(sigSt().autoAppend!==false);MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailTo');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
+ if(act==='cancel'){MAIL.compose=false;MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();return}
  if(act==='sig'){SIG.listOpen=true;SIG.open=true;sigLoad(false);sigPaint();return}
- if(act==='reply'){MAIL.replying=true;MAIL.noSig=!(sigSt().autoAppend!==false);if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailDraft');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
+ if(act==='reply'){MAIL.replying=true;MAIL.noSig=!(sigSt().autoAppend!==false);MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailDraft');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
  if(act==='propose'||act==='propose-new'){mailPropose(act==='propose-new'?'compose':'reply');return}
  if(act==='images'){if(!MAIL.open)return;MAIL.images=true;try{MAIL.msg=await svReq('GET','/mail/message/'+encodeURIComponent(MAIL.open)+'?images=1')}catch(err){MAIL.err=err.message}if(typeof draw==='function')draw();setTimeout(mailBind,0);return}
  if(act==='archive'||act==='spam'){if(!MAIL.open)return;const lab=act==='spam'?'spam':'archived';if(act==='archive'&&!confirm('Archive this email? It moves to Archived (not deleted). Logged to the Vault.'))return;
@@ -3462,8 +3464,13 @@ function setScreenCount(n){
 }
 function cmdState(t){if(t==='Calendar')return 'live';if(t==='Infrastructure')return infState();if(t==='Mail')return smsServer()?'live':mockOn?'sample':'none';if(mockOn)return 'mock';if(t==='Support')return supURL()?'live':'none';if(t==='Vault')return 'live';if(t==='KPIs')return KPIL.sum?'live':'none';if(t==='Finance')return FINL.sum?(FINL.sum.cash==null&&FINL.sum.errors&&FINL.sum.errors.length?'err':'live'):'none';return 'none'}
 function cardHTML(title,body,keep){return `<div class="card ${keep?'keep':''}"><h3>${esc(title)} ${roomChip(cmdState(title))}</h3>${body}</div>`}
-let _lastBoardHtml='',_lastBoardRoom='',_lastBoardPage='';
-function draw(){if(typeof ARR!=='undefined'&&ARR&&ARR.on){ARR.dirty=true;return}draw0();try{arrApply()}catch(e){}}
+let _lastBoardHtml='',_lastBoardRoom='',_lastBoardPage='',_drawDepth=0,_drawSoon=0;
+function draw(){if(typeof ARR!=='undefined'&&ARR&&ARR.on){ARR.dirty=true;return}
+  try{window.__drawN=(window.__drawN||0)+1}catch(e){}
+  if(_drawDepth){_drawSoon=1;return}
+  _drawDepth=1;
+  try{draw0();try{arrApply()}catch(e){}}
+  finally{_drawDepth=0;if(_drawSoon){_drawSoon=0;const go=()=>draw();if(typeof requestAnimationFrame==='function')requestAnimationFrame(go);else setTimeout(go,0)}}}
 function draw0(){if(typeof dedupeQ==='function')dedupeQ();try{sampleQPurge()}catch(e){}{const bn=$('#bizNav');if(bn)bn.innerHTML=bizNavHTML()}
   ensureAssignments();
   document.body.classList.toggle('view-apps',pageView==='apps');
@@ -3483,13 +3490,15 @@ function draw0(){if(typeof dedupeQ==='function')dedupeQ();try{sampleQPurge()}cat
   }else{$('#logoMark')&&$('#logoMark').setAttribute('data-screen',screenCount>1?'· PRIMARY':'')}
   const navRooms=isSat?currentRoomPool():(pageView==='apps'?appsNavRooms():cmdNavRooms());
   if(isSat&&!navRooms.includes(roomView))roomView=navRooms[0]||'Finance';
-  $('#nav').innerHTML=navRooms.map(r=>`<button type="button" class="${r===roomView?'act':''}">${esc(r)}</button>`).join('');
-  [...$('#nav').children].forEach(b=>b.onclick=()=>{
-    roomView=b.textContent;
-    if(isSat){assignments[String(screenId)]=roomView;saveLayout();broadcast({type:'assign',assignments});const u=new URL(location.href);u.searchParams.set('room',roomView);history.replaceState(null,'',u)}
-    else if(!applying)broadcast(Object.assign(snapshot(),{type:'state'}));
-    draw();
-  });
+  {const navEl=$('#nav'),navKey=(pageView||'')+'|'+(isSat?'s':'p')+'|'+navRooms.join('\0')+'|'+roomView;
+   if(navEl&&navEl.dataset.key!==navKey){navEl.innerHTML=navRooms.map(r=>`<button type="button" class="${r===roomView?'act':''}" data-room="${esc(r)}">${esc(r)}</button>`).join('');navEl.dataset.key=navKey;
+    [...navEl.children].forEach(b=>b.onclick=()=>{
+      roomView=b.getAttribute('data-room')||b.textContent;
+      if(isSat){assignments[String(screenId)]=roomView;saveLayout();broadcast({type:'assign',assignments});const u=new URL(location.href);u.searchParams.set('room',roomView);history.replaceState(null,'',u)}
+      else if(!applying)broadcast(Object.assign(snapshot(),{type:'state'}));
+      draw();
+    })}
+  }
   let html='';
   if(pageView==='command'){
     let list;

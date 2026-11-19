@@ -505,7 +505,95 @@ await wt(400);
 const cov = await ev(() => ycCoverage());
 assert.deepEqual(cov.filter(k => k === 'room:Mail' || k === 'card:smCard'), [], 'Mail room + smCard covered: ' + JSON.stringify(cov));
 
-await ev(() => { ywSettings(false); setPageView('command'); roomView = 'Mail'; MAIL.label = 'inbox'; MAIL.q = ''; mailLoad(true); });
+// ---- Post-delete: empty Inbox + 2 in Trash must not freeze; Compose + top-bar tabs work
+const savedBox = JSON.parse(JSON.stringify(box));
+for (const k of Object.keys(box)) delete box[k];
+box.d1 = { id: 'd1', from: 'test2@example.com', fromName: 'TEST 2', to: 'support@yourworldapps.si', subject: 'TEST 2', snippet: 'please delete', text: 'please delete', date: NOW - 3e5, receivedAt: NOW - 3e5, seen: true, label: 'inbox', urgent: false, out: false, pulled: true, attachments: [] };
+box.d2 = { id: 'd2', from: 'support@yourworldapps.si', fromName: 'Your World Apps Support', to: 'test2@example.com', subject: 'Re: TEST 2', snippet: 'sent reply', text: 'sent reply', date: NOW - 2e5, receivedAt: NOW - 2e5, seen: true, label: 'replied', urgent: false, out: true, pulled: true, attachments: [] };
+await ev(() => { ywSettings(false); setPageView('command'); roomView = 'Mail'; MAIL.label = 'inbox'; MAIL.q = ''; MAIL.open = null; MAIL.compose = false; MAIL._ask = null; MAIL._fp = ''; mailLoad(true); });
+await pg.waitForFunction(() => !!document.querySelector('[data-mailopen="d1"]'), { timeout: 8000 });
+await ev(() => document.querySelector('[data-mailopen="d1"]').click());
+await wt(400);
+await ev(() => document.querySelector('[data-mailact="trash"]')?.click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+await ev(() => document.querySelector('[data-mailask="1"]').click());
+await wt(600);
+assert.equal(box.d1.label, 'trash', 'd1 moved to trash');
+assert.equal(await ev(() => MAIL.items.length), 0, 'inbox empty after deleting the open thread');
+await ev(() => document.querySelector('[data-mailfolder="replied"]').click());
+await pg.waitForFunction(() => !!document.querySelector('[data-mailopen="d2"]'), { timeout: 8000 });
+await ev(() => document.querySelector('[data-mailopen="d2"]').click());
+await wt(400);
+await ev(() => document.querySelector('[data-mailact="trash"]')?.click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+await ev(() => document.querySelector('[data-mailask="1"]').click());
+await wt(600);
+assert.equal(box.d2.label, 'trash', 'd2 moved to trash');
+await ev(() => document.querySelector('[data-mailfolder="inbox"]').click());
+await wt(500);
+assert.deepEqual(await ev(() => ({ inbox: (MAIL.folders && MAIL.folders.inbox) || 0, trash: (MAIL.folders && MAIL.folders.trash) || 0, open: MAIL.open })), { inbox: 0, trash: 2, open: null });
+
+// hide undo toast so it cannot eat clicks
+await ev(() => { const t = document.getElementById('ywToast'); if (t) t.hidden = true; });
+
+const n0 = await ev(() => window.__drawN || 0);
+const storm = await ev(async () => {
+  const board = document.getElementById('board'), nav = document.getElementById('nav');
+  let boardW = 0, navW = 0;
+  const mo = new MutationObserver(muts => { for (const m of muts) { if (m.target === board) boardW++; if (m.target === nav) navW++; } });
+  if (board) mo.observe(board, { childList: true });
+  if (nav) mo.observe(nav, { childList: true });
+  const t0 = performance.now();
+  let long = 0;
+  const po = (typeof PerformanceObserver !== 'undefined') ? new PerformanceObserver(list => { for (const e of list.getEntries()) if (e.duration >= 50) long++; }) : null;
+  try { po && po.observe({ type: 'longtask', buffered: true }); } catch (e) {}
+  await new Promise(r => setTimeout(r, 1600));
+  mo.disconnect();
+  try { po && po.disconnect(); } catch (e) {}
+  return { boardW, navW, long, ms: Math.round(performance.now() - t0), draws: (window.__drawN || 0) };
+});
+const draws = (storm.draws || 0) - n0;
+assert.ok(storm.boardW <= 1, 'empty-inbox board rewrite storm ' + storm.boardW);
+assert.ok(storm.navW <= 1, 'empty-inbox nav rewrite storm ' + storm.navW);
+assert.ok(draws <= 2, 'empty-inbox draw storm ' + draws);
+
+// Compose must open a new-message panel (any address), with signature controls and propose-then-approve
+await ev(() => document.querySelector('[data-mailact="compose"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailTo') && !!document.querySelector('#mailDraft'), { timeout: 8000 });
+assert.ok(await ev(() => !!document.querySelector('.mail-compose') && MAIL.compose === true), 'compose panel open');
+assert.ok(await ev(() => !!document.querySelector('[data-mailact="propose-new"]')), 'propose send on compose');
+assert.ok(await ev(() => !!document.querySelector('#mailSigBtn') || !!document.querySelector('#mailNoSig')), 'signature controls on compose');
+await ev(() => { document.querySelector('#mailTo').value = 'anyone@example.com'; document.querySelector('#mailSubj').value = 'Compose check'; document.querySelector('#mailDraft').value = 'Hello from a test.'; });
+await ev(() => { const n = document.querySelector('#mailNoSig'); if (n && !n.checked) { /* leave default signature setting */ } });
+await ev(() => document.querySelector('[data-mailact="cancel"]').click());
+await wt(300);
+assert.equal(await ev(() => !!document.querySelector('#mailTo')), false, 'cancel closes compose');
+assert.equal(sent.filter(x => x.subject === 'Compose check').length, 0, 'compose did not send');
+
+// Top-bar room tabs (and Settings) must switch away from Mail
+const tabs = await ev(() => [...document.querySelectorAll('#nav button')].map(b => b.getAttribute('data-room') || b.textContent.trim()).filter(t => t && t !== 'Mail'));
+assert.ok(tabs.length >= 3, 'expected several top-bar rooms, got ' + tabs.join(','));
+for (const tab of tabs) {
+  await ev(tab => { ywSettings(false); const b = [...document.querySelectorAll('#nav button')].find(x => (x.getAttribute('data-room') || x.textContent.trim()) === tab); if (!b) throw new Error('missing tab ' + tab); b.click(); }, tab);
+  await wt(250);
+  const got = await ev(() => ({ room: roomView, settings: document.body.classList.contains('view-settings') }));
+  assert.equal(got.room, tab, 'clicking ' + tab + ' from Mail, roomView=' + got.room);
+  assert.equal(got.settings, false, tab + ' should not be blocked by Settings');
+}
+await ev(() => { const b = [...document.querySelectorAll('#nav button')].find(x => (x.getAttribute('data-room') || x.textContent.trim()) === 'Mail'); b.click(); });
+await wt(300);
+await ev(() => document.getElementById('navSettings').click());
+await wt(300);
+assert.ok(await ev(() => document.body.classList.contains('view-settings') && getComputedStyle(document.getElementById('setPage')).display !== 'none'), 'Settings opens from Mail');
+await ev(() => { ywSettings(false); });
+await wt(200);
+assert.equal(await ev(() => document.body.classList.contains('view-settings')), false);
+
+// restore mock mailbox so later nothing leaks; leave test trash as test data only
+for (const k of Object.keys(box)) delete box[k];
+Object.assign(box, savedBox);
+
+await ev(() => { ywSettings(false); setPageView('command'); roomView = 'Mail'; MAIL.label = 'inbox'; MAIL.q = ''; MAIL.compose = false; MAIL.open = null; mailLoad(true); });
 await wt(500);
 await shot('mail-final', '.mail-room');
 
