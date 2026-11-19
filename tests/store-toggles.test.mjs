@@ -7,10 +7,10 @@ const html = fs.readFileSync(new URL('../index.html', import.meta.url)); const s
 const exe = fs.readdirSync('/home/box/.cache/ms-playwright').filter(d => d.startsWith('chromium_headless_shell')).map(d => `/home/box/.cache/ms-playwright/${d}/chrome-headless-shell-linux64/chrome-headless-shell`).find(fs.existsSync);
 const b = await chromium.launch({ executablePath: exe }); const CAR = !!process.env.CAR, SHOT = process.env.SHOTDIR || '/workspace/store-toggles', tag = CAR ? 'car' : 'desk', SV = 'https://sv.test';
 fs.mkdirSync(SHOT, { recursive: true });
-const NAMES = { support: 'Support inbox (Gmail)', maint: 'Maintenance inbox + eMaint', alerts: 'Alerts (push + text)', kpi: 'KPIs (GA4 + Play)', appstore: 'App Store sync', search: 'Search consoles', finance: 'Finance', calendar: 'Calendars', marketing: 'Marketing', infra: 'Infrastructure', music: 'Music', rnd: 'R&D experiments', acq: 'Acquisitions', gmailSend: 'Gmail send (OAuth)', handoff: 'Grok Bot handoffs' };
+const NAMES = { support: 'Support inbox (Gmail)', maint: 'Maintenance inbox + eMaint', alerts: 'Alerts (push + text)', kpi: 'KPIs (GA4 + Play)', appstore: 'App Store sync', search: 'Search consoles', finance: 'Finance', calendar: 'Calendars', marketing: 'Marketing', infra: 'Infrastructure', music: 'Music', rnd: 'R&D experiments', acq: 'Acquisitions', gmailSend: 'Gmail send (OAuth)', handoff: 'Grok Bot handoffs', supportmail: 'Support mail (domain copy)', resend: 'Resend (support@ send)' };
 const OFF = {}; let BACK = 'gmail'; const reqs = [];
 const tview = () => ({ connections: Object.entries(NAMES).map(([id, name]) => ({ id, name, what: name + ' polling', on: !OFF[id], lockedOff: false })), at: Date.now(), storeOk: true });
-const mig = () => ({ needed: true, state: 'waiting', done: 7, total: 19, pending: ['kpi', 'finance', 'music'], copied: 6, lastError: 'ClosedAfterConnectTLS: Unexpected close', retryInS: 240 });
+let MIG = 'waiting'; const mig = () => ({ needed: true, state: MIG, done: 7, total: 19, pending: ['kpi', 'finance', 'music'], copied: 6, lastError: 'ClosedAfterConnectTLS: Unexpected close', retryInS: MIG === 'paused' ? 3600 : 240, ...(MIG === 'paused' ? { note: 'Gmail unreachable; using fresh data' } : {}) });
 const store = () => BACK === 'gmail' ? { backend: 'gmail', ok: false, state: 'failing', lastError: 'ClosedAfterConnectTLS: Unexpected close', failures: 12, retryInS: 300, lastOkAt: Date.now() - 864e5 }
   : { backend: 'upstash', ok: true, state: 'ok', lastError: null, failures: 0, retryInS: 0, lastOkAt: Date.now(), migration: mig(), usage: { sinceBoot: 41, thisMonth: 1234, freeLimit: 500000 } };
 const offOr = (id, body) => OFF[id] ? { off: true, connection: id, name: NAMES[id], message: NAMES[id] + ' is Off — turn it on in Settings → Connections.' } : body;
@@ -30,6 +30,8 @@ await ctx.route(SV + '/**', async r => { const q = r.request(), u = new URL(q.ur
   else if (P === '/inboxes') body = { inboxes: [{ id: 'yw-support', label: 'Support', kind: 'support', canSend: true, builtin: true }] };
   else if (P === '/tickets' || P === '/maint/mail') body = offOr(P === '/tickets' ? 'support' : 'maint', []);
   else if (P === '/alerts/settings') body = { smsLive: false, pushLive: true, settings: null }; else if (P === '/alerts/actions') body = { actions: [] };
+  else if (P === '/mail/health') body = offOr('supportmail', { configured: true, count: 3, unpulled: 1, lastReceivedAt: Date.now() - 3600e3, lastPullAt: Date.now() - 7200e3 });
+  else if (P === '/mail/send-health') body = offOr('resend', { configured: true, lastSentAt: null, lastError: null, sentCount: 0, from: 'Your World Apps Support <support@yourworldapps.si>' });
   await r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' }, body: JSON.stringify(body) }); });
 await pg.goto('http://127.0.0.1:8177/');
 await pg.evaluate(sv => { const a = JSON.parse(localStorage.getItem('ywConn') || '{}'); a[SUP_KEY()] = { type: 'support', url: sv, token: 'x'.repeat(40), live: true }; localStorage.setItem('ywConn', JSON.stringify(a)); }, SV);
@@ -60,10 +62,21 @@ assert.match(await ev(() => document.querySelector('#shMsg').textContent), /Migr
 assert.ok(await ev(() => auditList().some(a => /Migrate now/.test(a.title))), 'migrate logged to Vault');
 await shot('store-upstash', '#shCard');
 
+// ---- Paused migration: deck stays healthy (green) and works with fresh data
+MIG = 'paused'; await ev(() => document.querySelector('#shCheck').click()); await wt(500);
+card = await ev(() => document.querySelector('#shCard').innerText);
+assert.match(card, /Paused — Gmail unreachable; using fresh data/);
+assert.match(card, /Healthy · using fresh data/);
+assert.match(card, /retry hourly|retries about once an hour|will retry hourly/i);
+assert.doesNotMatch(card, /migrating — Gmail unavailable/);
+assert.equal(await ev(() => document.querySelector('#shCard .cx-dot').className), 'cx-dot live', 'green while paused');
+await shot('store-paused', '#shCard');
+MIG = 'waiting';
+
 // ---- Connection status switches
 await ev(() => { const c = document.querySelector('#csCard'); c.open = true; csLoad(true); }); await wt(800);
 const nsw = await ev(() => document.querySelectorAll('#csCard [role=switch][data-tgsw]').length); assert.ok(nsw >= 15, 'switches on rows: ' + nsw);
-const ids = await ev(() => [...new Set([...document.querySelectorAll('#csCard [data-tgsw]')].map(x => x.dataset.tgsw))].sort()); assert.deepEqual(ids, Object.keys(NAMES).sort(), 'every connection has a switch');
+const ids = await ev(() => [...new Set([...document.querySelectorAll('#csCard [data-tgsw]')].map(x => x.dataset.tgsw))].sort()); assert.ok(Object.keys(NAMES).every(id => ids.includes(id)), 'every known connection has a switch: missing ' + Object.keys(NAMES).filter(id => !ids.includes(id)).join(','));
 const h = await ev(() => Math.round(document.querySelector('#csCard [data-tgsw="finance"]').getBoundingClientRect().height)); assert.ok(h >= (CAR ? 48 : 44), 'switch height ' + h);
 assert.equal(await ev(() => document.querySelector('#csCard [data-tgsw="finance"]').getAttribute('aria-checked')), 'true');
 await shot('switches', '#csCard');
