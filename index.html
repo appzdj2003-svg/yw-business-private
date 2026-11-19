@@ -426,6 +426,14 @@ body.car-layout #setPage #smCard .cx-act button,body.car-layout #setPage #smCard
 .mail-ai button,.mail-acts button,.mail-room .sbt,.mail-compose input,.mail-compose textarea,.mail-compose select{min-height:44px;padding:8px 12px;font:inherit}
 .mail-compose textarea{width:100%;min-height:120px;box-sizing:border-box;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:10px}
 .mail-compose input,.mail-compose select{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px}
+.mail-rc{display:grid;gap:4px;margin:6px 0}.mail-rc input{width:100%;box-sizing:border-box}.mail-rc-row{display:flex;gap:6px;align-items:stretch}.mail-rc-row input{flex:1;min-width:0}
+.mail-rc .mail-cc-tog{min-height:44px;min-width:88px;white-space:nowrap}.mail-rc input[aria-invalid="true"]{border-color:#e57373}.mail-rc-err{color:#ef9a9a;margin:2px 0}
+.mail-fwd{border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:8px;padding:8px 10px;margin:8px 0;background:color-mix(in srgb,var(--field) 70%,transparent)}
+.mail-fwd pre{white-space:pre-wrap;font:12px/1.45 ui-monospace,monospace;max-height:220px;overflow:auto;margin:6px 0 0;color:var(--mut)}
+.mail-fwd-att{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.mail-fwd-att .chip{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px}
+.mail-fwd-att label{display:flex;gap:8px;align-items:center;min-height:44px}.mail-fwd-att input{width:22px;height:22px}
+.q-rc{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:6px 0;font-size:13px}.q-rc b{color:var(--mut);font-weight:600}.q-rc span{word-break:break-all}
+body.car-layout .mail-rc .mail-cc-tog,body.car-layout .mail-fwd-att label{min-height:48px}body.car-layout .q-rc{font-size:15px}
 body.car-layout .mail-folders button,body.car-layout .mail-search,body.car-layout .mail-row,body.car-layout .mail-ai button,body.car-layout .mail-acts button,body.car-layout .mail-room .sbt,body.car-layout .mail-compose input,body.car-layout .mail-compose textarea,body.car-layout .mail-compose select,body.car-layout .mail-row-act,body.car-layout .mail-bulk button,body.car-layout .mail-ask button,body.car-layout .mail-chk{min-height:48px;padding:10px 16px;font-size:15px}
 .mail-row-wrap{display:flex;align-items:stretch;border-bottom:1px solid var(--line);background:transparent}
 .mail-row-wrap .mail-row{flex:1;border-bottom:0;min-width:0}
@@ -2864,9 +2872,10 @@ function mailFp(){
   let tasks='';try{tasks=taskList().filter(t=>!t.done).map(t=>t.id+':'+t.title).join(',')}catch(e){}
   const msg=MAIL.msg?String(MAIL.msg.id||MAIL.open||'')+':'+(MAIL.msg.html?MAIL.msg.html.length:0)+(MAIL.msg.text?':'+MAIL.msg.text.length:''):'';
   const th=(MAIL.thread||[]).map(x=>x.id).join(',');
-  const cmp=MAIL.cmp?[MAIL.cmp.to,MAIL.cmp.subject,MAIL.cmp.body].join('\x1f'):'';
+  const cmp=(MAIL.cmp&&!MAIL.compose)?[MAIL.cmp.to,MAIL.cmp.subject,MAIL.cmp.body].join('\x1f'):(MAIL.compose?'cmp':'');
+  const rcm=(MAIL.rc?MAIL.rc.mode+':'+(MAIL.rc.err||''):'')+(MAIL.fwdInfo?':'+MAIL.fwdInfo.id+':'+MAIL.fwdInfo.ok:'');
   const sig=(typeof SIG!=='undefined'&&SIG)?((SIG.open?'1':'0')+(SIG.listOpen?'1':'0')+(SIG.edit&&SIG.edit.id||'')):'';
-  return [MAIL.label,MAIL.q,MAIL.open||'',MAIL.compose?'1':'',MAIL.replying?'1':'',MAIL.err||'',MAIL.images?'1':'',MAIL.ai||'',MAIL.unread||0,MAIL.trashUnpulled||0,MAIL.noSig?'1':'',MAIL.sigId||'',MAIL.tone||'',folders,sel,ask,send,tasks,msg,th,cmp,sig,items].join('|')}
+  return [MAIL.label,MAIL.q,MAIL.open||'',MAIL.compose?'1':'',MAIL.replying?'1':'',MAIL.err||'',MAIL.images?'1':'',MAIL.ai||'',MAIL.unread||0,MAIL.trashUnpulled||0,MAIL.noSig?'1':'',MAIL.sigId||'',MAIL.tone||'',folders,sel,ask,send,tasks,msg,th,cmp,rcm,sig,items].join('|')}
 async function mailLoad(force){
   if(MAIL._run){if(force)MAIL._again=true;await MAIL._run;if(force)return mailLoad(true);return}
   const sv=smsServer(),connectMiss=!!(sv&&MAIL.err&&/Connect the Support server/.test(MAIL.err));
@@ -2903,6 +2912,49 @@ function mailRender(board){if(!MAIL.loaded){MAIL.loaded=1;setTimeout(()=>mailLoa
  const tasks=taskList().filter(t=>!t.done).slice(0,8);
  const taskH=tasks.length?`<div class="mail-tasks"><b>Command tasks</b>${tasks.map(t=>`<div class="row"><span>${esc(t.title)}</span><button type="button" class="og-b" data-taskdone="${esc(t.id)}">Done</button></div>`).join('')}</div>`:'';
  return `<div class="mail-room" data-mail="1">${bar}<div id="mailBulkHost">${mailBulkHTML()}</div><div class="mail-split"><div class="mail-list" id="mailList">${rows}</div><div class="mail-thread" id="mailThread">${mailThreadHTML()}</div></div>${taskH}${MAIL.sendMsg?`<p class="${MAIL.sendMsg.ok?'cx-ok':'cx-bad'}">${esc(MAIL.sendMsg.msg)}</p>`:''}${mailAskHTML()}</div>`}
+const MAIL_MAX_RCPT=20,MAIL_SELVES=['support@yourworldapps.si','yourworldappsupport@gmail.com'];
+const MAIL_ADDR_RE=/^[^\s@<>",;()]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
+function mailSplit(v){return (Array.isArray(v)?v:String(v||'').split(/[,;\n]/)).map(x=>String(x||'').trim()).filter(Boolean)}
+function mailAddrOf(x){const m=String(x||'').match(/<([^>]+)>/);return (m?m[1]:String(x||'')).trim()}
+function mailIsSelf(x){return MAIL_SELVES.includes(mailAddrOf(x).toLowerCase())}
+// Validate To/Cc/Bcc like the server does: valid addresses, one To at least, each address once overall, ≤20 total.
+function mailRcCheck(rc){const T=mailSplit(rc.to),C=mailSplit(rc.cc),B=mailSplit(rc.bcc);const bad=[...T,...C,...B].filter(x=>!MAIL_ADDR_RE.test(mailAddrOf(x)));
+ if(bad.length)return {err:'Check '+(bad.length>1?'these addresses':'this address')+': '+bad.join(', '),bad};if(!T.length)return {err:'Add at least one To address.'};
+ const seen=new Set(),uniq=L=>L.filter(x=>{const k=mailAddrOf(x).toLowerCase();if(seen.has(k))return false;seen.add(k);return true});const to=uniq(T),cc=uniq(C),bcc=uniq(B);
+ const n=to.length+cc.length+bcc.length;if(n>MAIL_MAX_RCPT)return {err:'Too many recipients ('+n+'). Max '+MAIL_MAX_RCPT+' across To, Cc and Bcc.'};return {to,cc,bcc,n}}
+function mailRcLine(L){return (L&&L.length)?L.join(', '):'—'}
+function mailOthers(m){const me=String(m.from||'').toLowerCase();return [...new Set([...mailSplit(m.to),...mailSplit(m.cc)].map(mailAddrOf).filter(a=>a&&!mailIsSelf(a)&&a.toLowerCase()!==me))]}
+function mailRcStart(mode,m,pre){m=m||MAIL.msg||{};const subj=m.subject||'';const re=/^\s*re:/i.test(subj)?subj:'Re: '+subj,fw=/^\s*(fwd?|fw):/i.test(subj)?subj:'Fwd: '+(subj||'(no subject)');
+ const rc={mode,to:'',cc:'',bcc:'',subject:'',showCc:false,att:true,err:''};
+ if(mode==='reply'){rc.to=m.from||'';rc.subject=re}
+ else if(mode==='replyall'){rc.to=m.from||'';rc.cc=mailOthers(m).join(', ');rc.subject=re;rc.showCc=!!rc.cc}
+ else if(mode==='forward'){rc.subject=fw}
+ if(pre)Object.assign(rc,pre);if(rc.cc||rc.bcc)rc.showCc=true;MAIL.rc=rc;return rc}
+// Read the live inputs back into MAIL.rc (no redraw — values survive any later rebuild).
+function mailRcSync(){const rc=MAIL.rc||(MAIL.rc={mode:MAIL.compose?'compose':'reply',to:'',cc:'',bcc:'',subject:'',showCc:false,att:true});const g=id=>{const n=$('#'+id);return n?n.value:null};
+ const to=g('mailTo'),cc=g('mailCc'),bcc=g('mailBcc'),su=g('mailSubj'),d=g('mailDraft'),at=$('#mailFwdAtt');if(to!=null)rc.to=to;if(cc!=null)rc.cc=cc;if(bcc!=null)rc.bcc=bcc;if(su!=null)rc.subject=su;if(at)rc.att=!!at.checked;
+ if(d!=null){MAIL.draft=d;if(MAIL.cmp)MAIL.cmp.body=d}if(MAIL.cmp&&MAIL.compose){MAIL.cmp.to=rc.to;MAIL.cmp.subject=rc.subject}return rc}
+function mailRcHTML(rc){const e=x=>esc(x||'');return `<div class="mail-rc" role="group" aria-label="Recipients — all editable until you Approve">
+ <label class="cx-st" for="mailTo">To</label><div class="mail-rc-row"><input id="mailTo" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${e(rc.to)}" placeholder="name@example.com, …" aria-describedby="mailRcHint"><button type="button" class="og-b mail-cc-tog" data-mailact="cc-toggle" aria-expanded="${rc.showCc?'true':'false'}" aria-controls="mailCcBox">Cc/Bcc</button></div>
+ <div id="mailCcBox" class="mail-rc"${rc.showCc?'':' hidden'}><label class="cx-st" for="mailCc">Cc</label><input id="mailCc" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${e(rc.cc)}" placeholder="Copy others (visible to all)"><label class="cx-st" for="mailBcc">Bcc</label><input id="mailBcc" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${e(rc.bcc)}" placeholder="Blind copy (hidden from others)"></div>
+ <label class="cx-st" for="mailSubj">Subject</label><input id="mailSubj" type="text" value="${e(rc.subject)}">
+ <p class="cx-st" id="mailRcHint">Separate addresses with commas · up to ${MAIL_MAX_RCPT} total · every field stays editable until you Approve.</p><p class="mail-rc-err" id="mailRcErr" role="alert"${rc.err?'':' hidden'}>${e(rc.err)}</p></div>`}
+function mailFwdHTML(m){const F=MAIL.fwdInfo&&String(MAIL.fwdInfo.id)===String(m.id)?MAIL.fwdInfo:null;const when=m.date?new Date(m.date).toString().replace(/ GMT.*$/,''):'';
+ const rows=[['From',m.fromName?m.fromName+' <'+m.from+'>':(m.from||'')],['Date',when],['Subject',m.subject||'(no subject)'],['To',m.to||'support@yourworldapps.si']].concat(m.cc?[['Cc',m.cc]]:[]);
+ const orig=String(m.text||m.snippet||'').trim();const atts=m.attachments||[];
+ let attH='';if(atts.length){if(F&&F.ok){const n=F.attachments.length;attH=n?`<div class="mail-fwd-att"><label><input type="checkbox" id="mailFwdAtt"${(MAIL.rc&&MAIL.rc.att===false)?'':' checked'}> Include ${n} original attachment${n===1?'':'s'}</label>${F.attachments.map(a=>`<span class="chip">📎 ${esc(a.name)} · ${Math.max(1,Math.round((a.size||0)/1024))} KB</span>`).join('')}${F.skipped&&F.skipped.length?`<span class="cx-st">Too large to forward: ${esc(F.skipped.join(', '))}</span>`:''}</div>`:`<p class="cx-st">⚠ Attachments aren’t forwarded — the stored copy has none to attach.</p>`}
+  else if(F&&!F.ok)attH=`<p class="cx-st">⚠ Attachments aren’t forwarded for this message (${esc(F.err||'stored copy unavailable')}). The text below still goes.</p>`;else attH=`<p class="cx-st">Checking ${atts.length} attachment${atts.length===1?'':'s'}…</p>`}
+ return `<div class="mail-fwd" aria-label="Forwarded message (included below your note)"><b class="cx-st">---------- Forwarded message ----------</b><div class="cx-st">${rows.map(([k,v])=>'<b>'+k+':</b> '+esc(v)).join('<br>')}</div>${m.stub?'<p class="cx-st">Original was too large to store — headers only.</p>':''}<pre>${esc(orig.slice(0,4000)||(m.html?'(HTML message — sent as-is below your note)':'(no text)'))}</pre>${attH}</div>`}
+async function mailFwdLoad(id){if(MAIL.fwdInfo&&String(MAIL.fwdInfo.id)===String(id)&&MAIL.fwdInfo.ok!=null)return;MAIL.fwdInfo={id,ok:null};
+ try{const j=await svReq('GET','/mail/forward/'+encodeURIComponent(id));MAIL.fwdInfo={id,ok:true,attachments:j.attachments||[],skipped:j.skipped||[]}}
+ catch(e){MAIL.fwdInfo={id,ok:false,err:/404|not found/i.test(String(e.message||e))?'server copy not found':String(e.message||e).slice(0,80)}}
+ if(String(MAIL.open)===String(id)&&MAIL.rc&&MAIL.rc.mode==='forward'){mailRcSync();MAIL._fp='';if(typeof draw==='function')draw()}}
+function mailStartMode(mode,pre){const m=MAIL.msg;if(!m&&mode!=='compose')return say('Yorri','Open an email first.');
+ if(mode==='compose'){MAIL.compose=true;MAIL.open=null;MAIL.msg=null;MAIL.thread=[];mailRcStart('compose',{},pre);MAIL.cmp={to:MAIL.rc.to,subject:MAIL.rc.subject,body:(pre&&pre.body)||''};MAIL.draft=(pre&&pre.body)||''}
+ else{mailRcStart(mode,m,pre);MAIL.replying=true;if(!(pre&&pre.keepDraft))MAIL.draft=(pre&&pre.body)||''}
+ if(!(pre&&pre.body))MAIL.noSig=!(sigSt().autoAppend!==false);MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();
+ setTimeout(()=>{const n=$(mode==='forward'||mode==='compose'?'#mailTo':'#mailDraft');if(n)try{n.focus()}catch(e){}if(!(pre&&pre.body))mailAttachSig()},50);sigLoad(false);if(mode==='forward'&&m)mailFwdLoad(m.id)}
+const MAIL_MODE_LAB={reply:'Reply',replyall:'Reply all',forward:'Forward',compose:'New message'};
 function mailThreadHTML(){if(MAIL.compose)return mailComposeHTML();const id=MAIL.open;if(!id)return `<div class="empty"><b>SELECT A MESSAGE</b>Or tap Compose. Replies are proposed first — nothing sends until you Approve.</div>`;
  const m=MAIL.msg||MAIL.items.find(x=>x.id===id)||{};
  const thread=MAIL.thread.length?MAIL.thread:[m];
@@ -2910,10 +2962,12 @@ function mailThreadHTML(){if(MAIL.compose)return mailComposeHTML();const id=MAIL
  const atts=(m.attachments||[]).map(a=>`<button type="button" class="og-b" data-maildl="${esc(m.id)}" data-mailn="${a.n}">${esc(a.name||'attachment')} (${Math.round((a.size||0)/1024)||1} KB)</button>`).join('');
  const ai=`<div class="mail-ai" role="group" aria-label="AI options">${[['summarize','Summarize'],['draft','Draft reply'],['label','Suggest label'],['urgent','Flag urgent'],['tasks','Extract tasks'],['translate','Translate']].map(([k,l])=>`<button type="button" class="og-b" data-mailai="${k}">${l}</button>`).join('')}<label class="cx-st">Tone <select id="mailTone">${[['friendly','Friendly'],['formal','Formal'],['short','Short']].map(([k,l])=>`<option value="${k}"${MAIL.tone===k?' selected':''}>${esc(l)}</option>`).join('')}</select></label></div>${MAIL.ai?`<div class="tip" id="mailAiOut">${MAIL.ai}</div>`:''}`;
  return `<div><b>${esc(m.subject||'(no subject)')}</b><div class="cx-st">${thread.map(x=>esc((x.fromName||x.from||'')+' · '+mailAgo(x.date||x.receivedAt))+(x.out?' · you':'')).join('<br>')}</div>${body}${atts?`<div class="mail-acts"><span class="cx-st">Attachments (stored copy):</span>${atts}</div>`:''}${ai}
- <div class="mail-acts">${(m.label||MAIL.label)==='trash'?`<button type="button" class="sbt" data-mailact="restore">Restore</button><button type="button" class="sbt mail-danger" data-mailact="purge">🗑 Delete forever</button>`:`<button type="button" class="sbt" data-mailact="reply">Reply</button><button type="button" class="og-b" data-mailact="archive">Archive</button><button type="button" class="sbt mail-danger" data-mailact="trash" title="Delete">🗑 Delete</button><button type="button" class="og-b" data-mailact="spam">Spam</button><button type="button" class="og-b" data-mailact="unread">Mark unread</button>`}</div>
- <div class="mail-compose"${MAIL.draft||MAIL.replying?'':' hidden'} id="mailReplyBox"><label class="cx-st">Reply (propose, then Approve — never sent automatically)</label><textarea id="mailDraft">${esc(MAIL.draft)}</textarea><div class="mail-acts"><button type="button" class="sbt" data-mailact="propose">Propose send</button></div>${mailSigBar()}</div></div>`}
-function mailComposeHTML(){const c=MAIL.cmp||{to:'',subject:'',body:''};return `<div class="mail-compose"><b>New message</b><p class="cx-st">From Your World Apps Support &lt;support@yourworldapps.si&gt; via Resend. Yorri will queue this for your approval — nothing is sent automatically.</p>
- <label class="cx-st">To</label><input id="mailTo" value="${esc(c.to)}" placeholder="name@example.com"><label class="cx-st">Subject</label><input id="mailSubj" value="${esc(c.subject)}"><label class="cx-st">Body</label><textarea id="mailDraft">${esc(c.body||MAIL.draft)}</textarea>
+ <div class="mail-acts">${(m.label||MAIL.label)==='trash'?`<button type="button" class="sbt" data-mailact="restore">Restore</button><button type="button" class="sbt mail-danger" data-mailact="purge">🗑 Delete forever</button>`:`<button type="button" class="sbt" data-mailact="reply">Reply</button>${mailOthers(m).length?`<button type="button" class="og-b" data-mailact="replyall">Reply all</button>`:''}<button type="button" class="og-b" data-mailact="forward">↪ Forward</button><button type="button" class="og-b" data-mailact="archive">Archive</button><button type="button" class="sbt mail-danger" data-mailact="trash" title="Delete">🗑 Delete</button><button type="button" class="og-b" data-mailact="spam">Spam</button><button type="button" class="og-b" data-mailact="unread">Mark unread</button>`}</div>
+ ${mailReplyBoxHTML(m)}</div>`}
+function mailReplyBoxHTML(m){const show=!!(MAIL.draft||MAIL.replying);if(show&&(!MAIL.rc||MAIL.rc.mode==='compose'))mailRcStart('reply',m);const rc=MAIL.rc||{mode:'reply'};const mode=rc.mode||'reply',fwd=mode==='forward';
+ return `<div class="mail-compose"${show?'':' hidden'} id="mailReplyBox" data-mode="${esc(mode)}"><b>${esc(MAIL_MODE_LAB[mode]||'Reply')}</b> <span class="cx-st">(propose, then Approve — never sent automatically)</span>${show?mailRcHTML(rc):''}<label class="cx-st" for="mailDraft">${fwd?'Your note (signature goes here, above the forwarded message)':'Message'}</label><textarea id="mailDraft">${esc(MAIL.draft)}</textarea>${show&&fwd?mailFwdHTML(m):''}<div class="mail-acts"><button type="button" class="sbt" data-mailact="propose">${fwd?'Propose forward':'Propose send'}</button><button type="button" class="og-b" data-mailact="cancel-reply">Cancel</button></div>${mailSigBar()}</div>`}
+function mailComposeHTML(){const c=MAIL.cmp||{to:'',subject:'',body:''};if(!MAIL.rc||MAIL.rc.mode!=='compose')mailRcStart('compose',{},{to:c.to||'',subject:c.subject||''});return `<div class="mail-compose"><b>New message</b><p class="cx-st">From Your World Apps Support &lt;support@yourworldapps.si&gt; via Resend. Yorri will queue this for your approval — nothing is sent automatically.</p>
+ ${mailRcHTML(MAIL.rc)}<label class="cx-st" for="mailDraft">Body</label><textarea id="mailDraft">${esc(c.body||MAIL.draft)}</textarea>
  <div class="mail-acts"><button type="button" class="sbt" data-mailact="propose-new">Propose send</button><button type="button" class="og-b" data-mailact="cancel">Cancel</button></div>${mailSigBar()}</div>`}
 const SIG={st:null,at:0,busy:false,err:'',edit:null,preview:'',open:false,listOpen:false};
 const LS_NOSIG='ywMailNoSig';
@@ -3012,7 +3066,7 @@ async function mailEmptyTrash(){const n=(MAIL.folders&&MAIL.folders.trash)||0;if
  try{const r=await svReq('POST','/mail/empty-trash',{});audit({decision:'EMPTIED TRASH · '+(r&&r.purged||n)+' deleted'+(r&&r.unpulled?' · '+r.unpulled+' unpulled':''),tier:'T0',title:'Trash',lane:'Mail'});MAIL.open=null;MAIL.msg=null;MAIL.sel={};await mailLoad(true);say('Yorri','Trash emptied. Logged to Vault.')}catch(e){say('Yorri','Couldn’t empty trash: '+esc(e.message))}}
 function mailBind(){const f=$('#mailHtml'),m=MAIL.msg;if(f&&m&&m.html){const key=String(m.id||MAIL.open||'')+'|'+(MAIL.images?'1':'0')+'|'+m.html.length;if(f.dataset.bind!==key){f.dataset.bind=key;f.dataset.mid=String(m.id||MAIL.open||'');f.dataset.img=String(!!MAIL.images);f.srcdoc='<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px/1.45 system-ui,sans-serif;color:#111;margin:12px;word-wrap:break-word}img{max-width:100%}</style></head><body>'+m.html+'</body></html>'}}
  const q=$('#mailQ');if(q&&!q.matches(':focus'))q.value=MAIL.q;const t=$('#mailTone');if(t)t.value=MAIL.tone}
-async function mailOpen(id){MAIL.open=id;MAIL.compose=false;MAIL.images=false;MAIL.ai='';MAIL.replying=false;MAIL.busy=true;if(typeof draw==='function')draw();
+async function mailOpen(id){MAIL.open=id;MAIL.compose=false;MAIL.images=false;MAIL.ai='';MAIL.replying=false;MAIL.rc=null;MAIL.draft='';MAIL.busy=true;if(typeof draw==='function')draw();
  if(MAIL.open!==id){MAIL.busy=false;return}
  try{const t=await svReq('GET','/mail/thread/'+encodeURIComponent(id));if(MAIL.open!==id){MAIL.busy=false;return}MAIL.thread=t.items||[];const m=await svReq('GET','/mail/message/'+encodeURIComponent(id));if(MAIL.open!==id){MAIL.busy=false;return}MAIL.msg=m;await svReq('POST','/mail/read',{ids:[id],read:true}).catch(()=>{});const it=MAIL.items.find(x=>String(x.id)===String(id));if(it)it.seen=true}catch(e){MAIL.err=String(e.message||e).slice(0,140);if(/404|not found/i.test(MAIL.err)&&String(MAIL.open)===String(id)){MAIL.open=null;MAIL.msg=null;MAIL.thread=[]}}
  MAIL.busy=false;if(typeof draw==='function')draw();setTimeout(mailBind,0)}
@@ -3027,7 +3081,7 @@ async function mailAi(kind){const c=llmCfg(),m=MAIL.msg;if(!m)return say('Yorri'
  MAIL.ai='Yorri is reading…';MAIL.tone=tone;if(typeof draw==='function')draw();setTimeout(mailBind,0);
  try{const out=await llmCall([{role:'system',content:'You are Yorri, chief of staff for Aaron Burgan (Your World Apps). Propose only; never send email. Be concise.'},{role:'user',content:prompts[kind]+'\n\nFrom: '+(m.fromName||'')+' <'+(m.from||'')+'>\nSubject: '+(m.subject||'')+'\n\n'+text}],c);
   let html=esc(out).replace(/\n/g,'<br>');
-  if(kind==='draft'){MAIL.draft=out.replace(/^```[\s\S]*?\n/,'').replace(/```$/,'').trim();MAIL.replying=true;MAIL.noSig=!(sigSt().autoAppend!==false);html='Draft is in the editor — edit it, then <b>Propose send</b>. Nothing is sent until you Approve.';}
+  if(kind==='draft'){MAIL.draft=out.replace(/^```[\s\S]*?\n/,'').replace(/```$/,'').trim();if(!MAIL.rc||MAIL.rc.mode==='compose'||!MAIL.replying)mailRcStart('reply',m);else mailRcSync();MAIL.draft=out.replace(/^```[\s\S]*?\n/,'').replace(/```$/,'').trim();MAIL.replying=true;MAIL.noSig=!(sigSt().autoAppend!==false);html='Draft is in the editor — edit it, then <b>Propose send</b>. Nothing is sent until you Approve.';}
   if(kind==='label'){const mm=out.match(/LABEL:\s*(inbox|reply|replied|archived|spam)/i);html+=' '+(mm?`<button type="button" class="sbt" data-mailsetlabel="${esc(mm[1].toLowerCase())}">Apply ${esc(mm[1])}</button>`:'')}
   if(kind==='urgent'&&/URGENT:\s*yes/i.test(out)){html+=` <button type="button" class="sbt" data-mailact="flag">Flag urgent</button>`}
   if(kind==='tasks'){const tasks=[...out.matchAll(/^\s*TASK:\s*(.+)$/gmi)].map(x=>x[1].trim()).filter(Boolean);if(tasks.length)html+='<div class="mail-acts">'+tasks.map((t,i)=>`<button type="button" class="sbt" data-mailaddtask="${i}">Add: ${esc(t.slice(0,60))}</button>`).join('')+'</div>';MAIL._tasks=tasks}
@@ -3035,18 +3089,32 @@ async function mailAi(kind){const c=llmCfg(),m=MAIL.msg;if(!m)return say('Yorri'
  catch(e){MAIL.ai='AI failed: '+esc(String(e.message||e).slice(0,120));say('Yorri',MAIL.ai)}
  if(typeof draw==='function')draw();setTimeout(()=>{mailBind();if(kind==='draft')mailAttachSig()},0)}
 async function mailOnDecide(a,ok){if(!a||!a.mail)return;if(!ok)return
- try{const r=a.mail.kind==='compose'?await svReq('POST','/mail/compose',Object.assign({approved:true},a.mail)):await svReq('POST','/mail/reply',{approved:true,id:a.mail.id,body:a.mail.body,html:a.mail.html});
+ const x=a.mail,k=x.kind||'reply',base={approved:true,to:x.to,cc:x.cc||[],bcc:x.bcc||[],subject:x.subject,body:x.body,html:x.html};
+  try{const r=k==='compose'?await svReq('POST','/mail/compose',base):k==='forward'?await svReq('POST','/mail/forward',Object.assign(base,{id:x.id,attachments:x.attachments!==false})):await svReq('POST','/mail/reply',Object.assign(base,{id:x.id}));
   if(!(r&&r.ok&&r.messageId))throw new Error('server did not confirm the send');
-  const via=r.via==='resend'?'Resend':'mail',msg='Sent via '+via+' · '+r.messageId+(r.to?' · to '+r.to:'');
-  audit({decision:'SENT via '+via+' · '+r.messageId+(r.to?' → '+r.to:''),tier:'T1',title:a.title,lane:'Mail'});
-  say('Yorri',`Sent via ${esc(via)}. ${esc(msg)}. Logged to Vault.`);MAIL.sendMsg={ok:true,msg};MAIL.draft='';MAIL.compose=false;MAIL.replying=false;await mailLoad(true)}
+  const cc=[].concat(r.cc||[]),bcc=[].concat(r.bcc||[]),rcl=(r.to?' · To '+r.to:'')+(cc.length?' · Cc '+cc.join(', '):'')+(bcc.length?' · Bcc '+bcc.join(', '):'');
+  const via=r.via==='resend'?'Resend':'mail',msg=(k==='forward'?'Forwarded':'Sent')+' via '+via+' · '+r.messageId+rcl+(k==='forward'&&r.attachments?' · '+r.attachments+' attachment'+(r.attachments===1?'':'s'):'');
+  audit({decision:(k==='forward'?'FORWARDED':'SENT')+' via '+via+' · '+r.messageId+rcl,tier:'T1',title:a.title,lane:'Mail'});
+  say('Yorri',`${k==='forward'?'Forwarded':'Sent'} via ${esc(via)}. ${esc(msg)}. Logged to Vault.`);MAIL.sendMsg={ok:true,msg};MAIL.draft='';MAIL.compose=false;MAIL.replying=false;MAIL.rc=null;await mailLoad(true)}
  catch(e){const er=String(e.message||e).slice(0,160);audit({decision:'SEND FAILED: '+er,tier:'T1',title:a.title,lane:'Mail'});say('Yorri','Send failed: '+esc(er));MAIL.sendMsg={ok:false,msg:'Send failed: '+er};if(typeof draw==='function')draw()}}
-function mailPropose(kind){if(kind==='compose'){const to=($('#mailTo')&&$('#mailTo').value||'').trim(),subject=($('#mailSubj')&&$('#mailSubj').value||'').trim(),body=($('#mailDraft')&&$('#mailDraft').value||'').trim();if(!to||!subject||!body)return say('Yorri','To, subject and body are required.');
-  const a={t:['t1','T1'],title:'Send email to '+to+': '+subject,why:'Mail · from support@yourworldapps.si via Resend · "'+body.slice(0,60)+'…"',lane:'Mail',mail:{kind:'compose',to,subject,body,html:mailHtmlBody(body)}};
-  if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);MAIL.compose=false;draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.');return}
- const m=MAIL.msg,body=($('#mailDraft')&&$('#mailDraft').value||MAIL.draft||'').trim();if(!m)return say('Yorri','Open an email first.');if(!body)return say('Yorri','Write or draft a reply first.');
- const a={t:['t1','T1'],title:'Send reply to '+(m.from||m.id)+': '+(m.subject||''),why:'Mail · Resend · "'+body.slice(0,60)+'…"',lane:'Mail',mail:{kind:'reply',id:m.id,body,html:mailHtmlBody(body)}};
- if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);MAIL.replying=false;draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
+function mailRcErr(msg){const rc=MAIL.rc;if(rc)rc.err=msg||'';const n=$('#mailRcErr');if(n){n.textContent=msg||'';n.hidden=!msg}['mailTo','mailCc','mailBcc'].forEach(id=>{const el=$('#'+id);if(!el)return;const bad=!!msg&&mailSplit(el.value).some(x=>!MAIL_ADDR_RE.test(mailAddrOf(x)));el.setAttribute('aria-invalid',bad?'true':'false')});if(msg)say('Yorri',esc(msg))}
+// One proposal shape for every send (Reply, Reply all, Forward, Compose, and anything Yorri drafts): To/Cc/Bcc/Subject always editable here and via Edit on the approval card.
+function mailPropose(kind){const rc=mailRcSync();const mode=kind==='compose'?'compose':(rc.mode&&rc.mode!=='compose'?rc.mode:'reply');const m=MAIL.msg;
+ if(mode!=='compose'&&!m)return say('Yorri','Open an email first.');
+ const subject=String(rc.subject||'').trim(),body=String(($('#mailDraft')&&$('#mailDraft').value)||MAIL.draft||'').trim();
+ const R=mailRcCheck(rc);if(R.err){if((rc.cc||rc.bcc)&&!rc.showCc){rc.showCc=true;const bx=$('#mailCcBox');if(bx)bx.hidden=false}return mailRcErr(R.err)}mailRcErr('');
+ if(!subject)return mailRcErr('Add a subject.');if(!body&&mode!=='forward')return say('Yorri',mode==='compose'?'To, subject and body are required.':'Write or draft a reply first.');
+ const verb=mode==='forward'?'Forward':mode==='compose'?'Send email':mode==='replyall'?'Reply all':'Send reply';
+ const att=mode==='forward'?(rc.att!==false):undefined,nAtt=mode==='forward'&&MAIL.fwdInfo&&MAIL.fwdInfo.ok?(MAIL.fwdInfo.attachments||[]).length:0;
+ const rcl='To: '+mailRcLine(R.to)+(R.cc.length?' · Cc: '+mailRcLine(R.cc):'')+(R.bcc.length?' · Bcc: '+mailRcLine(R.bcc):'');
+ const a={t:['t1','T1'],title:verb+' to '+R.to.join(', ')+': '+subject,why:'Mail · from support@yourworldapps.si via Resend · '+rcl+(mode==='forward'?' · '+(att&&nAtt?nAtt+' attachment'+(nAtt===1?'':'s'):'no attachments'):'')+' · "'+body.slice(0,60)+(body.length>60?'…':'')+'"',lane:'Mail',
+  mail:{kind:mode==='compose'?'compose':mode==='forward'?'forward':'reply',mode,id:m&&mode!=='compose'?m.id:undefined,to:R.to,cc:R.cc,bcc:R.bcc,subject,body,html:mailHtmlBody(body),attachments:att}};
+ if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. ${esc(rcl)}. Waiting on your decision — tap Edit on the card to change anything.`);if(mode==='compose')MAIL.compose=false;else MAIL.replying=false;MAIL.rc=null;MAIL.draft='';MAIL._fp='';draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
+// Edit a queued (not yet approved) mail: take it off the queue and reopen every field in the editor.
+async function mailEditQueued(i){const a=queue[i];if(!a||!a.mail)return;queue.splice(i,1);audit({decision:'EDITING (back to editor, not sent)',tier:a.t[1],title:a.title,lane:'Mail'});
+ const x=a.mail,mode=x.mode||(x.kind==='compose'?'compose':x.kind==='forward'?'forward':'reply');const pre={to:mailSplit(x.to).join(', '),cc:mailSplit(x.cc).join(', '),bcc:mailSplit(x.bcc).join(', '),subject:x.subject||'',body:x.body||'',att:x.attachments!==false};
+ mailOpenRoom();if(mode!=='compose'&&x.id){await mailOpen(x.id);if(!MAIL.msg){say('Yorri','That email is no longer in Mail — I couldn’t reopen it.');draw();broadcast(snapshot());return}}
+ mailStartMode(mode,pre);say('Yorri','Back in the editor — To, Cc, Bcc, subject and text are all editable. Propose again when ready.');broadcast(snapshot())}
 document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-mailfolder],[data-mailopen],[data-mailact],[data-mailai],[data-maildl],[data-mailn],[data-mailsetlabel],[data-mailaddtask],[data-taskdone],[data-mailask],[data-mailsel],[data-sigact]');if(!t)return;
  if(t.dataset.mailask!=null){if(MAIL._askDone)MAIL._askDone(t.dataset.mailask==='1');return}
  if(t.dataset.sigact){const act=t.dataset.sigact,id=t.dataset.sigid||'';
@@ -3072,10 +3140,12 @@ document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.c
   try{const r=await fetch(sv.url+'/mail/attachment/'+encodeURIComponent(t.dataset.maildl)+'/'+t.dataset.mailn,{headers:{Authorization:'Bearer '+sv.token}});const b=await r.blob();const u=URL.createObjectURL(b);const x=document.createElement('a');x.href=u;x.download=(MAIL.msg&&(MAIL.msg.attachments||[]).find(z=>String(z.n)===t.dataset.mailn)||{}).name||'attachment';x.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(err){say('Yorri','Download failed: '+esc(err.message))}return}
  const act=t.dataset.mailact;if(!act)return;
  if(act==='refresh'||act==='search'){const q=$('#mailQ');if(q)MAIL.q=q.value.trim();if(typeof draw==='function')draw();mailLoad(true);return}
- if(act==='compose'){MAIL.compose=true;MAIL.open=null;MAIL.msg=null;MAIL.thread=[];MAIL.cmp={to:'',subject:'',body:''};MAIL.draft='';MAIL.noSig=!(sigSt().autoAppend!==false);MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailTo');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
- if(act==='cancel'){MAIL.compose=false;MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();return}
+ if(act==='compose'){mailStartMode('compose');return}
+ if(act==='cancel'){MAIL.compose=false;MAIL.rc=null;MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();return}
  if(act==='sig'){SIG.listOpen=true;SIG.open=true;sigLoad(false);sigPaint();return}
- if(act==='reply'){MAIL.replying=true;MAIL.noSig=!(sigSt().autoAppend!==false);MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailDraft');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
+ if(act==='reply'||act==='replyall'||act==='forward'){mailStartMode(act);return}
+ if(act==='cc-toggle'){const rc=mailRcSync(),box=$('#mailCcBox');rc.showCc=!rc.showCc;if(box)box.hidden=!rc.showCc;t.setAttribute('aria-expanded',rc.showCc?'true':'false');if(rc.showCc){const n=$('#mailCc');if(n)try{n.focus()}catch(e){}}return}
+ if(act==='cancel-reply'){MAIL.replying=false;MAIL.draft='';MAIL.rc=null;MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();return}
  if(act==='propose'||act==='propose-new'){mailPropose(act==='propose-new'?'compose':'reply');return}
  if(act==='images'){if(!MAIL.open)return;MAIL.images=true;try{MAIL.msg=await svReq('GET','/mail/message/'+encodeURIComponent(MAIL.open)+'?images=1')}catch(err){MAIL.err=err.message}if(typeof draw==='function')draw();setTimeout(mailBind,0);return}
  if(act==='archive'||act==='spam'){if(!MAIL.open)return;const lab=act==='spam'?'spam':'archived';if(act==='archive'&&!confirm('Archive this email? It moves to Archived (not deleted). Logged to the Vault.'))return;
@@ -3091,8 +3161,9 @@ document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.c
 document.addEventListener('change',e=>{if(e.target&&e.target.dataset&&e.target.dataset.mailsel){MAIL.sel=MAIL.sel||{};if(e.target.checked)MAIL.sel[e.target.dataset.mailsel]=1;else delete MAIL.sel[e.target.dataset.mailsel];const host=$('#mailBulkHost');if(host)host.innerHTML=mailBulkHTML();return}
  if(e.target&&e.target.id==='mailNoSig'){MAIL.noSig=!!e.target.checked;mailAttachSig(MAIL.noSig);return}
  if(e.target&&e.target.id==='sigAuto'){sigSetAuto(e.target.checked);return}
+ if(e.target&&e.target.id==='mailFwdAtt'){if(MAIL.rc)MAIL.rc.att=!!e.target.checked;return}
  if(e.target&&e.target.id==='mailTone')MAIL.tone=e.target.value});
-document.addEventListener('input',e=>{if(!SIG.edit)return;if(e.target&&['sigName','sigPerson','sigTitle','sigEmail','sigWeb','sigTag','sigExtra','sigBrand','sigPromo','sigFeat'].includes(e.target.id)){clearTimeout(SIG._pt);SIG._pt=setTimeout(sigRefreshPreview,250)}});
+document.addEventListener('input',e=>{if(e.target&&['mailTo','mailCc','mailBcc','mailSubj','mailDraft'].includes(e.target.id)){mailRcSync();if(e.target.getAttribute('aria-invalid')==='true')e.target.setAttribute('aria-invalid','false');if(MAIL.rc&&MAIL.rc.err&&e.target.id!=='mailDraft'){MAIL.rc.err='';const n=$('#mailRcErr');if(n){n.textContent='';n.hidden=true}}return}if(!SIG.edit)return;if(e.target&&['sigName','sigPerson','sigTitle','sigEmail','sigWeb','sigTag','sigExtra','sigBrand','sigPromo','sigFeat'].includes(e.target.id)){clearTimeout(SIG._pt);SIG._pt=setTimeout(sigRefreshPreview,250)}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='mailQ'){e.preventDefault();MAIL.q=e.target.value.trim();mailLoad(true)}if(e.key==='Escape'&&MAIL._ask&&MAIL._askDone){e.preventDefault();MAIL._askDone(false)}if(e.key==='Escape'&&(SIG.edit||SIG.listOpen)){e.preventDefault();SIG.edit=null;SIG.open=false;SIG.listOpen=false;sigPaint()}});
 window.mailOpenRoom=mailOpenRoom;window.mailLoad=mailLoad;window.mailRender=mailRender;window.mailBind=mailBind;window.mailAsk=mailAsk;window.mailMoveTrash=mailMoveTrash;
 
@@ -3536,10 +3607,11 @@ function draw0(){if(typeof dedupeQ==='function')dedupeQ();try{sampleQPurge()}cat
   if($('#dq')){
     $('#dq').classList.toggle('decide',queue.length>0);
     if(pageView==='command'){
-      $('#queue').innerHTML=queue.length?queue.map((a,i)=>`<div class="row" style="display:block"><p><span class="tier ${a.t[0]}">${a.t[1]}</span>${isSampleQ(a)?'<span class="tier t0" title="Mock data sample — nothing runs">SAMPLE</span>':''}<b>${esc(a.title)}</b><br><small style="color:var(--mut)">${esc(a.why)}</small></p><button class="btn ok" data-i="${i}">Approve${a.t[1]=='T3'?' (biometric)':''}</button> <button class="btn no" data-x="${i}">Decline</button> <button class="btn dim" data-d="${i}">Dismiss</button></div>`).join(''):'<p style="color:var(--mut)">Nothing pending. Yorri is watching.</p>';
+      $('#queue').innerHTML=queue.length?queue.map((a,i)=>`<div class="row" style="display:block"><p><span class="tier ${a.t[0]}">${a.t[1]}</span>${isSampleQ(a)?'<span class="tier t0" title="Mock data sample — nothing runs">SAMPLE</span>':''}<b>${esc(a.title)}</b><br><small style="color:var(--mut)">${esc(a.why)}</small></p>${a.mail?qMailRcHTML(a):''}<button class="btn ok" data-i="${i}">Approve${a.t[1]=='T3'?' (biometric)':''}</button> <button class="btn no" data-x="${i}">Decline</button> <button class="btn dim" data-d="${i}">Dismiss</button>${a.mail?` <button class="btn dim" data-qedit="${i}" title="Change To, Cc, Bcc, subject or text before approving">✎ Edit</button>`:''}</div>`).join(''):'<p style="color:var(--mut)">Nothing pending. Yorri is watching.</p>';
       $('#queue').querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>decide(+b.dataset.i,1));
       $('#queue').querySelectorAll('button[data-x]').forEach(b=>b.onclick=()=>decide(+b.dataset.x,0));
       $('#queue').querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>dismissQ(+b.dataset.d));
+      $('#queue').querySelectorAll('button[data-qedit]').forEach(b=>b.onclick=()=>mailEditQueued(+b.dataset.qedit));
     }
   }
   if(!applying)broadcast({type:'queue',queue});
@@ -4414,7 +4486,7 @@ YC.list.unshift({id:'mail.siguse',group:'Mail',cov:['room:Mail','card:smCard'],e
 YC.list.unshift({id:'mail.sigoff',group:'Mail',cov:['room:Mail','card:smCard'],ex:['turn signature off'],help:'Turns off auto-appending your support email signature on new replies. You can still add one with the Signature button. Say “turn signature on” to resume.',
  match:(r,l)=>{const m=l.match(/\b(?:turn|switch|set)\s+(off|on)\s+(?:the\s+)?(?:e-?mail\s+)?signatures?\b|\b(?:e-?mail\s+)?signatures?\s+(off|on)\b/);return m?{on:(m[1]||m[2])==='on'}:null},
  run:async m=>{await sigSetAuto(!!m.on)}});
-YC.list.unshift({id:'mail.replysup',group:'Mail',cov:['room:Mail','room:Support'],ex:['reply to support','reply to this email'],help:'Opens Mail (or the open Support ticket) so you can draft a reply. Sending is always Propose send → your Approve, via Resend. Nothing is sent automatically.',
+YC.list.unshift({id:'mail.replysup',group:'Mail',cov:['room:Mail','room:Support'],ex:['reply to support','reply to this email'],help:'Opens Mail (or the open Support ticket) so you can draft a reply. To is prefilled with the sender but editable, and Cc/Bcc are one tap away. Sending is always Propose send → your Approve, via Resend. Nothing is sent automatically.',
  match:(r,l)=>/\breply\s+to\s+(?:support|this\s+(?:e-?mail|message|ticket)|the\s+(?:e-?mail|message))\b|^reply to support$/.test(l),
  run:()=>{if(SUP.open&&typeof supGo==='function'){try{supGo();const ta=$('#supDraft');if(ta)ta.focus()}catch(e){}say('Yorri','Draft the reply in Support, then tap <b>Propose send</b>. Nothing is sent until you Approve.');return}
   mailOpenRoom();MAIL.replying=true;if(MAIL.open){if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailDraft');if(n)n.focus()},200)}
@@ -4422,6 +4494,30 @@ YC.list.unshift({id:'mail.replysup',group:'Mail',cov:['room:Mail','room:Support'
 YC.list.unshift({id:'mail.forward',group:'Mail',cov:['card:smCard'],ex:['turn off gmail forward','turn on gmail forward'],help:'Explains how to turn Cloudflare Email Worker forwarding to Gmail on or off. This is a Worker setting (FORWARD_TO_GMAIL), not a deck switch.',
  match:(r,l)=>{const m=l.match(/\b(turn|switch|set)\s+(off|on)\s+(?:the\s+)?gmail\s+forward(?:ing)?\b|\bgmail\s+forward(?:ing)?\s+(off|on)\b/);return m?{on:/on/.test(m[2]||m[3]||'')}:null},
  run:m=>say('Yorri',m.on?'Gmail forwarding is a <b>Cloudflare Worker</b> setting, not a switch I can flip here. In Cloudflare open the Email Worker → Settings → Variables → set <code>FORWARD_TO_GMAIL</code> to <b>on</b> (or delete it; on is the default). The Worker still saves a copy to the server either way.':'Gmail forwarding is a <b>Cloudflare Worker</b> setting, not a switch I can flip here. In Cloudflare open the Email Worker → Settings → Variables → add or edit text <code>FORWARD_TO_GMAIL</code> = <b>off</b>. After you save, new mail is still saved to the server and your PC, but no longer forwarded to Gmail. Do not change Email Routing’s root MX.')});
+
+// Spoken addresses: "jane at example dot com" → jane@example.com
+function ycAddr(v){let t=String(v||'').trim().replace(/[.!?]+$/,'').replace(/^(?:to\s+)?/i,'');t=t.replace(/\s+at\s+/gi,'@').replace(/\s+dot\s+/gi,'.').replace(/\s+(?:underscore)\s+/gi,'_').replace(/\s+(?:dash|hyphen)\s+/gi,'-');return t.split(/\s*(?:,|;|\band\b)\s*/i).map(x=>x.replace(/\s+/g,'')).filter(Boolean)}
+async function ycMailEnsureOpen(){mailOpenRoom();if(MAIL.open&&MAIL.msg)return MAIL.msg;if(MAIL.label==='trash')MAIL.label='inbox';await mailLoad(true);const it=(MAIL.items||[]).filter(x=>!x.out)[0]||(MAIL.items||[])[0];if(it)await mailOpen(it.id);return MAIL.msg}
+function ycMailEditing(){return !!(MAIL.compose||(MAIL.replying&&MAIL.rc))}
+YC.list.unshift({id:'mail.fwd',group:'Mail',cov:['room:Mail'],ex:['forward this email to jane@example.com','forward this email'],help:'Opens Forward on the open email (or the latest) with To filled in. The original text, From/Date/Subject/To and its attachments go along. To, Cc, Bcc and subject stay editable; nothing sends until you tap Propose forward and Approve.',
+ match:(r,l)=>{const m=l.match(/^(?:yorri\s+)?forward\s+(?:this|the|that|my)?\s*(?:last\s+|latest\s+)?(?:e-?mail|message)?\s*(?:to\s+(.+))?$/);if(!m||/gmail/.test(l))return null;if(!m[1]&&!/\b(?:e-?mail|message|this|that)\b/.test(l))return null;return {to:m[1]?ycAddr(m[1]):[]}},
+ run:async m=>{const msg=await ycMailEnsureOpen();if(!msg)return say('Yorri','There’s no email to forward yet.');const bad=m.to.filter(x=>!MAIL_ADDR_RE.test(x));
+  mailStartMode('forward',{to:m.to.filter(x=>MAIL_ADDR_RE.test(x)).join(', ')});
+  const n=(msg.attachments||[]).length;
+  if(bad.length)return say('Yorri','Forward is open for '+esc(msg.subject||'this email')+'. I couldn’t read '+esc(bad.join(', '))+' as an email address — type it in the To box.');
+  say('Yorri',m.to.length?`Forward is ready to ${esc(m.to.join(', '))}: <b>${esc(MAIL.rc.subject)}</b>${n?` with ${n} attachment${n===1?'':'s'}`:''}. Add a note or Cc, then tap <b>Propose forward</b>. Nothing sends until you approve.`:`Forward is open for <b>${esc(msg.subject||'this email')}</b>. Who should get it? Type the address in To, or say “add cc” or “add bcc”. Nothing sends until you approve.`)}});
+YC.list.unshift({id:'mail.replyall',group:'Mail',cov:['room:Mail'],ex:['reply all','reply all to this email'],help:'Opens Reply all on the open email (or the latest): To is the sender, Cc is everyone else on it (not support@). Every field is editable; nothing sends until you Approve.',
+ match:(r,l)=>/^(?:yorri\s+)?reply\s+(?:to\s+)?all(?:\s+to\s+(?:this|the|that)\s+(?:e-?mail|message))?[.!?]?$/.test(l),
+ run:async()=>{const msg=await ycMailEnsureOpen();if(!msg)return say('Yorri','There’s no email to reply to yet.');mailStartMode('replyall');const cc=mailSplit(MAIL.rc.cc);
+  say('Yorri',`Reply all is open. To: ${esc(MAIL.rc.to||'nobody')}${cc.length?'. Cc: '+esc(cc.join(', ')):'. Nobody else was on that email, so there’s no Cc'}. Write it, then tap <b>Propose send</b>. Nothing sends until you approve.`)}});
+YC.list.unshift({id:'mail.addcc',group:'Mail',cov:['room:Mail'],ex:['add cc jane@example.com','add bcc boss@example.com'],help:'Adds an address to Cc or Bcc on the email you’re writing (Reply, Reply all, Forward or Compose). If nothing is open for writing, it starts a Reply on the open email. Nothing sends until you Approve.',
+ match:(r,l)=>{const m=l.match(/^(?:yorri\s+)?add\s+(?:a\s+)?(b\.?\s?c\.?\s?c\.?|blind\s+copy|c\.?\s?c\.?|copy)\s+(?:to\s+)?(.+)$/);if(!m)return null;return {bcc:/^b|blind/.test(m[1]),to:ycAddr(m[2])}},
+ run:async m=>{if(!ycMailEditing()){const msg=await ycMailEnsureOpen();if(!msg)return say('Yorri','Open an email or tap Compose first.');mailStartMode('reply')}
+  const ok=m.to.filter(x=>MAIL_ADDR_RE.test(x)),bad=m.to.filter(x=>!MAIL_ADDR_RE.test(x)),f=m.bcc?'bcc':'cc',lab=m.bcc?'Bcc':'Cc';
+  if(!ok.length)return say('Yorri','That doesn’t look like an email address'+(bad.length?' ('+esc(bad.join(', '))+')':'')+'. Say it like “add '+f+' jane at example dot com”.');
+  const rc=mailRcSync();const cur=mailSplit(rc[f]),have=new Set(cur.map(x=>mailAddrOf(x).toLowerCase()));ok.forEach(a=>{if(!have.has(a.toLowerCase()))cur.push(a)});rc[f]=cur.join(', ');rc.showCc=true;
+  const R=mailRcCheck(rc);MAIL._fp='';_lastBoardHtml='';if(typeof draw==='function')draw();
+  say('Yorri',(R.err?esc(R.err)+' ':'')+`Added ${esc(ok.join(', '))} to ${lab}. ${lab} now: ${esc(rc[f])}. Nothing sends until you approve.`)}});
 
 YC.list.unshift({id:'set.search',group:'Navigation',cov:['set:layH','set:connH','set:smsH','set:appH'],ex:['search settings for vendor','find setting theme'],help:'Opens Settings and searches for a setting (vendor, App Store, keys, theme, alerts…). Say “search settings for …” or “find setting …”.',
  match:(r,l)=>{const m=l.match(/^(?:yorri\s+)?(?:search|find|look\s*up)\s+(?:the\s+)?settings?\s+(?:for\s+|to\s+)?(.+?)[.!?]?$/)||l.match(/^(?:yorri\s+)?(?:search|find|look\s*up)\s+(?:a\s+|the\s+)?setting\s+(?:for\s+)?(.+?)[.!?]?$/);if(!m)return null;const q=m[1].replace(/^[\s“"']+|[\s”"'!.?]+$/g,'').trim();return q?{q}:null},
@@ -4564,6 +4660,7 @@ const LS_DISMISS='ywDismissedSample';
 function dismissedSample(){try{return JSON.parse(localStorage.getItem(LS_DISMISS)||'[]')}catch(e){return[]}}
 function dismissSampleKey(k){const a=dismissedSample();if(!a.includes(k)){a.push(k);try{localStorage.setItem(LS_DISMISS,JSON.stringify(a.slice(-80)))}catch(e){}}}
 function wasDismissedSample(a){return !!a&&isSampleQ(a)&&dismissedSample().includes(qKey(a))}
+function qMailRcHTML(a){const x=a.mail||{};const L=v=>esc(mailRcLine(mailSplit(v)));return `<div class="q-rc" aria-label="Recipients"><b>To</b><span>${L(x.to)}</span><b>Cc</b><span>${L(x.cc)}</span><b>Bcc</b><span>${L(x.bcc)}</span>${x.kind==='forward'?`<b>Files</b><span>${x.attachments===false?'not included':'original attachments included (if stored)'}</span>`:''}</div>`}
 function pushQ(a){const k=qKey(a);if(wasDismissedSample(a))return false;if(decided[k]&&Date.now()-decided[k]<10*60e3)return false;if(queue.some(x=>qKey(x)===k))return false;queue.push(a);try{alertsDecision(a)}catch(e){}return true}
 function dismissQ(i){const a=queue[i];if(!a)return;if(!confirm('Dismiss “'+a.title+'” without approving or declining? It comes off the queue.'+(isSampleQ(a)?' Sample items stay gone after a reload.':'')))return;
  queue.splice(i,1);const k=qKey(a);decided[k]=Date.now();

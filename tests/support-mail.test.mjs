@@ -11,7 +11,7 @@ const NOW = Date.now();
 const ywSig = defaultYourWorldSig(NOW);
 let sigs = { signatures: [ywSig], defaultId: 'yw', autoAppend: true };
 const box = {
-  m1: { id: 'm1', from: 'casey@example.com', fromName: 'Casey Lee', to: 'support@yourworldapps.si', subject: 'Widget outage on checkout', snippet: 'Checkout is failing for some users since noon.', text: 'Checkout is failing for some users since noon. Can you take a look today?', date: NOW - 3600e3, receivedAt: NOW - 3600e3, seen: false, label: 'inbox', urgent: false, out: false, pulled: true, attachments: [{ n: 0, name: 'screenshot.png', size: 20480, type: 'image/png' }] },
+  m1: { id: 'm1', from: 'casey@example.com', fromName: 'Casey Lee', to: 'support@yourworldapps.si', cc: 'Ann Diaz <ann@example.com>, support@yourworldapps.si', subject: 'Widget outage on checkout', snippet: 'Checkout is failing for some users since noon.', text: 'Checkout is failing for some users since noon. Can you take a look today?', date: NOW - 3600e3, receivedAt: NOW - 3600e3, seen: false, label: 'inbox', urgent: false, out: false, pulled: true, attachments: [{ n: 0, name: 'screenshot.png', size: 20480, type: 'image/png' }] },
   m2: { id: 'm2', from: 'pat@example.com', fromName: 'Pat Nguyen', to: 'support@yourworldapps.si', subject: 'Thanks for the fix', snippet: 'All good on our side.', text: 'All good on our side. Thanks!', date: NOW - 86400e3, receivedAt: NOW - 86400e3, seen: true, label: 'inbox', urgent: false, out: false, pulled: true, attachments: [] },
   m3: { id: 'm3', from: 'support@yourworldapps.si', fromName: 'Your World Apps Support', to: 'old@example.com', subject: 'Re: Old thread', snippet: 'We looked into it.', text: 'We looked into it.', date: NOW - 2 * 86400e3, receivedAt: NOW - 2 * 86400e3, seen: true, label: 'replied', urgent: false, out: true, pulled: true, attachments: [] },
   m4: { id: 'm4', from: 'lee@example.com', fromName: 'Lee Ortiz', to: 'support@yourworldapps.si', subject: 'Billing question', snippet: 'Can you check my invoice?', text: 'Can you check my invoice?', date: NOW - 1800e3, receivedAt: NOW - 1800e3, seen: true, label: 'inbox', urgent: false, out: false, pulled: false, attachments: [] }
@@ -88,9 +88,10 @@ await ctx.route(SV + '/**', async r => {
   else if (P === '/mail/restore' && M === 'POST') { let n = 0; (bd.ids || []).forEach(id => { if (box[id] && box[id].label === 'trash') { box[id].label = box[id].prevLabel || 'inbox'; delete box[id].prevLabel; n++; } }); body = { ok: true, updated: n }; }
   else if (P === '/mail/purge' && M === 'POST') { const ids = (bd.ids || []).filter(id => box[id] && box[id].label === 'trash'); const unpulled = ids.filter(id => box[id] && !box[id].pulled).length; ids.forEach(id => delete box[id]); body = { ok: true, purged: ids.length, unpulled, ids }; }
   else if ((P === '/mail/empty-trash' || P === '/mail/emptytrash') && M === 'POST') { const ids = Object.keys(box).filter(id => box[id].label === 'trash'); const unpulled = ids.filter(id => !box[id].pulled).length; ids.forEach(id => delete box[id]); body = { ok: true, purged: ids.length, unpulled, ids }; }
-  else if ((P === '/mail/reply' || P === '/mail/compose') && M === 'POST') {
+  else if (P.startsWith('/mail/forward/') && M === 'GET') { const m = box[P.split('/')[3]]; if (!m) { st = 404; body = { error: 'not found' }; } else body = { subject: 'Fwd: ' + m.subject, text: '', attachments: (m.attachments || []).map(a => ({ name: a.name, type: a.type, size: a.size })), skipped: [], original: { id: m.id }, maxRecipients: 20 }; }
+  else if ((P === '/mail/reply' || P === '/mail/compose' || P === '/mail/forward') && M === 'POST') {
     if (!bd || bd.approved !== true) { st = 400; body = { error: 'requires {approved:true}' }; }
-    else { const rec = { at: Date.now(), path: P, to: bd.to, id: bd.id, body: bd.body, html: bd.html, subject: bd.subject }; sent.push(rec); body = { ok: true, messageId: '<t@support.yourworldapps.si>', resendId: 're_test', via: 'resend', to: bd.to || (box[bd.id] && box[bd.id].from), from: 'Your World Apps Support <support@yourworldapps.si>' }; }
+    else { const to = [].concat(bd.to || (box[bd.id] && box[bd.id].from) || []); const rec = { at: Date.now(), path: P, to: to.join(', '), toList: to, cc: bd.cc || [], bcc: bd.bcc || [], attachments: bd.attachments, id: bd.id, body: bd.body, html: bd.html, subject: bd.subject }; sent.push(rec); body = { ok: true, messageId: '<t@support.yourworldapps.si>', resendId: 're_test', via: 'resend', to: to.join(', '), cc: bd.cc || [], bcc: bd.bcc || [], attachments: P === '/mail/forward' && bd.attachments !== false ? 1 : 0, from: 'Your World Apps Support <support@yourworldapps.si>' }; }
   } else if (P === '/mail/signatures' && M === 'GET') body = sigs;
   else if (P === '/mail/signatures' && M === 'PUT') {
     if (Array.isArray(bd.signatures)) sigs.signatures = bd.signatures.map(x => normalizeSig(x, { now: NOW }));
@@ -590,6 +591,107 @@ await wt(200);
 assert.equal(await ev(() => document.body.classList.contains('view-settings')), false);
 
 // restore mock mailbox so later nothing leaks; leave test trash as test data only
+for (const k of Object.keys(box)) delete box[k];
+Object.assign(box, savedBox);
+
+// ---- Forward, Reply all, editable To + Cc/Bcc on every send, approval card shows recipients, Edit from the card
+const qRow = re => ev(src => { const r = new RegExp(src); const rows = [...document.querySelectorAll('#queue .row')]; const i = rows.findIndex(x => r.test(x.innerText)); return i < 0 ? null : { i, text: rows[i].innerText, hasEdit: !!rows[i].querySelector('[data-qedit]') }; }, re.source);
+const qClick = (re, attr) => ev(([src, attr]) => { const r = new RegExp(src); const row = [...document.querySelectorAll('#queue .row')].find(x => r.test(x.innerText)); row && row.querySelector('button[' + attr + ']').click(); }, [re.source, attr]);
+for (const k of ['m1', 'm2', 'm4']) if (box[k]) box[k].label = 'inbox';
+await ev(() => { ywSettings(false); setPageView('command'); roomView = 'Mail'; MAIL.label = 'inbox'; MAIL.q = ''; MAIL.compose = false; draw(); return mailLoad(true); });
+await ev(() => ask('turn signature on')); await wt(600);
+await ev(() => mailOpen('m1')); await wt(500);
+assert.ok(await ev(() => !!document.querySelector('.mail-thread [data-mailact="forward"]')), 'Forward button on open email');
+assert.ok(await ev(() => !!document.querySelector('.mail-thread [data-mailact="replyall"]')), 'Reply all shows when others are on the email');
+const hFwd = await ev(() => Math.round(document.querySelector('.mail-thread [data-mailact="forward"]').getBoundingClientRect().height)); assert.ok(hFwd >= minH, 'forward target ' + hFwd);
+await ev(() => document.querySelector('.mail-thread [data-mailact="forward"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailReplyBox[data-mode="forward"] #mailTo') && !!document.querySelector('#mailFwdAtt'), { timeout: 8000 });
+await wt(400);
+let fw = await ev(() => ({ to: document.querySelector('#mailTo').value, subj: document.querySelector('#mailSubj').value, blk: document.querySelector('.mail-fwd').innerText, draft: document.querySelector('#mailDraft').value, att: document.querySelector('#mailFwdAtt').checked }));
+assert.equal(fw.to, ''); assert.equal(fw.subj, 'Fwd: Widget outage on checkout');
+assert.match(fw.blk, /---------- Forwarded message ----------/); assert.match(fw.blk, /From: Casey Lee <casey@example\.com>/); assert.match(fw.blk, /Subject: Widget outage on checkout/); assert.match(fw.blk, /To: support@yourworldapps\.si/); assert.match(fw.blk, /Checkout is failing/);
+assert.match(fw.blk, /screenshot\.png/); assert.ok(fw.att, 'attachments included by default');
+assert.match(fw.draft, /\n-- \n/, 'signature in the forward note');
+// Cc/Bcc collapsed until toggled
+assert.equal(await ev(() => document.querySelector('#mailCcBox').hidden), true);
+await ev(() => document.querySelector('#mailReplyBox [data-mailact="cc-toggle"]').click());
+assert.equal(await ev(() => document.querySelector('#mailCcBox').hidden), false, 'Cc/Bcc toggle opens');
+for (const sel of ['#mailTo', '#mailCc', '#mailBcc', '#mailSubj', '#mailReplyBox [data-mailact="cc-toggle"]', '#mailReplyBox [data-mailact="propose"]']) { const h = await ev(s => Math.round(document.querySelector(s).getBoundingClientRect().height), sel); assert.ok(h >= minH, sel + ' target ' + h); }
+const typeIn = (sel, v) => ev(([sel, v]) => { const n = document.querySelector(sel); n.value = v; n.dispatchEvent(new Event('input', { bubbles: true })); }, [sel, v]);
+await typeIn('#mailTo', 'bob@example.com'); await typeIn('#mailCc', 'ann@example.com'); await typeIn('#mailBcc', 'not-an-address');
+// typing never rebuilds the board (no flicker), values survive a forced redraw
+const boardNode = await ev(() => { window.__mb = document.querySelector('#board .mail-room'); return !!window.__mb; });
+await wt(300); assert.ok(await ev(() => document.querySelector('#board .mail-room') === window.__mb), 'no rebuild while typing');
+await ev(() => { MAIL._fp = ''; _lastBoardHtml = ''; draw(); }); await wt(200);
+assert.equal(await ev(() => document.querySelector('#mailCc').value), 'ann@example.com', 'Cc survives redraw');
+let nQ = await ev(() => queue.length), nS = sent.length;
+await ev(() => document.querySelector('#mailReplyBox [data-mailact="propose"]').click()); await wt(300);
+assert.equal(await ev(() => queue.length), nQ, 'bad Bcc is not queued');
+assert.match(await ev(() => document.querySelector('#mailRcErr').innerText), /not-an-address/);
+assert.equal(await ev(() => document.querySelector('#mailBcc').getAttribute('aria-invalid')), 'true');
+await typeIn('#mailBcc', 'me@example.com');
+assert.equal(await ev(() => document.querySelector('#mailRcErr').hidden), true, 'error clears once fixed');
+const shotTop = async (name, sel) => { await ev(s => document.querySelector(s)?.scrollIntoView({ block: 'start' }), sel); await wt(300); await pg.screenshot({ path: `${SHOT}/${tag}-${name}.png` }); };
+await shotTop('forward-compose', '#mailReplyBox');
+await ev(() => document.querySelector('#mailReplyBox [data-mailact="propose"]').click()); await wt(400);
+let row = await qRow(/Forward to bob@example\.com/);
+assert.ok(row, 'forward queued'); assert.equal(sent.length, nS, 'proposing never sends');
+assert.match(row.text, /To\s+bob@example\.com/); assert.match(row.text, /Cc\s+ann@example\.com/); assert.match(row.text, /Bcc\s+me@example\.com/); assert.ok(row.hasEdit, 'Edit on the approval card');
+await shot('forward-approval', '#queue');
+// Edit from the card: back in the editor with every field, change To, re-propose, approve
+await qClick(/Forward to bob@example\.com/, 'data-qedit'); await wt(800);
+fw = await ev(() => ({ mode: MAIL.rc && MAIL.rc.mode, to: document.querySelector('#mailTo')?.value, cc: document.querySelector('#mailCc')?.value, bcc: document.querySelector('#mailBcc')?.value, q: queue.some(a => /Forward to bob@/.test(a.title)) }));
+assert.deepEqual(fw, { mode: 'forward', to: 'bob@example.com', cc: 'ann@example.com', bcc: 'me@example.com', q: false });
+await typeIn('#mailTo', 'Bob Two <bob2@example.com>');
+await ev(() => document.querySelector('#mailReplyBox [data-mailact="propose"]').click()); await wt(400);
+assert.ok(await qRow(/Forward to Bob Two <bob2@example\.com>/), 'edited forward queued');
+await qClick(/Forward to Bob Two/, 'data-i'); await wt(900);
+let s1 = sent.at(-1);
+assert.equal(s1.path, '/mail/forward'); assert.deepEqual(s1.toList, ['Bob Two <bob2@example.com>']); assert.deepEqual(s1.cc, ['ann@example.com']); assert.deepEqual(s1.bcc, ['me@example.com']); assert.equal(s1.attachments, true); assert.equal(s1.id, 'm1'); assert.equal(s1.subject, 'Fwd: Widget outage on checkout');
+assert.ok(await ev(() => auditList().some(a => /FORWARDED via Resend.*Cc ann@example\.com.*Bcc me@example\.com/.test(a.decision))), 'forward logged to Vault with recipients');
+assert.match(await last(), /Forwarded via Resend/);
+// Reply all: To = sender (editable), Cc = everyone else minus support@
+await ev(() => mailOpen('m1')); await wt(400);
+await ev(() => document.querySelector('.mail-thread [data-mailact="replyall"]').click()); await wt(300);
+let ra = await ev(() => ({ to: document.querySelector('#mailTo').value, cc: document.querySelector('#mailCc').value, open: !document.querySelector('#mailCcBox').hidden, subj: document.querySelector('#mailSubj').value }));
+assert.deepEqual(ra, { to: 'casey@example.com', cc: 'ann@example.com', open: true, subj: 'Re: Widget outage on checkout' });
+await typeIn('#mailTo', 'casey@example.com, lead@example.com'); await typeIn('#mailBcc', 'audit@example.com');
+await ev(() => { document.querySelector('#mailDraft').value = 'Thanks all — on it.\n\n' + document.querySelector('#mailDraft').value; });
+await shotTop('reply-cc-bcc', '#mailReplyBox');
+await ev(() => document.querySelector('#mailReplyBox [data-mailact="propose"]').click()); await wt(400);
+row = await qRow(/Reply all to casey@example\.com, lead@example\.com/); assert.ok(row, 'reply all queued');
+assert.match(row.text, /Cc\s+ann@example\.com/); assert.match(row.text, /Bcc\s+audit@example\.com/);
+await qClick(/Reply all to casey@example\.com/, 'data-i'); await wt(900);
+s1 = sent.at(-1); assert.equal(s1.path, '/mail/reply'); assert.deepEqual(s1.toList, ['casey@example.com', 'lead@example.com']); assert.deepEqual(s1.cc, ['ann@example.com']); assert.deepEqual(s1.bcc, ['audit@example.com']); assert.match(s1.body, /Thanks all/);
+// Plain reply: To prefilled + editable, Cc/Bcc collapsed
+await ev(() => mailOpen('m2')); await wt(400);
+assert.equal(await ev(() => !!document.querySelector('.mail-thread [data-mailact="replyall"]')), false, 'no Reply all when only the sender');
+await ev(() => document.querySelector('.mail-thread [data-mailact="reply"]').click()); await wt(300);
+assert.equal(await ev(() => document.querySelector('#mailTo').value), 'pat@example.com'); assert.equal(await ev(() => document.querySelector('#mailTo').readOnly), false);
+assert.equal(await ev(() => document.querySelector('#mailCcBox').hidden), true);
+await ev(() => document.querySelector('#mailReplyBox [data-mailact="cancel-reply"]').click()); await wt(200);
+// Compose has Cc/Bcc too
+await ev(() => document.querySelector('[data-mailact="compose"]').click()); await wt(300);
+assert.ok(await ev(() => !!document.querySelector('#mailCc') && !!document.querySelector('#mailBcc') && !!document.querySelector('[data-mailact="cc-toggle"]')), 'compose Cc/Bcc');
+await typeIn('#mailTo', 'new1@example.com'); await typeIn('#mailSubj', 'Cc compose'); await ev(() => document.querySelector('[data-mailact="cc-toggle"]').click()); await typeIn('#mailCc', 'c1@example.com'); await typeIn('#mailBcc', 'b1@example.com'); await ev(() => { document.querySelector('#mailDraft').value = 'Hello'; });
+await ev(() => document.querySelector('[data-mailact="propose-new"]').click()); await wt(400);
+await qClick(/Send email to new1@example\.com: Cc compose/, 'data-i'); await wt(900);
+s1 = sent.at(-1); assert.equal(s1.path, '/mail/compose'); assert.deepEqual(s1.cc, ['c1@example.com']); assert.deepEqual(s1.bcc, ['b1@example.com']);
+// Yorri: forward this email to <spoken address>, add cc / add bcc, reply all
+await ev(() => mailOpen('m1')); await wt(400);
+await ev(() => ask('forward this email to jane at example dot com')); await wt(900);
+assert.deepEqual(await ev(() => ({ mode: MAIL.rc && MAIL.rc.mode, to: document.querySelector('#mailTo')?.value })), { mode: 'forward', to: 'jane@example.com' });
+assert.match(await last(), /Forward is ready to jane@example\.com/);
+await ev(() => ask('add cc kim@example.com')); await wt(400);
+await ev(() => ask('add bcc lee at example dot com')); await wt(400);
+assert.deepEqual(await ev(() => ({ cc: document.querySelector('#mailCc')?.value, bcc: document.querySelector('#mailBcc')?.value, open: !document.querySelector('#mailCcBox').hidden, mode: MAIL.rc.mode })), { cc: 'kim@example.com', bcc: 'lee@example.com', open: true, mode: 'forward' });
+assert.match(await last(), /Added lee@example\.com to Bcc/);
+await ev(() => ask('add cc nonsense')); await wt(300); assert.match(await last(), /doesn’t look like an email address/);
+await ev(() => ask('reply all')); await wt(600);
+assert.equal(await ev(() => MAIL.rc && MAIL.rc.mode), 'replyall'); assert.match(await last(), /Reply all is open\. To: casey@example\.com\. Cc: ann@example\.com/);
+assert.equal(sent.length, nS + 3, 'only the three approved sends went out');
+assert.ok(await ev(() => YC.list.some(c => c.id === 'mail.fwd') && YC.list.some(c => c.id === 'mail.replyall') && YC.list.some(c => c.id === 'mail.addcc')), 'Yorri commands registered');
+await ev(() => document.querySelector('#mailReplyBox [data-mailact="cancel-reply"]')?.click()); await wt(200);
 for (const k of Object.keys(box)) delete box[k];
 Object.assign(box, savedBox);
 
