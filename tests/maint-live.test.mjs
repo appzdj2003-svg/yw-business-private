@@ -60,6 +60,6 @@ MS.body = { ...MS.body, requests: { unavailable: 'no work-request table found' }
 t = await roomT(); assert.match(t, /31 open WOs 4 overdue 6 PMs due — requests — low stock/); assert.match(t, /no work-request table found/); assert.match(t, /eMaint 403: no access/);
 // Login rejected → non-secret error + what to do; email tab still there
 MS = { status: 502, body: { error: 'eMaint login 401: Authentication failure (check EMAINT_USER / EMAINT_PASS and that this user has API access)' } }; await ev(() => maintRefresh()); await wt(500);
-t = await roomT(); out.push('error: ' + t.slice(0, 500)); assert.match(t, /SAFE RACK Error/); assert.match(t, /EMAINT NOT CONNECTED eMaint login 401: Authentication failure/); assert.match(t, /ask your eMaint admin to enable API access/); assert.match(t, /The eMaint email tab still works/); assert.doesNotMatch(t, /SAMPLE/);
+t = await roomT(); out.push('error: ' + t.slice(0, 500)); assert.match(t, /SAFE RACK Live/, 'eMaint emails still arrive, so the room stays Live'); assert.match(t, /eMaint emails: 1, 1 unread/); assert.match(t, /EMAINT NOT CONNECTED eMaint login 401: Authentication failure/); assert.match(t, /ask your eMaint admin to enable API access/); assert.match(t, /The eMaint email tab still works/); assert.doesNotMatch(t, /SAMPLE/);
 const ov = await ev(() => document.documentElement.scrollWidth - innerWidth); assert.ok(ov <= 1, 'overflow ' + ov);
 assert.deepEqual(errs, []); console.log(out.join('\n')); console.log('\nMAINT LIVE OK' + (DESK ? ' (desktop)' : ' (phone)')); await b.close(); srv.close();
