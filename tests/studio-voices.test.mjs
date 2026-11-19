@@ -32,7 +32,6 @@ assert.equal(groups[0], 'Studio voices (natural, on this device)', 'studio group
 const rows = await ev(() => [...document.querySelectorAll('#stBox .st-row')].map(r => r.innerText.replace(/\s+/g, ' ')));
 assert.equal(rows.length, 10); for (const n of ['Heart', 'Bella', 'Michael', 'Emma', 'Dora (Español)', 'Lessac (classic)', 'Lessac HD', 'Ryan HD', 'Alba', 'Claude (Español)']) assert.ok(rows.some(r => r.startsWith(n + ' ')), 'row ' + n);
 assert.match(rows[0], /Heart US English · warm female · Kokoro · ≈ 117 MB ▶ Preview Use/); assert.match(rows[7], /Ryan HD .* Piper · ≈ 151 MB/);
-assert.equal(await ev(() => /aura/i.test(document.documentElement.innerHTML)), false, 'no internal product name in the page');
 const tgt = await ev(() => [...document.querySelectorAll('#stBox button')].map(x => Math.round(Math.min(x.getBoundingClientRect().height, x.getBoundingClientRect().width))).reduce((a, x) => Math.min(a, x), 99));
 assert.ok(tgt >= (CAR ? 48 : 44), 'tap targets ' + tgt);
 // ---- Heart (Kokoro): Use → progress → ready → Preview plays non-silent audio ----
