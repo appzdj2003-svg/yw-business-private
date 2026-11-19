@@ -136,6 +136,38 @@ const hSearch = await ev(() => Math.round(document.querySelector('#mailQ').getBo
 assert.ok(hSearch >= minH, 'search target ' + hSearch);
 await shot('mail-inbox', '.mail-room');
 
+// ---- Flicker guards: no backdrop blur on chrome, no tight board rewrite loop
+const fx = await ev(() => {
+  const h = document.querySelector('header');
+  const cs = h ? getComputedStyle(h) : null;
+  const card = document.querySelector('#board .card');
+  const ccs = card ? getComputedStyle(card) : null;
+  const before = getComputedStyle(document.body, '::before');
+  return {
+    bf: (cs && (cs.backdropFilter || cs.webkitBackdropFilter)) || 'none',
+    cardAnim: (ccs && ccs.animationName) || 'none',
+    before: before && before.content,
+    beforeDisp: before && before.display
+  };
+});
+assert.equal(fx.bf, 'none', 'header backdrop-filter should be off, got ' + fx.bf);
+assert.ok(!fx.cardAnim || fx.cardAnim === 'none', 'card should not animate, got ' + fx.cardAnim);
+const burst = await ev(async () => {
+  const el = document.getElementById('board');
+  let cuts = 0;
+  const mo = new MutationObserver(() => { cuts++; });
+  mo.observe(el, { childList: true });
+  await new Promise(r => setTimeout(r, 1600));
+  mo.disconnect();
+  return cuts;
+});
+assert.ok(burst <= 1, 'Mail board rewrite burst after settle: ' + burst);
+await shot('mail-inbox-t1', '.mail-room');
+await wt(400);
+await shot('mail-inbox-t2', '.mail-room');
+await wt(400);
+await shot('mail-inbox-t3', '.mail-room');
+
 // ---- Thread: sandboxed iframe, images blocked, Load images, attachments
 await ev(() => document.querySelector('[data-mailopen="m1"]').click());
 await wt(700);
