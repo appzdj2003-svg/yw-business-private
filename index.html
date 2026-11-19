@@ -460,6 +460,9 @@ body.car-layout .vx-row{min-height:48px;font-size:15px}
 .vx-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.vx-acts button{min-height:44px;min-width:44px;padding:8px 14px;font:inherit}body.car-layout .vx-acts button{min-height:48px;min-width:48px;font-size:15px}
 #emCard .og-b,#emCard .bz-link{min-height:44px;padding:8px 12px}body.car-layout #emCard .og-b,body.car-layout #emCard .bz-link{min-height:48px}
 .cx-hl{outline:2px solid var(--teal);outline-offset:2px;border-radius:10px;animation:cxHl 1.6s ease-out 1}@keyframes cxHl{0%{box-shadow:0 0 0 6px color-mix(in srgb,var(--teal) 45%,transparent)}100%{box-shadow:0 0 0 0 transparent}}
+.st-box h5{margin:12px 0 6px}.st-list{display:flex;flex-direction:column;gap:6px}.st-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--field)}.st-row.on{border-color:var(--teal)}.st-row small{color:var(--mut)}.st-b{display:flex;gap:6px}.st-b .og-b,.st-box .og-b{min-height:44px;min-width:44px;padding:8px 12px}
+.st-prog[hidden]{display:none}.st-prog{display:flex;gap:8px;align-items:center;margin:6px 0;font-size:13px}.st-prog progress{width:180px;height:10px;accent-color:var(--teal)}.st-warn{color:var(--amber)}
+body.car-layout .st-b .og-b,body.car-layout .st-box .og-b{min-height:48px;min-width:48px;font-size:15px}
 .mail-ask-scrim{position:fixed;inset:0;z-index:100010;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}
 .mail-ask{width:min(480px,100%);background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 16px 40px #000c}
 .mail-ask h4{margin:0 0 8px;font-size:16px}
@@ -623,10 +626,11 @@ body.car-layout .as-grid{grid-template-columns:1fr}body.car-layout [data-sc],bod
 <div class="sgrp" id="voiceGrp">
 <label>Voice <select id="vcSel" aria-label="Yorri speaking voice"></select></label>
 <label>Speed <input type="range" id="vcRate" min="0.7" max="1.4" step="0.05" aria-label="Voice speed"> <span id="vcRateV" class="mono"></span></label>
-<label>Pitch <input type="range" id="vcPitch" min="0.7" max="1.3" step="0.05" aria-label="Voice pitch"> <span id="vcPitchV" class="mono"></span></label>
+<label>Pitch <input type="range" id="vcPitch" min="0.7" max="1.3" step="0.05" aria-label="Voice pitch"> <span id="vcPitchV" class="mono"></span> <small class="cx-st" id="vcPitchN" hidden>device voices only</small></label>
 <label><input type="checkbox" id="vcAi"> Lifelike AI voice (uses your xAI key)</label>
 <label id="vcAiVL">AI voice <select id="vcAiV" aria-label="AI voice"><option value="eve">Eve</option><option value="ara">Ara</option><option value="rex">Rex</option><option value="sal">Sal</option><option value="leo">Leo</option></select></label>
 <button type="button" id="vcPrev">▶ Preview</button>
+<div id="stBox" class="st-box"></div>
 <span class="ex" id="vcNote">Each device lists its own voices (phone and PC differ). “Auto” picks the most natural one here. The AI voice costs about $15 per million characters on your xAI account; if it fails, Yorri falls back to the device voice.</span></div>
 </section>
 <section data-tab="yorri" aria-labelledby="ycH"><h4 id="ycH">Yorri commands</h4><span class="ex">Say these to Ask Yorri (mic), or type them — in a Tesla, tap the box, use the yoke mic, then Send. Tap one to try it. With a Grok key, other phrasings are mapped to these too.</span><input type="search" id="ycQ" class="yc-q" placeholder="Search commands (e.g. calendar, push, Hunt)" aria-label="Search Yorri commands"><div id="ycList"></div></section>
@@ -3636,7 +3640,7 @@ let yorriSpeak=true;try{yorriSpeak=localStorage.getItem('ywYorriSpeak')!=='0'}ca
 const TTS_OK=!IS_TESLA&&('speechSynthesis' in window)&&typeof SpeechSynthesisUtterance!=='undefined';let ttsNoted=false;
 function ttsClean(h){const d=document.createElement('div');d.innerHTML=h;return (d.textContent||'').replace(/\s+/g,' ').trim()}
 function ttsChunk(t,m){m=m||180;const out=[];let cur='';(t.match(/[^.!?]+[.!?]*\s*/g)||[t]).forEach(x=>{while(x.length>m){if(cur){out.push(cur.trim());cur=''}out.push(x.slice(0,m));x=x.slice(m)}if((cur+x).length>m){if(cur.trim())out.push(cur.trim());cur=x}else cur+=x});if(cur.trim())out.push(cur.trim());return out}
-const VC_DEF={name:'auto',rate:1,pitch:1,ai:false,aiVoice:'eve'};
+const VC_DEF={name:'auto',rate:1,pitch:1,ai:false,aiVoice:'eve',studio:'',gpu:false,force:false};
 function vcGet(){try{return Object.assign({},VC_DEF,JSON.parse(localStorage.getItem('ywVoice')||'{}'))}catch(e){return Object.assign({},VC_DEF)}}
 function vcSet(p){localStorage.setItem('ywVoice',JSON.stringify(Object.assign(vcGet(),p)))}
 function ttsScore(v){const n=v.name||'',l=(v.lang||'').replace('_','-');let s=0;
@@ -3648,28 +3652,91 @@ function ttsScore(v){const n=v.name||'',l=(v.lang||'').replace('_','-');let s=0;
 function ttsRanked(){return (TTS_OK?speechSynthesis.getVoices()||[]:[]).map(v=>({v,s:ttsScore(v)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).map(x=>x.v)}
 function ttsVoice(){const r=ttsRanked(),c=vcGet();if(c.name&&c.name!=='auto'){const m=(speechSynthesis.getVoices()||[]).find(x=>x.name===c.name);if(m)return m}return r[0]||null}
 function vcRender(){const sel=$('#vcSel');if(!sel)return;const c=vcGet();
- if(!TTS_OK){sel.innerHTML='<option>Not available in this browser</option>';sel.disabled=true;return}
- const r=ttsRanked(),best=r[0];sel.innerHTML=`<option value="auto">Auto — ${best?esc(best.name):'device default'}</option>`+r.map(v=>`<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('');
- sel.value=[...sel.options].some(o=>o.value===c.name)?c.name:'auto';
+ if(!TTS_OK&&!STUDIO_OK){sel.innerHTML='<option>Not available in this browser</option>';sel.disabled=true;try{stPaint()}catch(e){}return}
+ const r=TTS_OK?ttsRanked():[],best=r[0];const so=STUDIO_OK?`<optgroup label="Studio voices (natural, on this device)">${STUDIO.map(v=>`<option value="studio:${v.id}">${esc(v.name)} — ${esc(v.desc)}</option>`).join('')}</optgroup>`:'';
+ const dv=`<option value="auto">Auto — ${best?esc(best.name):'device default'}</option>`+r.map(v=>`<option value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('');
+ const oh=so+(so?`<optgroup label="This device’s voices">${dv}</optgroup>`:dv);if(sel.dataset.h!==oh){sel.innerHTML=oh;sel.dataset.h=oh}
+ const want=c.studio&&stById(c.studio)?'studio:'+c.studio:c.name;sel.value=[...sel.options].some(o=>o.value===want)?want:'auto';
+ const isSt=!!(c.studio&&stById(c.studio)),pz=$('#vcPitch');if(pz){pz.disabled=isSt;pz.title=isSt?'Pitch is for device voices only':''}if($('#vcPitchN'))$('#vcPitchN').hidden=!isSt;try{stPaint()}catch(e){}
  $('#vcRate').value=c.rate;$('#vcRateV').textContent=(+c.rate).toFixed(2)+'×';$('#vcPitch').value=c.pitch;$('#vcPitchV').textContent=(+c.pitch).toFixed(2);
  $('#vcAi').checked=!!c.ai;$('#vcAiV').value=c.aiVoice;$('#vcAiVL').style.display=c.ai?'':'none'}
 let ttsAudio=null;
-function ttsStop(){try{if(TTS_OK)speechSynthesis.cancel()}catch(e){}if(ttsAudio){try{ttsAudio.pause()}catch(e){}ttsAudio=null}}
+function ttsStop(){try{stStop()}catch(e){}try{if(TTS_OK)speechSynthesis.cancel()}catch(e){}if(ttsAudio){try{ttsAudio.pause()}catch(e){}ttsAudio=null}}
 function ttsBrowser(t){const c=vcGet(),v=ttsVoice();ttsChunk(t).forEach(x=>{const u=new SpeechSynthesisUtterance(x);u.lang=v?v.lang:'en-US';if(v)u.voice=v;u.rate=+c.rate||1;u.pitch=+c.pitch||1;speechSynthesis.speak(u)})}
 async function ttsAI(t){const c=vcGet();let k='';try{k=(JSON.parse(localStorage.getItem('ywLlm')||'{}').key||'').trim()}catch(e){}if(!k)throw new Error('no xAI key');
  const r=await fetch('https://api.x.ai/v1/tts',{method:'POST',headers:{Authorization:'Bearer '+k,'Content-Type':'application/json'},body:JSON.stringify({text:t.slice(0,4000),voice_id:c.aiVoice||'eve',language:'en',speed:Math.min(1.5,Math.max(0.7,+c.rate||1))})});
  if(!r.ok)throw new Error('xAI TTS HTTP '+r.status);const u=URL.createObjectURL(await r.blob());const a=new Audio(u);ttsAudio=a;a.onended=()=>URL.revokeObjectURL(u);await a.play()}
-function ttsSpeak(t){ttsStop();const c=vcGet();if(c.ai)ttsAI(t).catch(e=>{console.warn('AI voice fallback:',e.message);const n=$('#vcNote');if(n&&!/fell back/.test(n.textContent))n.textContent+=' (AI voice failed: '+e.message+' — fell back to device voice.)';if(TTS_OK)ttsBrowser(t)});else if(TTS_OK)ttsBrowser(t)}
+function ttsSpeak(t){ttsStop();const c=vcGet();if(!c.ai&&c.studio&&STUDIO_OK){try{if(stSpeak(t,stById(c.studio)))return}catch(e){console.warn('studio voice:',e)}}if(c.ai)ttsAI(t).catch(e=>{console.warn('AI voice fallback:',e.message);const n=$('#vcNote');if(n&&!/fell back/.test(n.textContent))n.textContent+=' (AI voice failed: '+e.message+' — fell back to device voice.)';if(TTS_OK)ttsBrowser(t)});else if(TTS_OK)ttsBrowser(t)}
 function ttsNote(){if(ttsNoted)return;ttsNoted=true;const n=$('#ttsNote');if(n){n.textContent="Tesla browser can't play voice aloud — read Yorri on screen";n.style.display=''}}
-function speakYorri(h,force){if(!yorriSpeak&&!force)return;if(!TTS_OK){ttsNote();return}const t=ttsClean(h);if(!t)return;try{ttsSpeak(t)}catch(e){}}
+function speakYorri(h,force){if(!yorriSpeak&&!force)return;if(!TTS_OK&&!(STUDIO_OK&&vcGet().studio)){ttsNote();return}const t=ttsClean(h);if(!t)return;try{ttsSpeak(t)}catch(e){}}
 function applySpk(){const b=$('#spkT');if(b)b.textContent=yorriSpeak?'🔊 Voice on':'🔇 Voice off';const f=document.getElementById('spkF');if(f){f.textContent=yorriSpeak?'🔊':'🔇';f.classList.toggle('muted',!yorriSpeak);f.setAttribute('aria-pressed',yorriSpeak?'false':'true');f.title=yorriSpeak?'Mute Yorri':'Unmute Yorri'}}
-function say(w,t){if(w==='Yorri'){const fl=$('#fsLast');if(fl){fl.innerHTML=t;fsPad()}}if(!$('#log'))return;$('#log').querySelectorAll('.spk').forEach(x=>x.remove());const y=w=='Yorri';$('#log').insertAdjacentHTML('beforeend',`<p class="${y?'y':''}"><b>${w}:</b> ${t}${y&&TTS_OK?' <button type="button" class="spk" title="Speak again">🔈</button>':''}</p>`);$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML});if(y&&!applying)speakYorri(t)}
+function say(w,t){if(w==='Yorri'){const fl=$('#fsLast');if(fl){fl.innerHTML=t;fsPad()}}if(!$('#log'))return;$('#log').querySelectorAll('.spk').forEach(x=>x.remove());const y=w=='Yorri';$('#log').insertAdjacentHTML('beforeend',`<p class="${y?'y':''}"><b>${w}:</b> ${t}${y&&(TTS_OK||STUDIO_OK)?' <button type="button" class="spk" title="Speak again">🔈</button>':''}</p>`);$('#log').scrollTop=1e9;if(!applying)broadcast({type:'log',log:$('#log').innerHTML});if(y&&!applying)speakYorri(t)}
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#log .spk')){const p=e.target.closest('p').cloneNode(true);p.querySelectorAll('.spk,b:first-child').forEach(x=>x.remove());speakYorri(p.innerHTML,true)}else if((e.target.closest&&e.target.closest('#spkT,#spkF'))){yorriSpeak=!yorriSpeak;try{localStorage.setItem('ywYorriSpeak',yorriSpeak?'1':'0')}catch(x){}applySpk();if(!yorriSpeak)ttsStop();else if(yorriSpeak&&!TTS_OK)ttsNote()}});
 setTimeout(applySpk,0);if(TTS_OK&&speechSynthesis.onvoiceschanged!==undefined)speechSynthesis.onvoiceschanged=()=>vcRender();
 setTimeout(vcRender,0);setTimeout(vcRender,1500);
 document.addEventListener('input',e=>{const id=e.target&&e.target.id;if(id==='vcRate'||id==='vcPitch'){vcSet({[id==='vcRate'?'rate':'pitch']:+e.target.value});vcRender()}});
-document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id==='vcSel')vcSet({name:e.target.value});else if(id==='vcAi')vcSet({ai:e.target.checked});else if(id==='vcAiV')vcSet({aiVoice:e.target.value});else return;vcRender()});
-document.addEventListener('click',e=>{if(e.target&&e.target.id==='vcPrev'){if(IS_TESLA){ttsNoted=false;ttsNote();return}ttsSpeak('Hi Aaron, this is Yorri. Your board is up to date, and I have two items waiting for your approval.')}});
+document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id==='vcSel'){const v=e.target.value;if(v.startsWith('studio:')){const sv=stById(v.slice(7));vcSet({studio:sv?sv.id:'',ai:false});if(sv){stCtx();stLoad(sv)}}else vcSet({name:v,studio:''})}else if(id==='vcAi')vcSet({ai:e.target.checked});else if(id==='vcAiV')vcSet({aiVoice:e.target.value});else return;vcRender()});
+/* ==== Studio voices: free, open-source neural voices that run on this device (Kokoro-82M + Piper) in a Web Worker. ==== */
+const STUDIO_OK=!IS_TESLA&&typeof Worker!=='undefined'&&!!(window.AudioContext||window.webkitAudioContext)&&typeof caches!=='undefined'&&typeof WebAssembly!=='undefined';
+const MB=1e6,KOK_BASE=92.4*MB+21.7*MB+2.1*MB,ESPEAK=18.7*MB,PIP_RT=11.2*MB+ESPEAK;
+const STUDIO=[
+ {id:'kokoro-af_heart',name:'Heart',engine:'kokoro',voice:'af_heart',desc:'US English · warm female',size:KOK_BASE+.5*MB,lang:'en'},
+ {id:'kokoro-af_bella',name:'Bella',engine:'kokoro',voice:'af_bella',desc:'US English · bright female',size:KOK_BASE+.5*MB,lang:'en'},
+ {id:'kokoro-am_michael',name:'Michael',engine:'kokoro',voice:'am_michael',desc:'US English · male',size:KOK_BASE+.5*MB,lang:'en'},
+ {id:'kokoro-bf_emma',name:'Emma',engine:'kokoro',voice:'bf_emma',desc:'British English · female',size:KOK_BASE+.5*MB,lang:'en'},
+ {id:'kokoro-ef_dora',name:'Dora (Español)',engine:'kokoro',voice:'ef_dora',desc:'Spanish · female',size:KOK_BASE+.5*MB+ESPEAK,lang:'es'},
+ {id:'piper-lessac-medium',name:'Lessac (classic)',engine:'piper',voice:'en_US-lessac-medium',desc:'US English · female · fastest',size:PIP_RT+63.2*MB,lang:'en'},
+ {id:'piper-lessac-high',name:'Lessac HD',engine:'piper',voice:'en_US-lessac-high',desc:'US English · female · high quality',size:PIP_RT+113.9*MB,lang:'en'},
+ {id:'piper-ryan-high',name:'Ryan HD',engine:'piper',voice:'en_US-ryan-high',desc:'US English · male · high quality',size:PIP_RT+120.8*MB,lang:'en'},
+ {id:'piper-alba-medium',name:'Alba',engine:'piper',voice:'en_GB-alba-medium',desc:'British English · female',size:PIP_RT+63.2*MB,lang:'en'},
+ {id:'piper-claude-high',name:'Claude (Español)',engine:'piper',voice:'es_MX-claude-high',desc:'Spanish (Mexico) · female',size:PIP_RT+63.1*MB,lang:'es'}];
+const stById=id=>STUDIO.find(v=>v.id===id)||null;
+const stWeak=()=>{const n=navigator.hardwareConcurrency||4,m=navigator.deviceMemory||8;return n<=2||m<=2||(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent||'')&&m<4)};
+const ST={w:null,ctx:null,ready:{},loading:null,prog:{},progAt:0,id:0,src:[],next:0,err:'',note:'',firstAt:0,timer:null,cached:(()=>{try{return JSON.parse(localStorage.getItem('ywStudioCached')||'[]')}catch(e){return[]}})(),stat:{}};
+const stKey=v=>v.engine==='kokoro'?'kokoro'+(v.lang==='es'?'-es':'')+(vcGet().gpu&&navigator.gpu?'-gpu':''):v.voice;
+function stMB(b){return (b/MB).toFixed(b<10*MB?1:0)+' MB'}
+function stWorker(){if(ST.w)return ST.w;const w=new Worker('tts-worker.js',{type:'module'});ST.w=w;
+ w.onmessage=e=>{const d=e.data||{};
+  if(d.type==='progress'){ST.prog[d.file]={l:d.loaded,t:d.total,c:!!d.cached};stProgPaint();return}
+  if(d.type==='ready'){const v=STUDIO.find(x=>x.voice===d.voice);if(v){ST.ready[stKey(v)]=true;if(v.engine==='kokoro')ST.ready[stKey(stById('kokoro-af_heart'))]=true;if(!ST.cached.includes(v.id)){ST.cached.push(v.id);try{localStorage.setItem('ywStudioCached',JSON.stringify(ST.cached))}catch(x){}}ST.stat[v.id]={ms:d.ms,device:d.device}}ST.loading=null;ST.prog={};ST.err='';stPaint();if(ST.after){const f=ST.after;ST.after=null;f()}return}
+  if(d.type==='audio'){if(d.id!==ST.id)return;stPlay(d);return}
+  if(d.type==='done'){if(d.id===ST.id){clearTimeout(ST.timer)}return}
+  if(d.type==='note'){ST.note=d.text;stPaint();return}
+  if(d.type==='error'){const v=STUDIO.find(x=>x.voice===d.voice);ST.err=d.error;ST.loading=null;ST.prog={};clearTimeout(ST.timer);stPaint();console.warn('studio voice failed:',d.error);if(d.id&&d.id===ST.id&&ST.pending){const t=ST.pending;ST.pending=null;if(TTS_OK)ttsBrowser(t)}if(v&&!d.id)say('Yorri',`Couldn’t load ${esc(v.name)} (${esc(d.error)}). I’ll keep using the device voice.`)}};
+ w.onerror=e=>{ST.err='voice engine failed to start';ST.loading=null;stPaint()};return w}
+function stLoad(v,then){if(!STUDIO_OK)return;if(ST.ready[stKey(v)]){if(then)then();return}if(then)ST.after=then;if(ST.loading===v.id)return;ST.loading=v.id;ST.prog={};ST.err='';ST.loadAt=Date.now();stPaint();
+ stWorker().postMessage({type:'load',engine:v.engine,voice:v.voice,gpu:!!(vcGet().gpu&&navigator.gpu)})}
+function stCtx(){if(!ST.ctx){const C=window.AudioContext||window.webkitAudioContext;ST.ctx=new C()}if(ST.ctx.state==='suspended')ST.ctx.resume().catch(()=>{});return ST.ctx}
+function stPlay(d){const c=stCtx(),b=c.createBuffer(1,d.pcm.length,d.sr);b.copyToChannel?b.copyToChannel(d.pcm,0):b.getChannelData(0).set(d.pcm);const s=c.createBufferSource();s.buffer=b;s.connect(c.destination);
+ const at=Math.max(c.currentTime+.03,ST.next);s.start(at);ST.next=at+b.duration;ST.src.push(s);s.onended=()=>{ST.src=ST.src.filter(x=>x!==s)};if(d.i===0){clearTimeout(ST.timer);ST.pending=null;if(ST.firstAt)ST.lastLatency=Date.now()-ST.firstAt}}
+function stStop(){ST.id++;ST.pending=null;clearTimeout(ST.timer);if(ST.w)ST.w.postMessage({type:'cancel'});ST.src.forEach(s=>{try{s.stop()}catch(e){}});ST.src=[];ST.next=0}
+// Speak with the studio voice if it is ready; otherwise (still downloading, weak device, engine error) the device voice answers.
+function stSpeak(t,v,opt){opt=opt||{};const c=vcGet();if(!STUDIO_OK||!v)return false;if(stWeak()&&!c.force&&!opt.preview)return false;
+ if(!ST.ready[stKey(v)]){stLoad(v,opt.preview?()=>stSpeak(t,v,opt):null);return opt.preview?true:false}
+ stStop();stCtx();const id=++ST.id;ST.pending=t;ST.firstAt=Date.now();stWorker().postMessage({type:'speak',id,engine:v.engine,voice:v.voice,text:t,speed:+c.rate||1,gpu:!!(c.gpu&&navigator.gpu)});
+ ST.timer=setTimeout(()=>{if(ST.id===id&&ST.pending){const p=ST.pending;stStop();ST.note='That voice is slow on this device — used the device voice instead.';stPaint();if(TTS_OK)ttsBrowser(p)}},12000);return true}
+function stProgPaint(){if(Date.now()-ST.progAt<200)return;ST.progAt=Date.now();const v=stById(ST.loading);const n=$('#stProg');if(!v||!n)return;
+ const got=Object.values(ST.prog).reduce((a,p)=>a+(p.c?0:Math.min(p.l,p.t||p.l)),0),hit=Object.values(ST.prog).some(p=>p.c),pct=Math.min(99,Math.round(got/v.size*100));
+ const bar=n.querySelector('progress'),tx=n.querySelector('span');if(bar)bar.value=pct;if(tx)tx.textContent=hit&&got<MB?`Loading ${v.name} from this browser’s cache…`:`Downloading ${v.name}: ${stMB(got)} of about ${stMB(v.size)} (${pct}%) — once; then it’s cached here.`}
+function stRowHTML(v,cur){const rd=ST.ready[stKey(v)],cached=ST.cached.includes(v.id),ld=ST.loading===v.id,s=ST.stat[v.id];
+ return `<div class="st-row${cur?' on':''}" data-stv="${v.id}"><span class="st-n"><b>${esc(v.name)}</b> <small>${esc(v.desc)} · ${v.engine==='kokoro'?'Kokoro':'Piper'} · ${rd?'ready':cached?'cached':'≈ '+stMB(v.size)}${s&&s.ms?' · loaded in '+(s.ms/1000).toFixed(1)+' s':''}</small></span><span class="st-b"><button type="button" class="og-b" data-stact="prev" data-stv="${v.id}" aria-label="Preview ${esc(v.name)}">${ld?'…':'▶'} Preview</button><button type="button" class="og-b" data-stact="use" data-stv="${v.id}"${cur?' aria-pressed="true"':''} aria-label="Use ${esc(v.name)} for Yorri">${cur?'✓ In use':'Use'}</button></span></div>`}
+function stPaint(){const B=$('#stBox');if(!B)return;const c=vcGet(),cur=stById(c.studio);
+ if(!STUDIO_OK){B.innerHTML=`<p class="cx-st">${IS_TESLA?'Studio voices can’t play in the Tesla browser — Yorri stays on screen there.':'Studio voices need a newer browser (Web Workers, WebAssembly, Web Audio).'}</p>`;return}
+ const h=`<h5>Studio voices <small class="cx-st">natural · free · open source · run on this device, no keys</small></h5>
+ ${stWeak()?`<p class="cx-st st-warn">This device looks low on CPU/memory, so Yorri keeps the device voice for replies. Previews still work. <label><input type="checkbox" id="stForce"${c.force?' checked':''}> Use studio voices anyway</label></p>`:''}
+ <div id="stProg" class="st-prog"${ST.loading?'':' hidden'}><progress max="100" value="0"></progress> <span></span></div>
+ ${ST.err?`<p class="cx-st cx-bad" role="status">Studio voice error: ${esc(ST.err)} — using the device voice.</p>`:''}${ST.note?`<p class="cx-st" role="status">${esc(ST.note)}</p>`:''}
+ <div class="st-list" role="list">${STUDIO.map(v=>stRowHTML(v,cur&&cur.id===v.id)).join('')}</div>
+ <p class="cx-st">Downloaded once per browser and kept in its cache, so later loads are instant. Speed works for every voice; pitch is for device voices only.${navigator.gpu?` <label><input type="checkbox" id="stGpu"${c.gpu?' checked':''}> Use the GPU for Kokoro voices (faster on most PCs; downloads a 326 MB model)</label>`:''} <button type="button" class="og-b" data-stact="clear">Remove downloaded voices</button></p>`;
+ if(B.dataset.h!==h){B.innerHTML=h;B.dataset.h=h}if(ST.loading){ST.progAt=0;stProgPaint()}}
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-stact]');if(!t)return;const a=t.dataset.stact,v=stById(t.dataset.stv);
+ if(a==='prev'&&v){stCtx();if(!stSpeak(v.lang==='es'?'Hola Aaron, soy Yorri. Tu tablero está al día y tienes dos pendientes.':'Hi Aaron, this is Yorri. Your board is up to date, and two items are waiting for your approval.',v,{preview:true}))ttsSpeak('Preview unavailable.');return}
+ if(a==='use'&&v){vcSet({studio:v.id,ai:false});stCtx();stLoad(v);vcRender();say('Yorri',`Voice set to <b>${esc(v.name)}</b>${ST.ready[stKey(v)]?'.':` — downloading it now (about ${stMB(v.size)}, once). Until it’s ready I’ll use the device voice.`}`);return}
+ if(a==='clear'){if(!confirm('Remove downloaded studio voices from this browser? They’ll download again when used.'))return;stStop();if(ST.w)ST.w.terminate();ST.w=null;ST.ready={};ST.cached=[];try{localStorage.removeItem('ywStudioCached')}catch(x){}caches.delete('yw-studio-voices');caches.delete('transformers-cache');vcSet({studio:''});vcRender();say('Yorri','Removed the downloaded studio voices. Yorri uses the device voice.')}});
+document.addEventListener('change',e=>{const t=e.target;if(!t)return;if(t.id==='stForce'){vcSet({force:t.checked});stPaint()}else if(t.id==='stGpu'){vcSet({gpu:t.checked});ST.ready={};if(ST.w){ST.w.terminate();ST.w=null}const v=stById(vcGet().studio);if(v&&v.engine==='kokoro')stLoad(v);stPaint()}});
+// After a reload, warm the chosen studio voice from cache in the background (only if it was downloaded before).
+setTimeout(()=>{const v=stById(vcGet().studio);if(v&&STUDIO_OK&&ST.cached.includes(v.id)&&(!stWeak()||vcGet().force))stLoad(v)},2500);
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='vcPrev'){if(IS_TESLA){ttsNoted=false;ttsNote();return}const sv=stById(vcGet().studio);if(sv&&!vcGet().ai&&STUDIO_OK){stCtx();stSpeak(sv.lang==='es'?'Hola Aaron, soy Yorri. Tu tablero está al día y tienes dos pendientes.':'Hi Aaron, this is Yorri. Your board is up to date, and I have two items waiting for your approval.',sv,{preview:true});return}ttsSpeak('Hi Aaron, this is Yorri. Your board is up to date, and I have two items waiting for your approval.')}});
 
 /* —— Voice: approve / decline / open navigation —— */
 function normVoice(t){return String(t||'').toLowerCase().replace(/[^\w\s]/g,' ').replace(/\s+/g,' ').trim()}
@@ -4598,8 +4665,24 @@ ycAdd({id:'nav.fs',group:'Navigation',ex:['full screen','exit full screen'],help
 ycAdd({id:'nav.open',group:'Navigation',cov:['type:pipeline','type:map','type:custom'],ex:['open Weather Radar','open Hunt KPIs','open Command Center','open Apps'],help:'Opens a business, a room in any business, Command Center, or Your World Apps.'});
 ycAdd({id:'nav.cmdroom',group:'Navigation',cov:['room:Briefing','room:HR','room:Payroll','room:Legal','room:Vault'],ex:['open Finance','open Payroll','open Vault'],help:'Opens a Command Center room. Add a question (“open Finance and summarize”) to get its summary.'});
 ycAdd({id:'nav.maint',group:'Support & eMaint',cov:['type:maint'],ex:['open maintenance','what PMs are due','summarize work orders'],help:'Safe Rack maintenance room and work-order/PM summaries.'});
+function stFindName(q){q=String(q||'').toLowerCase().replace(/\b(the|voice|please|studio)\b/g,' ').replace(/[^\w\sñ]/g,' ').replace(/\s+/g,' ').trim();if(!q)return null;
+ const key=v=>v.name.toLowerCase().replace(/[()]/g,'');let v=STUDIO.find(x=>key(x)===q)||STUDIO.find(x=>key(x).split(' ')[0]===q&&!/hd|high/.test(q))||STUDIO.find(x=>q.split(' ').every(w=>key(x).includes(w)||(w==='hd'&&/hd/.test(key(x)))));
+ if(!v&&/^(british|uk)$/.test(q))v=stById('kokoro-bf_emma');if(!v&&/^(spanish|espa.ol)$/.test(q))v=stById('kokoro-ef_dora');if(!v&&/^male$/.test(q))v=stById('kokoro-am_michael');return v}
+ycAdd({id:'vc.setname',group:'Voice & display',cov:['set:vcH'],ex:['change voice to Heart','use the Ryan HD voice','change voice to device voice'],help:'Switches Yorri to a named voice — studio voices (Heart, Bella, Michael, Emma, Dora, Lessac, Lessac HD, Ryan HD, Alba, Claude) or “device voice”.',match:(r,l)=>{const t=l.replace(/[.!?]+$/,'');const m=t.match(/^(?:change|switch|set)\s+(?:your\s+|the\s+|yorri'?s?\s+)?voice\s+to\s+(.+?)(?:\s+voice)?$/)||t.match(/^(?:use|switch to)\s+(?:the\s+)?(.+?)\s+voice$/);return m?{q:m[1]}:null},run:m=>{
+  if(/^(?:the\s+)?(device|browser|default|auto|normal|system)(?:\s+voice)?$/.test(m.q)){vcSet({studio:'',ai:false});try{vcRender()}catch(e){}return say('Yorri','Back to the device voice.')}
+  const v=stFindName(m.q);if(!v){const D=TTS_OK?ycVoices():[],d=D.find(x=>x.name.toLowerCase().includes(m.q));if(d){vcSet({name:d.name,studio:'',ai:false});try{vcRender()}catch(e){}return say('Yorri',`Voice set to <b>${esc(d.name)}</b>.`)}return say('Yorri',`I don’t have a voice called “${esc(m.q)}”. Say <b>list voices</b> to hear the options.`)}
+  if(!STUDIO_OK)return say('Yorri',IS_TESLA?'The Tesla browser can’t play voices — read Yorri on screen.':'Studio voices need a newer browser here.');
+  vcSet({studio:v.id,ai:false});try{vcRender()}catch(e){}const rd=ST.ready[stKey(v)];if(!rd){ST.after=null;stLoad(v,()=>{if(yorriSpeak)stSpeak(v.lang==='es'?`Hola Aaron, soy ${v.name.replace(/\s*\(.*\)/,'')}.`:`Hi Aaron, this is ${v.name.replace(/\s*\(.*\)/,'')}.`,v)})}
+  say('Yorri',rd?`Voice set to <b>${esc(v.name)}</b>.`:`Voice set to <b>${esc(v.name)}</b> — downloading it now (about ${stMB(v.size)}, once; cached after). I’ll use the device voice until it’s ready.`)}});
+ycAdd({id:'vc.list',group:'Voice & display',cov:['set:vcH'],ex:['list voices','what voices do you have'],help:'Lists Yorri’s studio voices (with download size or ready state) and how many device voices there are.',match:(r,l)=>/^(?:list|show)(?: (?:the|all|your|yorri'?s?))? voices$|^what voices (?:do you have|are there|can you use)$|^which voices$/.test(l.replace(/[?.!]+$/,'')),run:()=>{const c=vcGet(),cur=stById(c.studio),D=TTS_OK?ycVoices():[];
+  say('Yorri',`Studio voices${STUDIO_OK?'':' (not available in this browser)'}: `+STUDIO.map(v=>`<b>${esc(v.name)}</b>${cur&&cur.id===v.id?' (in use)':''} — ${esc(v.desc)}${ST.ready[stKey(v)]?', ready':ST.cached.includes(v.id)?', cached':', '+stMB(v.size)}`).join('; ')+`. Plus ${D.length} device voice${D.length===1?'':'s'}${!cur&&!c.ai?' (in use)':''}. Say <b>change voice to Heart</b> or <b>preview voice Ryan HD</b>.`)}});
+ycAdd({id:'vc.preview',group:'Voice & display',cov:['set:vcH'],ex:['preview voice','preview voice Bella'],help:'Plays a short sample of the current voice, or of a named studio voice (downloads it first if needed).',match:(r,l)=>{const m=l.replace(/[.!?]+$/,'').match(/^(?:preview|sample|test|play)(?: (?:the|a|your))? voice(?: sample)?(?:\s+(.+))?$|^preview (?:the )?(.+?) voice$/);return m?{q:m[1]||m[2]||''}:null},run:m=>{
+  const v=m.q?stFindName(m.q):stById(vcGet().studio);if(m.q&&!v)return say('Yorri',`I don’t have a studio voice called “${esc(m.q)}”. Say <b>list voices</b>.`);
+  if(IS_TESLA){ttsNoted=false;ttsNote();return}
+  if(v&&STUDIO_OK){const t=v.lang==='es'?'Hola Aaron, soy Yorri. Tu tablero está al día.':'Hi Aaron, this is Yorri. Your board is up to date, and two items are waiting for your approval.';say('Yorri',ST.ready[stKey(v)]?`Previewing <b>${esc(v.name)}</b>.`:`Downloading <b>${esc(v.name)}</b> (about ${stMB(v.size)}, once) — the preview plays when it’s ready.`);stCtx();stSpeak(t,v,{preview:true});return}
+  const prev=yorriSpeak;say('Yorri','Hi Aaron, this is Yorri. Your board is up to date, and two items are waiting for your approval.');if(!prev)ttsSpeak('Hi Aaron, this is Yorri.')}});
 ycAdd({id:'vc.change',group:'Voice & display',cov:['set:vcH'],ex:['change voice','next voice'],help:'Opens the voice picker; “next voice” tries the next one aloud.',match:(r,l)=>/\b(change|switch|pick|choose|select|different|another|next)\s+(?:your\s+|the\s+|a\s+|yorri'?s?\s+)?voice\b/.test(l),run:(m,r,l)=>{
-  if(/\b(next|another|different)\b/.test(l)){const V=ycVoices();if(!V.length)return say('Yorri',IS_TESLA?'The Tesla browser can’t play voices — read Yorri on screen.':'No device voices here. Try the Lifelike AI voice in Settings → Yorri → Yorri voice.');const c=vcGet();const i=V.findIndex(v=>v.name===c.name);const n=V[(i+1)%V.length];vcSet({name:n.name});try{vcRender()}catch(e){}return say('Yorri',`Hi Aaron, this is ${esc(n.name.replace(/\s*\(.*\)$/,''))}. Say <b>next voice</b> again, or keep this one.`)}
+  if(/\b(next|another|different)\b/.test(l)){const V=ycVoices();if(!V.length)return say('Yorri',IS_TESLA?'The Tesla browser can’t play voices — read Yorri on screen.':'No device voices here. Try the Lifelike AI voice in Settings → Yorri → Yorri voice.');const c=vcGet();const i=V.findIndex(v=>v.name===c.name);const n=V[(i+1)%V.length];vcSet({name:n.name,studio:''});try{vcRender()}catch(e){}return say('Yorri',`Hi Aaron, this is ${esc(n.name.replace(/\s*\(.*\)$/,''))}. Say <b>next voice</b> again, or keep this one.`)}
   ycSec('yorri','vcH');setTimeout(()=>{const s=$('#vcSel');if(s)try{s.focus()}catch(e){}},120);say('Yorri','Opened the voice picker. Choose a voice and press Preview — or say <b>next voice</b> to hear them one by one.')}});
 ycAdd({id:'vc.mute',group:'Voice & display',cov:['set:qsH'],ex:['mute Yorri','voice on'],help:'Yorri’s spoken replies on/off.',match:(r,l)=>/^(?:mute|unmute|silence)\s+(?:yorri|yourself|voice)$|^(?:yorri\s+)?voice\s+(on|off)$|^(?:turn|switch)\s+(on|off)\s+(?:your|yorri'?s?|the)\s+voice$|^stop talking$/.test(l),run:(m,r,l)=>{const on=/unmute|\bon\b/.test(l);if(on){ycSpeak(true);say('Yorri','Voice on.')}else{say('Yorri','Voice off — I’ll reply on screen.');ycSpeak(false)}}});
 ycAdd({id:'vc.switch',group:'Voice & display',cov:['set:qsH'],ex:['car layout on','mock data off','rooms full screen on'],help:'Quick switches: car layout, mock data, open rooms full screen.',match:(r,l)=>{const m=l.match(/^(?:turn\s+|switch\s+)?(?:(on|off)\s+)?(car layout|car mode|mock data|mock|sample data|rooms full screen|open rooms full screen)\s*(on|off)?$/);return m&&(m[1]||m[3])?{k:m[2],on:(m[1]||m[3])==='on'}:null},run:m=>{const id=/car/.test(m.k)?'#carT':/full/.test(m.k)?'#qsFs':'#mockT';if(!ycToggle(id,m.on))return say('Yorri','That switch isn’t on this screen.');say('Yorri',`${/car/.test(m.k)?'Car layout':/full/.test(m.k)?'Open rooms full screen':'Mock data'} <b>${m.on?'ON':'OFF'}</b>.`)}});
