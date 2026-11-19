@@ -1,23 +1,27 @@
 // Headless check: Command Deck Mail room (inbox from /mail store), Settings → Support mail + Resend,
-// propose-then-approve send, AI options, Yorri commands, archive+Vault. All network mocked.
+// propose-then-approve send, AI options, Yorri commands, archive+Vault, delete+Trash. All network mocked.
 // CAR=1 = car layout (48px targets). Screenshots under SHOTDIR or /workspace/support-mail/.
 import { chromium } from '/node_modules/playwright-core/index.mjs'; import http from 'node:http'; import fs from 'node:fs'; import assert from 'node:assert';
+import { defaultYourWorldSig, renderSignature, normalizeSig } from '../../yw-business-server/mailsig.js';
 const html = fs.readFileSync(new URL('../index.html', import.meta.url)); const srv = http.createServer((q, r) => { if (q.url.startsWith('/sw.js')) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'content-type': 'text/html' }); r.end(html); }).listen(8188);
 const exe = fs.readdirSync('/home/box/.cache/ms-playwright').filter(d => d.startsWith('chromium_headless_shell')).map(d => `/home/box/.cache/ms-playwright/${d}/chrome-headless-shell-linux64/chrome-headless-shell`).find(fs.existsSync);
 const b = await chromium.launch({ executablePath: exe }); const CAR = !!process.env.CAR, SHOT = process.env.SHOTDIR || '/workspace/support-mail', tag = CAR ? 'car' : 'desk', SV = 'https://sv.test';
 fs.mkdirSync(SHOT, { recursive: true });
 const NOW = Date.now();
+const ywSig = defaultYourWorldSig(NOW);
+let sigs = { signatures: [ywSig], defaultId: 'yw', autoAppend: true };
 const box = {
-  m1: { id: 'm1', from: 'casey@example.com', fromName: 'Casey Lee', to: 'support@yourworldapps.si', subject: 'Widget outage on checkout', snippet: 'Checkout is failing for some users since noon.', text: 'Checkout is failing for some users since noon. Can you take a look today?', date: NOW - 3600e3, receivedAt: NOW - 3600e3, seen: false, label: 'inbox', urgent: false, out: false, attachments: [{ n: 0, name: 'screenshot.png', size: 20480, type: 'image/png' }] },
-  m2: { id: 'm2', from: 'pat@example.com', fromName: 'Pat Nguyen', to: 'support@yourworldapps.si', subject: 'Thanks for the fix', snippet: 'All good on our side.', text: 'All good on our side. Thanks!', date: NOW - 86400e3, receivedAt: NOW - 86400e3, seen: true, label: 'inbox', urgent: false, out: false, attachments: [] },
-  m3: { id: 'm3', from: 'support@yourworldapps.si', fromName: 'Your World Apps Support', to: 'old@example.com', subject: 'Re: Old thread', snippet: 'We looked into it.', text: 'We looked into it.', date: NOW - 2 * 86400e3, receivedAt: NOW - 2 * 86400e3, seen: true, label: 'replied', urgent: false, out: true, attachments: [] }
+  m1: { id: 'm1', from: 'casey@example.com', fromName: 'Casey Lee', to: 'support@yourworldapps.si', subject: 'Widget outage on checkout', snippet: 'Checkout is failing for some users since noon.', text: 'Checkout is failing for some users since noon. Can you take a look today?', date: NOW - 3600e3, receivedAt: NOW - 3600e3, seen: false, label: 'inbox', urgent: false, out: false, pulled: true, attachments: [{ n: 0, name: 'screenshot.png', size: 20480, type: 'image/png' }] },
+  m2: { id: 'm2', from: 'pat@example.com', fromName: 'Pat Nguyen', to: 'support@yourworldapps.si', subject: 'Thanks for the fix', snippet: 'All good on our side.', text: 'All good on our side. Thanks!', date: NOW - 86400e3, receivedAt: NOW - 86400e3, seen: true, label: 'inbox', urgent: false, out: false, pulled: true, attachments: [] },
+  m3: { id: 'm3', from: 'support@yourworldapps.si', fromName: 'Your World Apps Support', to: 'old@example.com', subject: 'Re: Old thread', snippet: 'We looked into it.', text: 'We looked into it.', date: NOW - 2 * 86400e3, receivedAt: NOW - 2 * 86400e3, seen: true, label: 'replied', urgent: false, out: true, pulled: true, attachments: [] },
+  m4: { id: 'm4', from: 'lee@example.com', fromName: 'Lee Ortiz', to: 'support@yourworldapps.si', subject: 'Billing question', snippet: 'Can you check my invoice?', text: 'Can you check my invoice?', date: NOW - 1800e3, receivedAt: NOW - 1800e3, seen: true, label: 'inbox', urgent: false, out: false, pulled: false, attachments: [] }
 };
 const HTML_BLOCK = '<p>Checkout is failing.</p><img src="https://evil.example/px.png" alt="x">';
 const HTML_IMG = '<p>Checkout is failing.</p><img src="https://evil.example/px.png" alt="x">';
 let imagesOn = false, sent = [], reqs = [];
 const foldersOf = () => {
   const all = Object.values(box);
-  const folders = { inbox: 0, reply: 0, replied: 0, archived: 0, spam: 0 };
+  const folders = { inbox: 0, reply: 0, replied: 0, archived: 0, spam: 0, trash: 0 };
   for (const m of all) folders[m.label] = (folders[m.label] || 0) + 1;
   return folders;
 };
@@ -27,7 +31,7 @@ const listOf = (u) => {
   let items = Object.values(box).filter(m => (m.label || 'inbox') === label);
   if (q) items = items.filter(m => [m.from, m.fromName, m.subject, m.snippet, m.text].some(v => String(v || '').toLowerCase().includes(q)));
   items = items.slice().sort((a, b) => (b.date || 0) - (a.date || 0));
-  return { items, folders: foldersOf(), unread: Object.values(box).filter(m => !m.seen && !m.out).length, total: items.length };
+  return { items, folders: foldersOf(), unread: Object.values(box).filter(m => !m.seen && !m.out && m.label !== 'archived' && m.label !== 'spam' && m.label !== 'trash').length, total: items.length, trashUnpulled: Object.values(box).filter(m => m.label === 'trash' && !m.pulled).length };
 };
 const ctx = await b.newContext({ viewport: { width: CAR ? 1200 : 1440, height: 1100 } }); const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => { if (!/sandboxed and lacks the 'allow-same-origin' flag/.test(e.message)) errs.push(e.message); });
 pg.on('dialog', d => d.accept());
@@ -80,10 +84,22 @@ await ctx.route(SV + '/**', async r => {
   } else if (P === '/mail/read' && M === 'POST') { (bd.ids || []).forEach(id => { if (box[id]) box[id].seen = bd.read !== false; }); body = { ok: true }; }
   else if (P === '/mail/label' && M === 'POST') { (bd.ids || []).forEach(id => { if (box[id]) { if (bd.label) box[id].label = bd.label; if (bd.urgent != null) box[id].urgent = !!bd.urgent; } }); body = { ok: true }; }
   else if (P === '/mail/archive' && M === 'POST') { (bd.ids || []).forEach(id => { if (box[id]) box[id].label = 'archived'; }); body = { ok: true, label: 'archived' }; }
+  else if (P === '/mail/trash' && M === 'POST') { (bd.ids || []).forEach(id => { if (box[id] && box[id].label !== 'trash') { box[id].prevLabel = box[id].label; box[id].label = 'trash'; } }); body = { ok: true, updated: (bd.ids || []).length, label: 'trash' }; }
+  else if (P === '/mail/restore' && M === 'POST') { let n = 0; (bd.ids || []).forEach(id => { if (box[id] && box[id].label === 'trash') { box[id].label = box[id].prevLabel || 'inbox'; delete box[id].prevLabel; n++; } }); body = { ok: true, updated: n }; }
+  else if (P === '/mail/purge' && M === 'POST') { const ids = (bd.ids || []).filter(id => box[id] && box[id].label === 'trash'); const unpulled = ids.filter(id => box[id] && !box[id].pulled).length; ids.forEach(id => delete box[id]); body = { ok: true, purged: ids.length, unpulled, ids }; }
+  else if ((P === '/mail/empty-trash' || P === '/mail/emptytrash') && M === 'POST') { const ids = Object.keys(box).filter(id => box[id].label === 'trash'); const unpulled = ids.filter(id => !box[id].pulled).length; ids.forEach(id => delete box[id]); body = { ok: true, purged: ids.length, unpulled, ids }; }
   else if ((P === '/mail/reply' || P === '/mail/compose') && M === 'POST') {
     if (!bd || bd.approved !== true) { st = 400; body = { error: 'requires {approved:true}' }; }
-    else { const rec = { at: Date.now(), path: P, to: bd.to, id: bd.id, body: bd.body, subject: bd.subject }; sent.push(rec); body = { ok: true, messageId: '<t@support.yourworldapps.si>', resendId: 're_test', via: 'resend', to: bd.to || (box[bd.id] && box[bd.id].from), from: 'Your World Apps Support <support@yourworldapps.si>' }; }
-  } else if (P === '/inboxes') body = { inboxes: [{ id: 'yw-support', label: 'Support', kind: 'support', canSend: true, builtin: true }] };
+    else { const rec = { at: Date.now(), path: P, to: bd.to, id: bd.id, body: bd.body, html: bd.html, subject: bd.subject }; sent.push(rec); body = { ok: true, messageId: '<t@support.yourworldapps.si>', resendId: 're_test', via: 'resend', to: bd.to || (box[bd.id] && box[bd.id].from), from: 'Your World Apps Support <support@yourworldapps.si>' }; }
+  } else if (P === '/mail/signatures' && M === 'GET') body = sigs;
+  else if (P === '/mail/signatures' && M === 'PUT') {
+    if (Array.isArray(bd.signatures)) sigs.signatures = bd.signatures.map(x => normalizeSig(x, { now: NOW }));
+    if (!sigs.signatures.length) sigs.signatures = [defaultYourWorldSig(NOW)];
+    if (bd.defaultId) sigs.defaultId = bd.defaultId;
+    if (bd.autoAppend != null) sigs.autoAppend = !!bd.autoAppend;
+    body = sigs;
+  } else if (P === '/mail/signatures/preview' && M === 'POST') body = renderSignature(normalizeSig(bd || {}, { now: NOW }), { now: NOW });
+  else if (P === '/inboxes') body = { inboxes: [{ id: 'yw-support', label: 'Support', kind: 'support', canSend: true, builtin: true }] };
   else if (P === '/tickets' || P === '/maint/mail') body = [];
   else if (P === '/alerts/settings') body = { smsLive: false, pushLive: true, settings: null };
   else body = {};
@@ -135,7 +151,12 @@ await wt(500);
 assert.ok(reqs.some(x => x.p === '/mail/message/m1' && /images=1/.test(x.search || '')), 'Load images');
 assert.ok(await ev(() => /<img[^>]*\ssrc="https:\/\/evil\.example\/px\.png"/.test(document.querySelector('#mailHtml').srcdoc || '')), 'images after load');
 assert.match(await ev(() => document.querySelector('.mail-thread').innerText), /screenshot\.png/);
+assert.ok(await ev(() => !!document.querySelector('.mail-thread [data-mailact="trash"]')), 'Delete next to Archive');
+assert.match(await ev(() => document.querySelector('.mail-thread [data-mailact="trash"]')?.textContent || ''), /Delete/);
+const hDel = await ev(() => Math.round(document.querySelector('.mail-thread [data-mailact="trash"]').getBoundingClientRect().height));
+assert.ok(hDel >= minH, 'Delete target ' + hDel);
 await shot('mail-thread', '.mail-room');
+await shot('mail-delete', '.mail-room');
 
 // ---- Search
 await ev(() => { const q = document.querySelector('#mailQ'); q.value = 'outage'; MAIL.q = 'outage'; });
@@ -223,6 +244,94 @@ await ev(() => document.querySelector('[data-mailfolder="archived"]').click());
 await wt(400);
 assert.ok(await ev(() => !!document.querySelector('[data-mailopen="m2"]')), 'archived folder shows it');
 
+// ---- Delete → confirm → Trash + undo + restore + delete forever + empty trash
+await ev(() => document.querySelector('[data-mailfolder="inbox"]').click());
+await wt(400);
+if (!await ev(() => !!document.querySelector('[data-mailopen="m4"]'))) { await ev(() => { MAIL.label = 'inbox'; MAIL.q = ''; }); await ev(() => mailLoad(true)); await wt(400); }
+await ev(() => document.querySelector('[data-mailopen="m4"]').click());
+await wt(400);
+assert.ok(await ev(() => !!document.querySelector('.mail-thread [data-mailact="trash"]')));
+await ev(() => document.querySelector('.mail-thread [data-mailact="trash"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+assert.match(await ev(() => document.querySelector('#mailAsk')?.innerText || ''), /Trash|Delete this email/i);
+assert.match(await ev(() => document.querySelector('#mailAsk')?.innerText || ''), /Billing question/);
+const hAsk = await ev(() => Math.round(document.querySelector('#mailAsk [data-mailask="1"]').getBoundingClientRect().height));
+assert.ok(hAsk >= minH, 'confirm Delete target ' + hAsk);
+await shot('mail-delete-confirm', '.mail-room');
+// Cancel leaves it
+await ev(() => document.querySelector('#mailAsk [data-mailask="0"]').click());
+await wt(300);
+assert.equal(box.m4.label, 'inbox');
+await ev(() => document.querySelector('.mail-thread [data-mailact="trash"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+await ev(() => document.querySelector('#mailAsk [data-mailask="1"]').click());
+await wt(700);
+assert.equal(box.m4.label, 'trash');
+assert.ok(await ev(() => auditList().some(a => a.decision === 'MOVED TO TRASH' && /Billing question/.test(a.title))), 'delete logged to Vault');
+assert.ok(await ev(() => !document.querySelector('#ywToast')?.hidden && /Trash/.test(document.querySelector('#ywToast')?.innerText || '')), 'undo toast');
+assert.ok(await ev(() => !!document.querySelector('#toastUndo')));
+await ev(() => document.querySelector('#toastUndo').click());
+await wt(700);
+assert.equal(box.m4.label, 'inbox', 'undo restores');
+assert.ok(await ev(() => auditList().some(a => a.decision === 'RESTORED (undo)')), 'undo logged');
+// Delete again and open Trash
+await ev(() => { MAIL.label = 'inbox'; MAIL.q = ''; MAIL.open = null; });
+await ev(() => mailLoad(true));
+await wt(400);
+await ev(() => document.querySelector('[data-mailopen="m4"]').click());
+await wt(400);
+await ev(() => document.querySelector('.mail-thread [data-mailact="trash"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+await ev(() => document.querySelector('#mailAsk [data-mailask="1"]').click());
+await wt(700);
+assert.equal(box.m4.label, 'trash');
+await ev(() => document.querySelector('[data-mailfolder="trash"]').click());
+await wt(500);
+assert.ok(await ev(() => !!document.querySelector('[data-mailopen="m4"]')), 'trash folder shows it');
+assert.match(await ev(() => document.querySelector('[data-mailfolder="trash"]')?.innerText || ''), /Trash/);
+assert.ok(await ev(() => !!document.querySelector('[data-mailact="empty-trash"]')), 'Empty trash button');
+await ev(() => document.querySelector('[data-mailopen="m4"]').click());
+await wt(400);
+assert.ok(await ev(() => !!document.querySelector('.mail-thread [data-mailact="restore"]')));
+assert.ok(await ev(() => !!document.querySelector('.mail-thread [data-mailact="purge"]')));
+const hRest = await ev(() => Math.round(document.querySelector('.mail-thread [data-mailact="restore"]').getBoundingClientRect().height));
+assert.ok(hRest >= minH, 'Restore target ' + hRest);
+await shot('mail-trash', '.mail-room');
+await ev(() => document.querySelector('.mail-thread [data-mailact="restore"]').click());
+await wt(700);
+assert.equal(box.m4.label, 'inbox');
+assert.ok(await ev(() => auditList().some(a => a.decision === 'RESTORED' && !/undo/.test(a.decision))), 'restore logged');
+// Delete forever + empty trash (m4 unpulled note)
+await ev(() => { MAIL.label = 'inbox'; MAIL.open = null; });
+await ev(() => mailLoad(true));
+await wt(400);
+await ev(() => document.querySelector('[data-mailopen="m4"]').click());
+await wt(400);
+await ev(() => document.querySelector('.mail-thread [data-mailact="trash"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+await ev(() => document.querySelector('#mailAsk [data-mailask="1"]').click());
+await wt(600);
+await ev(() => document.querySelector('[data-mailfolder="trash"]').click());
+await wt(400);
+await ev(() => document.querySelector('[data-mailopen="m4"]').click());
+await wt(400);
+await ev(() => document.querySelector('.mail-thread [data-mailact="purge"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+assert.match(await ev(() => document.querySelector('#mailAsk')?.innerText || ''), /Permanently delete|Delete forever|not been copied/i);
+await ev(() => document.querySelector('#mailAsk [data-mailask="0"]').click());
+await wt(200);
+assert.ok(box.m4, 'cancel keeps it');
+// Empty trash with the unpulled item still in trash
+await ev(() => document.querySelector('[data-mailact="empty-trash"]').click());
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+assert.match(await ev(() => document.querySelector('#mailAsk')?.innerText || ''), /Empty trash|Permanently delete/i);
+assert.match(await ev(() => document.querySelector('#mailAsk')?.innerText || ''), /not been copied to your PC/i);
+await ev(() => document.querySelector('#mailAsk [data-mailask="1"]').click());
+await wt(700);
+assert.equal(box.m4, undefined, 'emptied');
+assert.ok(await ev(() => auditList().some(a => /EMPTIED TRASH/.test(a.decision))), 'empty trash logged');
+assert.ok(box.m1 && box.m1.label !== 'trash', 'did not delete other mail');
+
 // ---- Settings card
 await ev(() => { ywSettings(true); setTab('connections'); });
 await wt(900);
@@ -246,6 +355,24 @@ const hSw = await ev(() => Math.round(document.querySelector('#smCard [data-tgsw
 assert.ok(hSw >= minH, 'supportmail switch ' + hSw);
 await ev(() => { const c = document.querySelector('#smCard'); if (c) c.open = true; });
 await shot('settings-support-mail', '#smCard');
+assert.match(card + (await ev(() => document.querySelector('#sigBox')?.innerText || '')), /Signature/);
+assert.match(await ev(() => document.querySelector('#sigBox')?.innerText || ''), /Your World|Aaron Burgan|Founder/);
+await ev(() => document.querySelector('#sigBox [data-sigact="edit"]')?.click());
+await pg.waitForFunction(() => !!document.querySelector('#sigTitle'), { timeout: 8000 });
+assert.equal(await ev(() => document.querySelector('#sigTitle')?.value || ''), 'Founder & CEO, Your World Apps');
+assert.ok(await ev(() => !document.querySelector('#sigTitle').readOnly && !document.querySelector('#sigTitle').disabled), 'title is editable');
+const hTitle = await ev(() => Math.round(document.querySelector('#sigTitle').getBoundingClientRect().height));
+assert.ok(hTitle >= minH, 'title field ' + hTitle);
+await ev(() => document.querySelector('#sigTitle').fill?.('x') || true);
+await pg.waitForFunction(() => /Your World Weather Radar|FEATURED|Apps for your whole world/.test(document.querySelector('#sigPrevLight')?.innerText || document.querySelector('.sig-paper')?.innerText || ''), { timeout: 8000 });
+assert.match(await ev(() => (document.querySelector('#sigPrevLight')?.innerText || '') + (document.querySelector('#sigPrevDark')?.innerText || '')), /Aaron Burgan/);
+assert.match(await ev(() => document.querySelector('#sigPrevLight')?.innerHTML || ''), /Founder &amp; CEO, Your World Apps|Founder & CEO, Your World Apps/);
+assert.doesNotMatch(await ev(() => (document.querySelector('#sigPrevLight')?.innerText || '') + (document.querySelector('#sigPrevDark')?.innerText || '')), /Travel/);
+assert.doesNotMatch(await ev(() => document.querySelector('#sigPrevLight')?.innerHTML || ''), /business\.yourworldapps\.si/);
+await shot('mail-signature', '#sigAsk');
+await ev(() => document.querySelector('#sigTitle').value = 'Founder & CEO, Your World Apps');
+await ev(() => document.querySelector('[data-sigact="save"]').click());
+await wt(500);
 
 // Connection status rows
 await ev(() => { const c = document.querySelector('#csCard'); if (c) { c.open = true; } csLoad(true); });
@@ -275,12 +402,70 @@ await wt(900);
 assert.match(await last(), /ingest|Resend|waiting for the PC/i);
 assert.ok(await ev(() => document.querySelector('#smCard')?.open), 'status opens the card');
 await shot('settings-after-yorri', '#smCard');
+await ev(() => { ywSettings(false); setPageView('command'); roomView = 'Mail'; MAIL.label = 'inbox'; MAIL.q = ''; MAIL.open = null; mailLoad(true); });
+await wt(500);
+await ev(() => ask('show trash'));
+await wt(800);
+assert.equal(await ev(() => MAIL.label), 'trash');
+assert.match(await last(), /Trash/i);
+await ev(() => ask('delete the last email'));
+await pg.waitForFunction(() => !!document.querySelector('#mailAsk'), { timeout: 8000 });
+assert.match(await ev(() => document.querySelector('#mailAsk')?.innerText || ''), /Trash|Delete/i);
+await ev(() => document.querySelector('#mailAsk [data-mailask="1"]').click());
+await wt(800);
+assert.ok(Object.values(box).some(m => m.label === 'trash'), 'yorri delete moved one to trash');
+await ev(() => ask('show trash'));
+await wt(500);
+await ev(() => ask('restore this email'));
+await wt(800);
+assert.ok(await ev(() => auditList().some(a => a.decision === 'RESTORED' || a.decision === 'RESTORED (undo)')), 'yorri restore logged');
+await ev(() => ask('empty trash'));
+await wt(500);
+// trash may already be empty after restore; if a confirm appears, cancel so we don't wipe leftover test mail
+if (await ev(() => !!document.querySelector('#mailAsk'))) {
+  await ev(() => document.querySelector('#mailAsk [data-mailask="0"]').click());
+  await wt(200);
+}
+await ev(() => { ywSettings(false); setPageView('command'); roomView = 'Mail'; MAIL.label = 'inbox'; MAIL.q = ''; MAIL.noSig = false; mailLoad(true); });
+await wt(600);
+if (!await ev(() => !!document.querySelector('[data-mailopen="m1"]'))) { await ev(() => { MAIL.label = 'inbox'; }); await ev(() => mailLoad(true)); await wt(400); }
+await ev(() => document.querySelector('[data-mailopen="m1"]').click());
+await wt(500);
+await ev(() => document.querySelector('[data-mailact="reply"]').click());
+await pg.waitForFunction(() => /Aaron Burgan|Founder & CEO|Apps for your whole world/.test(document.querySelector('#mailDraft')?.value || ''), { timeout: 8000 });
+assert.match(await ev(() => document.querySelector('#mailDraft')?.value || ''), /Aaron Burgan/);
+assert.match(await ev(() => document.querySelector('#mailDraft')?.value || ''), /Founder & CEO, Your World Apps/);
+assert.match(await ev(() => document.querySelector('#mailDraft')?.value || ''), /weather\.yourworldapps\.si|Your World Weather Radar/);
+assert.ok(await ev(() => !!document.querySelector('#mailSigBtn')));
+const hSig = await ev(() => Math.round(document.querySelector('#mailSigBtn').getBoundingClientRect().height));
+assert.ok(hSig >= minH, 'Signature button ' + hSig);
+await ev(() => { const n = document.querySelector('#mailDraft'); if (n) n.scrollTop = n.scrollHeight; const t = document.querySelector('#ywToast'); if (t) t.hidden = true; });
+await pg.waitForFunction(() => /Aaron Burgan/.test(document.querySelector('#mailSigPrev')?.innerText || ''), { timeout: 8000 });
+assert.match(await ev(() => document.querySelector('#mailSigPrev')?.innerText || ''), /Founder & CEO, Your World Apps/);
+await ev(() => document.querySelector('#mailSigPrev')?.scrollIntoView({ block: 'center' }));
+await shot('mail-signature-preview', '.mail-thread');
+await ev(() => ask('turn signature off'));
+await wt(800);
+assert.match(await last(), /off|Signature/i);
+await ev(() => ask('edit signature'));
+await pg.waitForFunction(() => !!document.querySelector('#sigTitle'), { timeout: 8000 });
+assert.equal(await ev(() => document.querySelector('#sigTitle')?.value || ''), 'Founder & CEO, Your World Apps');
+await ev(() => document.querySelector('[data-sigact="close"]').click());
+await wt(200);
 
 const help = await ev(() => (typeof ycListHTML === 'function' ? ycListHTML('mail') : YC.list.filter(c => c.group === 'Mail').map(c => c.ex.join(' ')).join(' ')));
 assert.match(help, /read my latest email/);
 assert.match(help, /summarize unread mail/);
 assert.match(help, /draft a reply to the last email/);
 assert.match(help, /archive this email/);
+assert.match(help, /delete this email/);
+assert.match(help, /delete the last email/);
+assert.match(help, /show trash/);
+assert.match(help, /restore this email/);
+assert.match(help, /empty trash/);
+assert.match(help, /edit signature/);
+assert.match(help, /use signature Your World/);
+assert.match(help, /turn signature off/);
 assert.match(help, /check support mail|support mail status/);
 
 await ev(() => { ywSettings(true); setTab('connections'); smRender(); });

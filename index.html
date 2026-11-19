@@ -423,7 +423,42 @@ body.car-layout #setPage #smCard .cx-act button,body.car-layout #setPage #smCard
 .mail-ai button,.mail-acts button,.mail-room .sbt,.mail-compose input,.mail-compose textarea,.mail-compose select{min-height:44px;padding:8px 12px;font:inherit}
 .mail-compose textarea{width:100%;min-height:120px;box-sizing:border-box;background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:10px}
 .mail-compose input,.mail-compose select{background:var(--field);color:var(--txt);border:1px solid var(--line);border-radius:8px}
-body.car-layout .mail-folders button,body.car-layout .mail-search,body.car-layout .mail-row,body.car-layout .mail-ai button,body.car-layout .mail-acts button,body.car-layout .mail-room .sbt,body.car-layout .mail-compose input,body.car-layout .mail-compose textarea,body.car-layout .mail-compose select{min-height:48px;padding:10px 16px;font-size:15px}
+body.car-layout .mail-folders button,body.car-layout .mail-search,body.car-layout .mail-row,body.car-layout .mail-ai button,body.car-layout .mail-acts button,body.car-layout .mail-room .sbt,body.car-layout .mail-compose input,body.car-layout .mail-compose textarea,body.car-layout .mail-compose select,body.car-layout .mail-row-act,body.car-layout .mail-bulk button,body.car-layout .mail-ask button,body.car-layout .mail-chk{min-height:48px;padding:10px 16px;font-size:15px}
+.mail-row-wrap{display:flex;align-items:stretch;border-bottom:1px solid var(--line);background:transparent}
+.mail-row-wrap .mail-row{flex:1;border-bottom:0;min-width:0}
+.mail-chk{display:flex;align-items:center;justify-content:center;padding:0 8px;flex:none;min-width:44px;min-height:44px;cursor:pointer}
+.mail-chk input{width:20px;height:20px;accent-color:var(--teal)}
+.mail-row-act{flex:none;min-width:44px;min-height:44px;padding:8px 12px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--mut);cursor:pointer;font:inherit}
+.mail-row-act:hover{color:var(--txt);background:color-mix(in srgb,var(--teal) 10%,transparent)}
+.mail-danger,.mail-row-act.mail-danger{color:var(--red)}
+.mail-danger:hover,.mail-row-act.mail-danger:hover{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+.mail-bulk{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:4px 0}
+.mail-ask-scrim{position:fixed;inset:0;z-index:100010;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px}
+.mail-ask{width:min(480px,100%);background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 16px 40px #000c}
+.mail-ask h4{margin:0 0 8px;font-size:16px}
+.mail-ask p{margin:0 0 14px;color:var(--mut)}
+.mail-ask .mail-acts{justify-content:flex-end;margin:0}.mail-ask button,.mail-ask .sbt,.mail-ask .og-b{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-height:48px;min-width:48px;height:auto;padding:12px 18px;font-size:15px;line-height:1.2}
+body.car-layout .mail-ask button,body.car-layout .mail-ask .sbt,body.car-layout .mail-ask .og-b{min-height:52px;min-width:52px;padding:14px 18px}
+.sig-list{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.sig-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
+.sig-row.on{outline:2px solid var(--teal)}
+.sig-row b{display:block}.sig-row small{display:block;color:var(--mut)}
+.sig-row-acts,.sig-flags,.sig-auto,.mail-sigbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sig-auto,.sig-flags label,.mail-sigbar label{min-height:44px;display:inline-flex;align-items:center;gap:8px;cursor:pointer}.mail-sigbar button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-height:48px;min-width:48px;padding:12px 16px;line-height:1.2}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+@media(max-width:700px){.sig-grid{grid-template-columns:1fr}}
+.sig-grid label,.sig-ed label.cx-st{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut)}
+.sig-grid input,.sig-ed textarea,#sigExtra{min-height:44px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--field);color:var(--txt);font:inherit;width:100%;box-sizing:border-box}
+.sig-ed{width:min(760px,100%);max-height:92vh;overflow:auto}
+.sig-ed textarea,#sigExtra{min-height:72px}
+.sig-previews{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+@media(max-width:700px){.sig-previews{grid-template-columns:1fr}}
+.sig-paper{min-height:120px;padding:12px;border-radius:8px;border:1px solid var(--line);overflow:auto}
+.sig-paper.light{background:#f4f7f8}
+.sig-paper.dark{background:#070b10}.mail-sig-prev{margin:8px 0 0;max-height:none}
+.sig-pick{display:block;width:100%;text-align:left;padding:10px 12px;margin:0 0 8px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--txt);font:inherit;cursor:pointer;min-height:44px}
+.sig-pick small{display:block;color:var(--mut)}.sig-pick.on{outline:2px solid var(--teal)}
+body.car-layout .sig-grid input,body.car-layout .sig-ed textarea,body.car-layout #sigExtra,body.car-layout .sig-auto,body.car-layout .sig-flags label,body.car-layout .mail-sigbar label,body.car-layout .sig-row-acts button,body.car-layout .sig-pick,body.car-layout #sigBox .sbt,body.car-layout #sigBox .og-b{min-height:48px;padding:10px 16px;font-size:15px}body.car-layout .mail-sigbar button,body.car-layout .mail-ask button,body.car-layout .mail-ask .sbt,body.car-layout .mail-ask .og-b{min-height:56px;min-width:56px;padding:14px 18px}
 #smCard .sh-kv{display:grid;gap:4px;margin:8px 0}
 #setPage #smCard .cx-act button{min-height:44px}
 body.car-layout .cs-list{grid-template-columns:1fr}body.car-layout .cs-row{padding:12px;font-size:1.1em}body.car-layout .cs-row .og-b{min-height:44px;padding:6px 14px}
@@ -1221,7 +1256,7 @@ function rmUndo(u){u=u||RM.last;if(!u)return;const f=rmFind(u.key);if(!f)return;
  const i=b.rooms.indexOf(r);b.rooms.splice(i,1);r.label=u.label;A.rooms.splice(Math.min(u.idx,A.rooms.length),0,r);orgMoveConn(b.id,A.id,r.id);
  audit({decision:'ROOM MOVE UNDONE',tier:'T0',title:u.label+': back to '+rmLabel(A),lane:'Organize',move:true});RM.last=null;orgCommit('Moved '+u.label+' back to '+A.name+'.');toast('Moved '+esc(u.label)+' back to '+esc(rmLabel(A))+'.')}
 function toast(html,undo){const T=$('#ywToast');if(!T)return;clearTimeout(RM.tt);T.innerHTML=`<span>${html}</span>`+(undo?'<button type="button" id="toastUndo">Undo</button>':'');T.hidden=false;RM.tu=undo||null;RM.tt=setTimeout(()=>{T.hidden=true},undo?10000:4000)}
-document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#toastUndo');if(!t)return;const u=RM.tu;$('#ywToast').hidden=true;rmUndo(u)});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#toastUndo');if(!t)return;const u=RM.tu;RM.tu=null;$('#ywToast').hidden=true;if(typeof u==='function'){try{u()}catch(err){}return}rmUndo(u)});
 // UI path (drag/picker): confirm warnings, leave arrange mode (saving the order), move, toast
 function rmMoveUI(key,toId,via){const c=rmCheck(key,toId),f=rmFind(key);if(c&&c.block){toast('Can’t move: '+esc(c.block));arrMsg('Not moved — '+c.block);rmTrayClose();return false}
  if(c&&c.warn&&!confirm('Move '+(f?f.r.label:'room')+' to '+rmLabel(bizStore.businesses.find(x=>x.id===toId))+'?\n\n'+c.warn))return false;
@@ -2809,8 +2844,8 @@ const LIVE_SUM={
 };
 
 /* ==== Command Deck Mail room: reads the /mail store (support@yourworldapps.si). Sending is propose-then-approve via Resend. Never auto-sent. HTML is sandboxed; remote images off until Load images. ==== */
-const MAIL_FOLDERS=[['inbox','Inbox'],['reply','Needs reply'],['replied','Replied'],['archived','Archived'],['spam','Spam']];
-const MAIL={items:[],folders:{},unread:0,label:'inbox',q:'',open:null,thread:[],msg:null,images:false,draft:'',tone:'friendly',busy:false,err:'',at:0,compose:false,ai:'',tasks:null,sendMsg:null};
+const MAIL_FOLDERS=[['inbox','Inbox'],['reply','Needs reply'],['replied','Replied'],['archived','Archived'],['spam','Spam'],['trash','Trash']];
+const MAIL={items:[],folders:{},unread:0,label:'inbox',q:'',open:null,thread:[],msg:null,images:false,draft:'',tone:'friendly',busy:false,err:'',at:0,compose:false,ai:'',tasks:null,sendMsg:null,sel:{},trashUnpulled:0,_ask:null};
 const LS_TASKS='ywCmdTasks';
 function taskList(){try{return JSON.parse(localStorage.getItem(LS_TASKS)||'[]')||[]}catch(e){return[]}}
 function taskSave(L){try{localStorage.setItem(LS_TASKS,JSON.stringify(L.slice(0,200)))}catch(e){}}
@@ -2827,7 +2862,7 @@ async function mailLoad(force){
         const s=smsServer();
         if(!s){MAIL.err='Connect the Support server first.';MAIL.items=[];MAIL.at=Date.now();break}
         MAIL.err='';
-        try{const q=new URLSearchParams({limit:'200'});if(MAIL.label)q.set('label',MAIL.label);if(MAIL.q)q.set('q',MAIL.q);const j=await svReq('GET','/mail/list?'+q.toString());MAIL.items=j.items||[];MAIL.folders=j.folders||{};MAIL.unread=j.unread||0;MAIL.at=Date.now();MAIL.err=''}catch(e){MAIL.err=String(e.message||e).slice(0,140);if(e&&e.off)MAIL.err=e.message}
+        try{const q=new URLSearchParams({limit:'200'});if(MAIL.label)q.set('label',MAIL.label);if(MAIL.q)q.set('q',MAIL.q);const j=await svReq('GET','/mail/list?'+q.toString());MAIL.items=j.items||[];MAIL.folders=j.folders||{};MAIL.unread=j.unread||0;MAIL.trashUnpulled=j.trashUnpulled||0;MAIL.at=Date.now();MAIL.err='';if(MAIL.sel){const keep={};for(const m of MAIL.items)if(MAIL.sel[m.id])keep[m.id]=1;MAIL.sel=keep}}catch(e){MAIL.err=String(e.message||e).slice(0,140);if(e&&e.off)MAIL.err=e.message}
       }while(MAIL._again);
     }finally{MAIL.busy=false;MAIL._run=null;if(typeof draw==='function')draw();setTimeout(mailBind,0)}
   })();
@@ -2837,13 +2872,17 @@ function mailRender(board){if(!MAIL.loaded){MAIL.loaded=1;setTimeout(()=>mailLoa
  const unread=MAIL.unread||MAIL.items.filter(m=>!m.seen&&!m.out).length;
  if(board)return `<div class="mail-room mail-tile" data-mail="1"><div class="kpi"><div><b>${unread}</b><small>unread</small></div><div><b>${MAIL.items.length||0}</b><small>in folder</small></div></div>${(MAIL.items||[]).slice(0,3).map(m=>`<div class="row"><span>${m.seen?'':'● '}${esc(m.fromName||m.from||'')} — ${esc(m.subject||'(no subject)')}</span><span class="mono">${esc(mailAgo(m.date||m.receivedAt))}</span></div>`).join('')}${MAIL.err?`<div class="cx-st cx-bad">${esc(MAIL.err)}</div>`:''}${roomOpenBtn({label:'Mail'})}</div>`;
  const tabs=`<div class="mail-folders" role="tablist">${MAIL_FOLDERS.map(([k,l])=>`<button type="button" data-mailfolder="${k}" aria-pressed="${MAIL.label===k}">${esc(l)} <span class="sup-n">${(MAIL.folders&&MAIL.folders[k])||0}</span></button>`).join('')}</div>`;
- const bar=`<div class="mail-bar">${tabs}<input class="mail-search" id="mailQ" type="search" placeholder="Search mail" value="${esc(MAIL.q)}" aria-label="Search mail"><button type="button" class="og-b" data-mailact="search">Search</button><button type="button" class="sbt" data-mailact="compose">Compose</button><button type="button" class="og-b" data-mailact="refresh">↻</button></div>`;
+ const emptyTrash=MAIL.label==='trash'?`<button type="button" class="sbt mail-danger" data-mailact="empty-trash" ${(MAIL.folders&&MAIL.folders.trash)? '':'disabled'}>Empty trash</button>`:'';
+ const bar=`<div class="mail-bar">${tabs}<input class="mail-search" id="mailQ" type="search" placeholder="Search mail" value="${esc(MAIL.q)}" aria-label="Search mail"><button type="button" class="og-b" data-mailact="search">Search</button><button type="button" class="sbt" data-mailact="compose">Compose</button>${emptyTrash}<button type="button" class="og-b" data-mailact="refresh">↻</button></div>`;
  const list=mailVisible();
- const rows=!smsServer()?`<div class="empty"><b>NOT CONNECTED</b>Connect the Support server in Settings → Connections.</div>`:MAIL.err?`<div class="empty"><b>MAIL ERROR</b>${esc(MAIL.err)}</div>`:!list.length?`<div class="empty"><b>${MAIL.q||MAIL.label!=='inbox'?'NO MATCHES':'INBOX ZERO'}</b>New support@ mail shows up here after the Email Worker is on.</div>`:
-  list.map(m=>`<button type="button" class="mail-row${m.seen?'':' unread'}" data-mailopen="${esc(m.id)}" aria-current="${MAIL.open===m.id?'true':'false'}"><b>${esc(m.fromName||m.from||'(unknown)')}</b> — ${esc(m.subject||'(no subject)')}<small>${esc(m.snippet||'')} · ${esc(mailAgo(m.date||m.receivedAt))}${m.urgent?' · urgent':''}${m.stub?' · headers only':''}</small></button>`).join('');
+ const emptyLab=MAIL.label==='trash'?'TRASH IS EMPTY':MAIL.q||MAIL.label!=='inbox'?'NO MATCHES':'INBOX ZERO';
+ const emptyHint=MAIL.label==='trash'?'Items you delete land here. Restore them, or they are removed after 30 days once the PC has a copy.':'New support@ mail shows up here after the Email Worker is on.';
+ const rows=!smsServer()?`<div class="empty"><b>NOT CONNECTED</b>Connect the Support server in Settings → Connections.</div>`:MAIL.err?`<div class="empty"><b>MAIL ERROR</b>${esc(MAIL.err)}</div>`:!list.length?`<div class="empty"><b>${emptyLab}</b>${emptyHint}</div>`:
+  list.map(m=>{const inTrash=MAIL.label==='trash'||m.label==='trash';const acts=inTrash?`<button type="button" class="mail-row-act" data-mailact="restore" data-mailid="${esc(m.id)}" title="Restore">Restore</button><button type="button" class="mail-row-act mail-danger" data-mailact="purge" data-mailid="${esc(m.id)}" title="Delete forever" aria-label="Delete forever">🗑</button>`:`<button type="button" class="mail-row-act mail-danger" data-mailact="trash" data-mailid="${esc(m.id)}" title="Delete" aria-label="Delete">🗑</button>`;
+   return `<div class="mail-row-wrap"><label class="mail-chk"><input type="checkbox" data-mailsel="${esc(m.id)}" ${MAIL.sel&&MAIL.sel[m.id]?'checked':''} aria-label="Select ${esc(m.subject||'message')}"></label><button type="button" class="mail-row${m.seen?'':' unread'}" data-mailopen="${esc(m.id)}" aria-current="${MAIL.open===m.id?'true':'false'}"><b>${esc(m.fromName||m.from||'(unknown)')}</b> — ${esc(m.subject||'(no subject)')}<small>${esc(m.snippet||'')} · ${esc(mailAgo(m.date||m.receivedAt))}${m.urgent?' · urgent':''}${m.stub?' · headers only':''}</small></button>${acts}</div>`}).join('');
  const tasks=taskList().filter(t=>!t.done).slice(0,8);
  const taskH=tasks.length?`<div class="mail-tasks"><b>Command tasks</b>${tasks.map(t=>`<div class="row"><span>${esc(t.title)}</span><button type="button" class="og-b" data-taskdone="${esc(t.id)}">Done</button></div>`).join('')}</div>`:'';
- return `<div class="mail-room" data-mail="1">${bar}<div class="mail-split"><div class="mail-list" id="mailList">${rows}</div><div class="mail-thread" id="mailThread">${mailThreadHTML()}</div></div>${taskH}${MAIL.sendMsg?`<p class="${MAIL.sendMsg.ok?'cx-ok':'cx-bad'}">${esc(MAIL.sendMsg.msg)}</p>`:''}</div>`}
+ return `<div class="mail-room" data-mail="1">${bar}<div id="mailBulkHost">${mailBulkHTML()}</div><div class="mail-split"><div class="mail-list" id="mailList">${rows}</div><div class="mail-thread" id="mailThread">${mailThreadHTML()}</div></div>${taskH}${MAIL.sendMsg?`<p class="${MAIL.sendMsg.ok?'cx-ok':'cx-bad'}">${esc(MAIL.sendMsg.msg)}</p>`:''}${mailAskHTML()}</div>`}
 function mailThreadHTML(){if(MAIL.compose)return mailComposeHTML();const id=MAIL.open;if(!id)return `<div class="empty"><b>SELECT A MESSAGE</b>Or tap Compose. Replies are proposed first — nothing sends until you Approve.</div>`;
  const m=MAIL.msg||MAIL.items.find(x=>x.id===id)||{};
  const thread=MAIL.thread.length?MAIL.thread:[m];
@@ -2851,11 +2890,105 @@ function mailThreadHTML(){if(MAIL.compose)return mailComposeHTML();const id=MAIL
  const atts=(m.attachments||[]).map(a=>`<button type="button" class="og-b" data-maildl="${esc(m.id)}" data-mailn="${a.n}">${esc(a.name||'attachment')} (${Math.round((a.size||0)/1024)||1} KB)</button>`).join('');
  const ai=`<div class="mail-ai" role="group" aria-label="AI options">${[['summarize','Summarize'],['draft','Draft reply'],['label','Suggest label'],['urgent','Flag urgent'],['tasks','Extract tasks'],['translate','Translate']].map(([k,l])=>`<button type="button" class="og-b" data-mailai="${k}">${l}</button>`).join('')}<label class="cx-st">Tone <select id="mailTone">${[['friendly','Friendly'],['formal','Formal'],['short','Short']].map(([k,l])=>`<option value="${k}"${MAIL.tone===k?' selected':''}>${esc(l)}</option>`).join('')}</select></label></div>${MAIL.ai?`<div class="tip" id="mailAiOut">${MAIL.ai}</div>`:''}`;
  return `<div><b>${esc(m.subject||'(no subject)')}</b><div class="cx-st">${thread.map(x=>esc((x.fromName||x.from||'')+' · '+mailAgo(x.date||x.receivedAt))+(x.out?' · you':'')).join('<br>')}</div>${body}${atts?`<div class="mail-acts"><span class="cx-st">Attachments (stored copy):</span>${atts}</div>`:''}${ai}
- <div class="mail-acts"><button type="button" class="sbt" data-mailact="reply">Reply</button><button type="button" class="og-b" data-mailact="archive">Archive</button><button type="button" class="og-b" data-mailact="spam">Spam</button><button type="button" class="og-b" data-mailact="unread">Mark unread</button></div>
- <div class="mail-compose"${MAIL.draft||MAIL.replying?'':' hidden'} id="mailReplyBox"><label class="cx-st">Reply (propose, then Approve — never sent automatically)</label><textarea id="mailDraft">${esc(MAIL.draft)}</textarea><div class="mail-acts"><button type="button" class="sbt" data-mailact="propose">Propose send</button></div></div></div>`}
+ <div class="mail-acts">${(m.label||MAIL.label)==='trash'?`<button type="button" class="sbt" data-mailact="restore">Restore</button><button type="button" class="sbt mail-danger" data-mailact="purge">🗑 Delete forever</button>`:`<button type="button" class="sbt" data-mailact="reply">Reply</button><button type="button" class="og-b" data-mailact="archive">Archive</button><button type="button" class="sbt mail-danger" data-mailact="trash" title="Delete">🗑 Delete</button><button type="button" class="og-b" data-mailact="spam">Spam</button><button type="button" class="og-b" data-mailact="unread">Mark unread</button>`}</div>
+ <div class="mail-compose"${MAIL.draft||MAIL.replying?'':' hidden'} id="mailReplyBox"><label class="cx-st">Reply (propose, then Approve — never sent automatically)</label><textarea id="mailDraft">${esc(MAIL.draft)}</textarea><div class="mail-acts"><button type="button" class="sbt" data-mailact="propose">Propose send</button></div>${mailSigBar()}</div></div>`}
 function mailComposeHTML(){const c=MAIL.cmp||{to:'',subject:'',body:''};return `<div class="mail-compose"><b>New message</b><p class="cx-st">From Your World Apps Support &lt;support@yourworldapps.si&gt; via Resend. Yorri will queue this for your approval — nothing is sent automatically.</p>
  <label class="cx-st">To</label><input id="mailTo" value="${esc(c.to)}" placeholder="name@example.com"><label class="cx-st">Subject</label><input id="mailSubj" value="${esc(c.subject)}"><label class="cx-st">Body</label><textarea id="mailDraft">${esc(c.body||MAIL.draft)}</textarea>
- <div class="mail-acts"><button type="button" class="sbt" data-mailact="propose-new">Propose send</button><button type="button" class="og-b" data-mailact="cancel">Cancel</button></div></div>`}
+ <div class="mail-acts"><button type="button" class="sbt" data-mailact="propose-new">Propose send</button><button type="button" class="og-b" data-mailact="cancel">Cancel</button></div>${mailSigBar()}</div>`}
+const SIG={st:null,at:0,busy:false,err:'',edit:null,preview:'',open:false,listOpen:false};
+const LS_NOSIG='ywMailNoSig';
+function sigSt(){return SIG.st||{signatures:[],defaultId:'',autoAppend:true}}
+function sigDefault(){const s=sigSt(),id=s.defaultId;return (s.signatures||[]).find(x=>x.id===id)||(s.signatures||[])[0]||null}
+function sigById(id){return (sigSt().signatures||[]).find(x=>x.id===id)||null}
+async function sigLoad(force){if(!smsServer()){SIG.st=null;sigPaint();return}if(!force&&SIG.st&&Date.now()-SIG.at<30e3){sigPaint();return}
+ SIG.busy=true;try{SIG.st=await svReq('GET','/mail/signatures');SIG.err='';SIG.at=Date.now()}catch(e){SIG.err=String(e.message||e).slice(0,120)}SIG.busy=false;sigPaint()}
+function sigPaint(){const a=$('#sigBox');if(a)a.innerHTML=sigBoxHTML();const m=$('#sigModal');if(SIG.open||SIG.edit||SIG.listOpen){if(!m){document.body.insertAdjacentHTML('beforeend','<div id="sigModal"></div>');}const n=$('#sigModal');if(n)n.innerHTML=sigModalHTML()}else if(m)m.innerHTML='';
+ const p=$('#sigLivePrev');if(p&&SIG.preview)p.innerHTML=SIG.preview;mailSigChrome()}
+function sigBoxHTML(){const s=sigSt(),list=s.signatures||[],def=s.defaultId,auto=s.autoAppend!==false;
+ const rows=list.length?list.map(x=>`<div class="sig-row${x.id===def?' on':''}"><div><b>${esc(x.name)}</b><small>${esc(x.person||'')} · ${esc(x.title||'')}</small></div><div class="sig-row-acts"><button type="button" class="og-b" data-sigact="use" data-sigid="${esc(x.id)}" ${x.id===def?' disabled':''}>${x.id===def?'Default':'Make default'}</button><button type="button" class="og-b" data-sigact="edit" data-sigid="${esc(x.id)}">Edit</button><button type="button" class="og-b mail-danger" data-sigact="del" data-sigid="${esc(x.id)}">Delete</button></div></div>`).join(''):'<div class="cx-st">No signatures yet — a Your World default will be created when this loads from the server.</div>';
+ return `<div class="sgrp" id="sigBoxInner"><h5>Signature</h5><p class="ex">Synced on the server, so every device that unlocks the deck can use it. A signature is added to the draft you see <b>before</b> you Approve — sending itself never attaches one on its own.</p>
+  <label class="sig-auto"><input type="checkbox" id="sigAuto" ${auto?'checked':''}> Auto-append on new replies and messages</label>
+  <div class="sig-list">${rows}</div>
+  <div class="opts"><button type="button" class="sbt" data-sigact="new">New signature</button><button type="button" class="og-b" data-sigact="edit" data-sigid="${esc(def||'')}">Edit default</button></div></div>`}
+function sigModalHTML(){if(SIG.edit)return `<div class="mail-ask-scrim" id="sigAsk" role="dialog" aria-modal="true" aria-labelledby="sigEdT"><div class="mail-ask sig-ed">${sigEditorHTML()}</div></div>`;
+ if(!SIG.listOpen)return '';
+ const s=sigSt(),list=s.signatures||[],cur=MAIL.sigId||s.defaultId;
+ return `<div class="mail-ask-scrim" id="sigAsk" role="dialog" aria-modal="true" aria-labelledby="sigPickT"><div class="mail-ask"><h4 id="sigPickT">Signatures</h4>
+  ${(list).map(x=>`<button type="button" class="sig-pick${x.id===cur?' on':''}" data-sigact="pick" data-sigid="${esc(x.id)}"><b>${esc(x.name)}</b><small>${esc(x.person||'')} · ${esc(x.title||'')}</small></button>`).join('')}
+  <div class="mail-acts"><button type="button" class="og-b" data-sigact="close">Close</button><button type="button" class="sbt" data-sigact="edit" data-sigid="${esc(cur||'')}">Edit</button><button type="button" class="og-b" data-sigact="new">New</button></div></div></div>`}
+function sigEditorHTML(){const e=SIG.edit||{},pv=SIG.preview||e.html||'';
+ return `<h4 id="sigEdT">${e._new?'New signature':'Edit signature'}</h4>
+  <div class="sig-grid">
+    <label>Signature name<input id="sigName" value="${esc(e.name||'')}" placeholder="Your World"></label>
+    <label>Name<input id="sigPerson" value="${esc(e.person||'Aaron Burgan')}" placeholder="Aaron Burgan"></label>
+    <label>Title<input id="sigTitle" value="${esc(e.title||'Founder & CEO, Your World Apps')}" placeholder="Founder &amp; CEO, Your World Apps" aria-label="Title, editable"></label>
+    <label>Email<input id="sigEmail" value="${esc(e.email||'support@yourworldapps.si')}" placeholder="support@yourworldapps.si"></label>
+    <label>Website<input id="sigWeb" value="${esc(e.website||'https://yourworldapps.si')}" placeholder="https://yourworldapps.si"></label>
+    <label>Tagline<input id="sigTag" value="${esc(e.tagline||'Apps for your whole world.')}" placeholder="Apps for your whole world."></label>
+  </div>
+  <div class="sig-flags"><label><input type="checkbox" id="sigBrand" ${e.brand!==false?'checked':''}> Accent bar</label>
+    <label><input type="checkbox" id="sigPromo" ${e.promo?'checked':''}> Promo row (live apps &amp; sites)</label>
+    <label><input type="checkbox" id="sigFeat" ${e.featured!==false?'checked':''}> Rotating featured app</label>
+    <label><input type="checkbox" id="sigDef" ${!e._new&&sigSt().defaultId===e.id?'checked':''}> Make default</label></div>
+  <label class="cx-st">Extra (plain text; **bold**, [link](https://…), line breaks)</label>
+  <textarea id="sigExtra" placeholder="Optional closing line">${esc(e.extra||'')}</textarea>
+  <div class="mail-acts"><button type="button" class="og-b" data-sigact="bold">Bold</button><button type="button" class="og-b" data-sigact="link">Link</button><button type="button" class="og-b" data-sigact="prev">Refresh preview</button></div>
+  <div class="sig-previews" aria-label="Live preview">
+    <div class="sig-pane"><span class="cx-st">On a light client</span><div class="sig-paper light" id="sigPrevLight">${pv}</div></div>
+    <div class="sig-pane"><span class="cx-st">On a dark client</span><div class="sig-paper dark" id="sigPrevDark">${pv}</div></div>
+  </div>
+  <div class="mail-acts"><button type="button" class="og-b" data-sigact="close">Cancel</button><button type="button" class="sbt" data-sigact="save">Save</button></div>`}
+function sigReadEdit(){const g=id=>(($(id)||{}).value||'').trim();return Object.assign({},SIG.edit||{},{name:g('#sigName')||'Signature',person:g('#sigPerson'),title:g('#sigTitle'),email:g('#sigEmail'),website:g('#sigWeb'),tagline:g('#sigTag'),extra:($('#sigExtra')||{}).value||'',brand:!!($('#sigBrand')&&$('#sigBrand').checked),promo:!!($('#sigPromo')&&$('#sigPromo').checked),featured:!!($('#sigFeat')&&$('#sigFeat').checked)})}
+async function sigRefreshPreview(){if(!SIG.edit)return;const raw=sigReadEdit();SIG.edit=raw;
+ try{const r=smsServer()?await svReq('POST','/mail/signatures/preview',raw):null;SIG.preview=(r&&r.html)||'';const light=$('#sigPrevLight'),dark=$('#sigPrevDark');if(light)light.innerHTML=SIG.preview;if(dark)dark.innerHTML=SIG.preview}catch(e){SIG.err=e.message}}
+function sigOpenEdit(id,isNew){const cur=id?sigById(id):null;SIG.edit=cur?Object.assign({},cur,{_new:false}):{id:'',name:'',person:'Aaron Burgan',title:'Founder & CEO, Your World Apps',email:'support@yourworldapps.si',website:'https://yourworldapps.si/',tagline:'Apps for your whole world.',brand:true,promo:false,featured:true,extra:'',_new:true};if(isNew)SIG.edit._new=true;SIG.open=true;SIG.listOpen=false;SIG.preview=cur&&cur.html||'';sigPaint();setTimeout(()=>{sigRefreshPreview();const n=$('#sigTitle');if(n)n.focus()},30)}
+async function sigSaveEdit(){const raw=sigReadEdit();if(!raw.name)return say('Yorri','Give the signature a name.');const makeDef=$('#sigDef')&&$('#sigDef').checked;const cur=sigSt();let list=(cur.signatures||[]).slice();
+ if(raw._new||!raw.id){raw.id='s'+Date.now().toString(36);list.push(raw)}else{const i=list.findIndex(x=>x.id===raw.id);if(i>=0)list[i]=Object.assign({},list[i],raw);else list.push(raw)}
+ try{SIG.st=await svReq('PUT','/mail/signatures',{signatures:list,defaultId:makeDef?raw.id:cur.defaultId,autoAppend:cur.autoAppend});audit({decision:raw._new?'SIGNATURE CREATED':'SIGNATURE EDITED',tier:'T0',title:raw.name,lane:'Mail'});SIG.edit=null;SIG.open=false;SIG.preview='';sigPaint();mailAttachSig();say('Yorri','Saved <b>'+esc(raw.name)+'</b>. Logged to Vault.')}catch(e){say('Yorri','Couldn’t save signature: '+esc(e.message))}}
+async function sigDeleteId(id){const x=sigById(id);if(!x)return;if(!await mailAsk({title:'Delete signature?',body:`Delete <b>${esc(x.name)}</b>? This does not change mail already sent.`,ok:'Delete'}))return;
+ const cur=sigSt();const list=(cur.signatures||[]).filter(s=>s.id!==id);
+ try{SIG.st=await svReq('PUT','/mail/signatures',{signatures:list,defaultId:cur.defaultId===id?((list[0]||{}).id||''):cur.defaultId,autoAppend:cur.autoAppend});audit({decision:'SIGNATURE DELETED',tier:'T0',title:x.name,lane:'Mail'});if(SIG.edit&&SIG.edit.id===id){SIG.edit=null;SIG.open=false}sigPaint();say('Yorri','Deleted <b>'+esc(x.name)+'</b>. Logged to Vault.')}catch(e){say('Yorri','Couldn’t delete: '+esc(e.message))}}
+async function sigUse(id){const cur=sigSt(),x=sigById(id);if(!x)return;try{SIG.st=await svReq('PUT','/mail/signatures',{defaultId:id,autoAppend:cur.autoAppend});MAIL.sigId=id;MAIL.noSig=false;sigPaint();mailAttachSig();audit({decision:'SIGNATURE DEFAULT',tier:'T0',title:x.name,lane:'Mail'});say('Yorri','Using <b>'+esc(x.name)+'</b> as your default signature.')}catch(e){say('Yorri','Couldn’t switch signature: '+esc(e.message))}}
+async function sigSetAuto(on){const cur=sigSt();try{SIG.st=await svReq('PUT','/mail/signatures',{autoAppend:!!on});if(!on){MAIL.noSig=true;mailAttachSig(true)}else{MAIL.noSig=false;mailAttachSig()}sigPaint();say('Yorri',on?'Signature will be added to new replies and messages.':'Signature auto-append is off. You can still add one with the Signature button.')}catch(e){say('Yorri','Couldn’t update that: '+esc(e.message))}}
+const SIG_MARK='\n\n-- \n';
+function mailSigOn(){return !MAIL.noSig && !!(MAIL.sigId?sigById(MAIL.sigId):sigDefault())}
+function mailStripSig(t){return String(t||'').replace(/\n\n-- \n[\s\S]*$/,'')}
+function mailAttachSig(forceOff){const ta=$('#mailDraft');if(!ta)return;const on=!forceOff&&mailSigOn();const sig=MAIL.sigId?sigById(MAIL.sigId):sigDefault();const body=mailStripSig(ta.value);
+ ta.value=on&&sig?body.replace(/\s+$/,'')+SIG_MARK+(sig.text||''):body;MAIL.draft=ta.value;mailSigChrome()}
+function mailHtmlBody(text){const on=String(text||'').includes(SIG_MARK),parts=String(text||'').split(SIG_MARK),head=mailStripSig(text),sig=MAIL.sigId?sigById(MAIL.sigId):sigDefault();
+ const body=`<div style="font:15px/1.45 system-ui,Segoe UI,Helvetica,Arial,sans-serif;color:#111111">${esc(head).replace(/\n/g,'<br>')}</div>`;
+ if(on&&sig&&sig.html)return body+'<br>'+sig.html;return body}
+function mailSigChrome(){const n=$('#mailNoSig');if(n)n.checked=!!MAIL.noSig;const l=$('#mailSigLab');if(l){const sig=MAIL.sigId?sigById(MAIL.sigId):sigDefault();l.textContent=MAIL.noSig?'No signature':(sig?('Signature: '+sig.name):'Signature')}}
+function mailSigBar(){const sig=MAIL.sigId?sigById(MAIL.sigId):sigDefault();const prev=(!MAIL.noSig&&sig&&sig.html)?`<div class="sig-paper dark mail-sig-prev" id="mailSigPrev" aria-label="Signature preview">${sig.html}</div>`:'';return `<div class="mail-sigbar"><button type="button" class="og-b" data-mailact="sig" id="mailSigBtn">Signature</button><label class="cx-st"><input type="checkbox" id="mailNoSig" ${MAIL.noSig?'checked':''}> No signature</label><span class="cx-st" id="mailSigLab">${MAIL.noSig?'No signature':(sig?('Signature: '+esc(sig.name)):'Signature')}</span></div>${prev}`}
+
+function mailSelIds(){return Object.keys(MAIL.sel||{}).filter(id=>(MAIL.items||[]).some(x=>x.id===id))}
+function mailSubjOf(id){const m=(MAIL.msg&&MAIL.msg.id===id&&MAIL.msg)||(MAIL.items||[]).find(x=>x.id===id)||{};return m.subject||id||'this email'}
+function mailBulkHTML(){const n=mailSelIds().length;if(!n)return '';const trash=MAIL.label==='trash';return `<div class="mail-bulk" id="mailBulk"><span class="cx-st">${n} selected</span>${trash?`<button type="button" class="sbt" data-mailact="restore-sel">Restore</button><button type="button" class="sbt mail-danger" data-mailact="purge-sel">Delete forever</button>`:`<button type="button" class="sbt mail-danger" data-mailact="trash-sel">Delete</button>`}<button type="button" class="og-b" data-mailact="sel-clear">Clear</button></div>`}
+function mailAskHTML(){const a=MAIL._ask;if(!a)return '';return `<div class="mail-ask-scrim" id="mailAsk" role="dialog" aria-modal="true" aria-labelledby="mailAskT"><div class="mail-ask"><h4 id="mailAskT">${esc(a.title||'Confirm')}</h4><p>${a.body||''}</p><div class="mail-acts"><button type="button" class="og-b" data-mailask="0">${esc(a.cancel||'Cancel')}</button><button type="button" class="${a.danger!==false?'sbt mail-danger':'sbt'}" data-mailask="1">${esc(a.ok||'OK')}</button></div></div></div>`}
+function mailAsk(opts){if(MAIL._askDone)try{MAIL._askDone(false)}catch(e){}
+ return new Promise(res=>{MAIL._ask=Object.assign({title:'Confirm',body:'',ok:'Delete',cancel:'Cancel',danger:true},opts||{});
+  MAIL._askDone=ok=>{const fn=MAIL._askRes;MAIL._ask=null;MAIL._askRes=null;MAIL._askDone=null;if(typeof draw==='function')draw();if(fn)fn(!!ok)};
+  MAIL._askRes=res;if(typeof draw==='function')draw()})}
+function mailClearOpen(ids){if(ids&&ids.includes(MAIL.open)){MAIL.open=null;MAIL.msg=null;MAIL.thread=[]}if(MAIL.sel)ids.forEach(id=>delete MAIL.sel[id])}
+async function mailMoveTrash(ids,need){ids=(Array.isArray(ids)?ids:[]).filter(Boolean);if(!ids.length)return false;
+ if(need!==false){const n=ids.length,title=n>1?'Delete '+n+' emails?':'Delete this email?',body=n>1?`Move <b>${n} emails</b> to Trash? You can restore them. Trash is removed after 30 days once the PC has a copy. Logged to the Vault.`:`Move <b>${esc(mailSubjOf(ids[0]))}</b> to Trash? You can restore it. Trash is removed after 30 days once the PC has a copy. Logged to the Vault.`;
+  if(!await mailAsk({title,body,ok:n>1?'Delete '+n:'Delete'}))return false}
+ try{await svReq('POST','/mail/trash',{ids});const title=ids.length>1?(ids.length+' emails'):mailSubjOf(ids[0]);audit({decision:'MOVED TO TRASH',tier:'T0',title,lane:'Mail'});mailClearOpen(ids);await mailLoad(true);
+  toast('Moved to Trash.',async()=>{try{await svReq('POST','/mail/restore',{ids});audit({decision:'RESTORED (undo)',tier:'T0',title,lane:'Mail'});await mailLoad(true);say('Yorri','Restored.')}catch(e){say('Yorri','Couldn’t undo: '+esc(e.message))}});
+  say('Yorri','Moved to Trash. Logged to Vault.');return true}catch(e){say('Yorri','Couldn’t delete: '+esc(e.message));return false}}
+async function mailRestoreIds(ids,need){ids=(Array.isArray(ids)?ids:[]).filter(Boolean);if(!ids.length)return false;
+ if(need){if(!await mailAsk({title:'Restore '+(ids.length>1?ids.length+' emails':'this email')+'?',body:ids.length>1?`Put <b>${ids.length} emails</b> back in the folder they came from.`:`Put <b>${esc(mailSubjOf(ids[0]))}</b> back in the folder it came from.`,ok:'Restore',danger:false}))return false}
+ try{const r=await svReq('POST','/mail/restore',{ids});audit({decision:'RESTORED',tier:'T0',title:ids.length>1?(ids.length+' emails'):mailSubjOf(ids[0]),lane:'Mail'});mailClearOpen(ids);await mailLoad(true);say('Yorri','Restored. Logged to Vault.');return !!(r&&r.updated)}catch(e){say('Yorri','Couldn’t restore: '+esc(e.message));return false}}
+async function mailPurgeIds(ids){ids=(Array.isArray(ids)?ids:[]).filter(Boolean);if(!ids.length)return false;
+ const unp=ids.filter(id=>{const m=(MAIL.items||[]).find(x=>x.id===id);return m&&!m.pulled}).length;
+ const body=(ids.length>1?`Permanently delete <b>${ids.length} emails</b>? This cannot be undone.`:`Permanently delete <b>${esc(mailSubjOf(ids[0]))}</b>? This cannot be undone.`)+(unp?` <b>${unp}</b> ${unp===1?'has':'have'} not been copied to your PC yet.`:'' );
+ if(!await mailAsk({title:'Delete forever?',body,ok:'Delete forever'}))return false;
+ try{const r=await svReq('POST','/mail/purge',{ids});audit({decision:'DELETED FOREVER'+(r&&r.unpulled?' · '+r.unpulled+' unpulled':''),tier:'T0',title:ids.length>1?(ids.length+' emails'):mailSubjOf(ids[0]),lane:'Mail'});mailClearOpen(ids);await mailLoad(true);say('Yorri','Deleted forever. Logged to Vault.');return true}catch(e){say('Yorri','Couldn’t delete: '+esc(e.message));return false}}
+async function mailEmptyTrash(){const n=(MAIL.folders&&MAIL.folders.trash)||0;if(!n)return say('Yorri','Trash is already empty.');
+ const unp=MAIL.trashUnpulled||0;
+ const body=`Permanently delete everything in Trash (<b>${n}</b> ${n===1?'email':'emails'})? This cannot be undone.`+(unp?` <b>${unp}</b> ${unp===1?'has':'have'} not been copied to your PC yet.`:'' );
+ if(!await mailAsk({title:'Empty trash?',body,ok:'Empty trash'}))return say('Yorri','Okay — left Trash as it is.');
+ try{const r=await svReq('POST','/mail/empty-trash',{});audit({decision:'EMPTIED TRASH · '+(r&&r.purged||n)+' deleted'+(r&&r.unpulled?' · '+r.unpulled+' unpulled':''),tier:'T0',title:'Trash',lane:'Mail'});MAIL.open=null;MAIL.msg=null;MAIL.sel={};await mailLoad(true);say('Yorri','Trash emptied. Logged to Vault.')}catch(e){say('Yorri','Couldn’t empty trash: '+esc(e.message))}}
 function mailBind(){const f=$('#mailHtml'),m=MAIL.msg;if(f&&m&&m.html){f.srcdoc='<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px/1.45 system-ui,sans-serif;color:#111;margin:12px;word-wrap:break-word}img{max-width:100%}</style></head><body>'+m.html+'</body></html>'}
  const q=$('#mailQ');if(q&&!q.matches(':focus'))q.value=MAIL.q;const t=$('#mailTone');if(t)t.value=MAIL.tone}
 async function mailOpen(id){MAIL.open=id;MAIL.compose=false;MAIL.images=false;MAIL.ai='';MAIL.replying=false;MAIL.busy=true;if(typeof draw==='function')draw();
@@ -2872,27 +3005,41 @@ async function mailAi(kind){const c=llmCfg(),m=MAIL.msg;if(!m)return say('Yorri'
  MAIL.ai='Yorri is reading…';MAIL.tone=tone;if(typeof draw==='function')draw();setTimeout(mailBind,0);
  try{const out=await llmCall([{role:'system',content:'You are Yorri, chief of staff for Aaron Burgan (Your World Apps). Propose only; never send email. Be concise.'},{role:'user',content:prompts[kind]+'\n\nFrom: '+(m.fromName||'')+' <'+(m.from||'')+'>\nSubject: '+(m.subject||'')+'\n\n'+text}],c);
   let html=esc(out).replace(/\n/g,'<br>');
-  if(kind==='draft'){MAIL.draft=out.replace(/^```[\s\S]*?\n/,'').replace(/```$/,'').trim();MAIL.replying=true;html='Draft is in the editor — edit it, then <b>Propose send</b>. Nothing is sent until you Approve.';}
+  if(kind==='draft'){MAIL.draft=out.replace(/^```[\s\S]*?\n/,'').replace(/```$/,'').trim();MAIL.replying=true;MAIL.noSig=!(sigSt().autoAppend!==false);html='Draft is in the editor — edit it, then <b>Propose send</b>. Nothing is sent until you Approve.';}
   if(kind==='label'){const mm=out.match(/LABEL:\s*(inbox|reply|replied|archived|spam)/i);html+=' '+(mm?`<button type="button" class="sbt" data-mailsetlabel="${esc(mm[1].toLowerCase())}">Apply ${esc(mm[1])}</button>`:'')}
   if(kind==='urgent'&&/URGENT:\s*yes/i.test(out)){html+=` <button type="button" class="sbt" data-mailact="flag">Flag urgent</button>`}
   if(kind==='tasks'){const tasks=[...out.matchAll(/^\s*TASK:\s*(.+)$/gmi)].map(x=>x[1].trim()).filter(Boolean);if(tasks.length)html+='<div class="mail-acts">'+tasks.map((t,i)=>`<button type="button" class="sbt" data-mailaddtask="${i}">Add: ${esc(t.slice(0,60))}</button>`).join('')+'</div>';MAIL._tasks=tasks}
   MAIL.ai=html;say('Yorri',kind==='draft'?'Draft reply is in the editor. Propose send when it looks right.':html)}
  catch(e){MAIL.ai='AI failed: '+esc(String(e.message||e).slice(0,120));say('Yorri',MAIL.ai)}
- if(typeof draw==='function')draw();setTimeout(mailBind,0)}
+ if(typeof draw==='function')draw();setTimeout(()=>{mailBind();if(kind==='draft')mailAttachSig()},0)}
 async function mailOnDecide(a,ok){if(!a||!a.mail)return;if(!ok)return
- try{const r=a.mail.kind==='compose'?await svReq('POST','/mail/compose',Object.assign({approved:true},a.mail)):await svReq('POST','/mail/reply',{approved:true,id:a.mail.id,body:a.mail.body});
+ try{const r=a.mail.kind==='compose'?await svReq('POST','/mail/compose',Object.assign({approved:true},a.mail)):await svReq('POST','/mail/reply',{approved:true,id:a.mail.id,body:a.mail.body,html:a.mail.html});
   if(!(r&&r.ok&&r.messageId))throw new Error('server did not confirm the send');
   const via=r.via==='resend'?'Resend':'mail',msg='Sent via '+via+' · '+r.messageId+(r.to?' · to '+r.to:'');
   audit({decision:'SENT via '+via+' · '+r.messageId+(r.to?' → '+r.to:''),tier:'T1',title:a.title,lane:'Mail'});
   say('Yorri',`Sent via ${esc(via)}. ${esc(msg)}. Logged to Vault.`);MAIL.sendMsg={ok:true,msg};MAIL.draft='';MAIL.compose=false;MAIL.replying=false;await mailLoad(true)}
  catch(e){const er=String(e.message||e).slice(0,160);audit({decision:'SEND FAILED: '+er,tier:'T1',title:a.title,lane:'Mail'});say('Yorri','Send failed: '+esc(er));MAIL.sendMsg={ok:false,msg:'Send failed: '+er};if(typeof draw==='function')draw()}}
 function mailPropose(kind){if(kind==='compose'){const to=($('#mailTo')&&$('#mailTo').value||'').trim(),subject=($('#mailSubj')&&$('#mailSubj').value||'').trim(),body=($('#mailDraft')&&$('#mailDraft').value||'').trim();if(!to||!subject||!body)return say('Yorri','To, subject and body are required.');
-  const a={t:['t1','T1'],title:'Send email to '+to+': '+subject,why:'Mail · from support@yourworldapps.si via Resend · "'+body.slice(0,60)+'…"',lane:'Mail',mail:{kind:'compose',to,subject,body}};
+  const a={t:['t1','T1'],title:'Send email to '+to+': '+subject,why:'Mail · from support@yourworldapps.si via Resend · "'+body.slice(0,60)+'…"',lane:'Mail',mail:{kind:'compose',to,subject,body,html:mailHtmlBody(body)}};
   if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);MAIL.compose=false;draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.');return}
  const m=MAIL.msg,body=($('#mailDraft')&&$('#mailDraft').value||MAIL.draft||'').trim();if(!m)return say('Yorri','Open an email first.');if(!body)return say('Yorri','Write or draft a reply first.');
- const a={t:['t1','T1'],title:'Send reply to '+(m.from||m.id)+': '+(m.subject||''),why:'Mail · Resend · "'+body.slice(0,60)+'…"',lane:'Mail',mail:{kind:'reply',id:m.id,body}};
+ const a={t:['t1','T1'],title:'Send reply to '+(m.from||m.id)+': '+(m.subject||''),why:'Mail · Resend · "'+body.slice(0,60)+'…"',lane:'Mail',mail:{kind:'reply',id:m.id,body,html:mailHtmlBody(body)}};
  if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);MAIL.replying=false;draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
-document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-mailfolder],[data-mailopen],[data-mailact],[data-mailai],[data-maildl],[data-mailn],[data-mailsetlabel],[data-mailaddtask],[data-taskdone]');if(!t)return;
+document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.closest('[data-mailfolder],[data-mailopen],[data-mailact],[data-mailai],[data-maildl],[data-mailn],[data-mailsetlabel],[data-mailaddtask],[data-taskdone],[data-mailask],[data-mailsel],[data-sigact]');if(!t)return;
+ if(t.dataset.mailask!=null){if(MAIL._askDone)MAIL._askDone(t.dataset.mailask==='1');return}
+ if(t.dataset.sigact){const act=t.dataset.sigact,id=t.dataset.sigid||'';
+  if(act==='close'){SIG.edit=null;SIG.open=false;SIG.listOpen=false;sigPaint();return}
+  if(act==='new'){sigOpenEdit('',true);return}
+  if(act==='edit'){sigOpenEdit(id|| (sigDefault()&&sigDefault().id));return}
+  if(act==='del'){await sigDeleteId(id);return}
+  if(act==='use'){await sigUse(id);return}
+  if(act==='pick'){MAIL.sigId=id;MAIL.noSig=false;SIG.listOpen=false;SIG.open=false;sigPaint();mailAttachSig();return}
+  if(act==='auto'){await sigSetAuto(t.matches('input')?t.checked:!($('#sigAuto')&&$('#sigAuto').checked));return}
+  if(act==='save'){await sigSaveEdit();return}
+  if(act==='prev'){await sigRefreshPreview();return}
+  if(act==='bold'){const n=$('#sigExtra');if(!n)return;const a=n.selectionStart,b=n.selectionEnd,v=n.value;n.value=v.slice(0,a)+'**'+v.slice(a,b||a)+'**'+v.slice(b||a);n.focus();await sigRefreshPreview();return}
+  if(act==='link'){const n=$('#sigExtra');if(!n)return;const a=n.selectionStart,b=n.selectionEnd,v=n.value,lab=v.slice(a,b)||'link';n.value=v.slice(0,a)+'['+lab+'](https://yourworldapps.si)'+v.slice(b);n.focus();await sigRefreshPreview();return}
+  return}
  if(t.dataset.mailfolder){MAIL.label=t.dataset.mailfolder;MAIL.open=null;MAIL.msg=null;mailLoad(true);return}
  if(t.dataset.mailopen){mailOpen(t.dataset.mailopen);return}
  if(t.dataset.mailai){mailAi(t.dataset.mailai);return}
@@ -2903,19 +3050,29 @@ document.addEventListener('click',async e=>{const t=e.target.closest&&e.target.c
   try{const r=await fetch(sv.url+'/mail/attachment/'+encodeURIComponent(t.dataset.maildl)+'/'+t.dataset.mailn,{headers:{Authorization:'Bearer '+sv.token}});const b=await r.blob();const u=URL.createObjectURL(b);const x=document.createElement('a');x.href=u;x.download=(MAIL.msg&&(MAIL.msg.attachments||[]).find(z=>String(z.n)===t.dataset.mailn)||{}).name||'attachment';x.click();setTimeout(()=>URL.revokeObjectURL(u),2000)}catch(err){say('Yorri','Download failed: '+esc(err.message))}return}
  const act=t.dataset.mailact;if(!act)return;
  if(act==='refresh'||act==='search'){const q=$('#mailQ');if(q)MAIL.q=q.value.trim();if(typeof draw==='function')draw();mailLoad(true);return}
- if(act==='compose'){MAIL.compose=true;MAIL.open=null;MAIL.cmp={to:'',subject:'',body:''};MAIL.draft='';if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailTo');if(n)n.focus()},50);return}
+ if(act==='compose'){MAIL.compose=true;MAIL.open=null;MAIL.cmp={to:'',subject:'',body:''};MAIL.draft='';MAIL.noSig=!(sigSt().autoAppend!==false);if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailTo');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
  if(act==='cancel'){MAIL.compose=false;if(typeof draw==='function')draw();return}
- if(act==='reply'){MAIL.replying=true;if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailDraft');if(n)n.focus()},50);return}
+ if(act==='sig'){SIG.listOpen=true;SIG.open=true;sigLoad(false);sigPaint();return}
+ if(act==='reply'){MAIL.replying=true;MAIL.noSig=!(sigSt().autoAppend!==false);if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailDraft');if(n)n.focus();mailAttachSig()},50);sigLoad(false);return}
  if(act==='propose'||act==='propose-new'){mailPropose(act==='propose-new'?'compose':'reply');return}
  if(act==='images'){if(!MAIL.open)return;MAIL.images=true;try{MAIL.msg=await svReq('GET','/mail/message/'+encodeURIComponent(MAIL.open)+'?images=1')}catch(err){MAIL.err=err.message}if(typeof draw==='function')draw();setTimeout(mailBind,0);return}
  if(act==='archive'||act==='spam'){if(!MAIL.open)return;const lab=act==='spam'?'spam':'archived';if(act==='archive'&&!confirm('Archive this email? It moves to Archived (not deleted). Logged to the Vault.'))return;
   try{await svReq('POST',act==='archive'?'/mail/archive':'/mail/label',act==='archive'?{ids:[MAIL.open]}:{ids:[MAIL.open],label:'spam'});audit({decision:act==='spam'?'MOVED TO SPAM':'ARCHIVED',tier:'T0',title:(MAIL.msg&&MAIL.msg.subject)||MAIL.open,lane:'Mail'});MAIL.open=null;MAIL.msg=null;await mailLoad(true);say('Yorri',act==='spam'?'Moved to Spam.':'Archived. Logged to Vault.')}catch(err){say('Yorri','Couldn’t '+act+': '+esc(err.message))}return}
+ if(act==='sel-clear'){MAIL.sel={};if(typeof draw==='function')draw();return}
+ if(act==='trash'||act==='trash-sel'){const ids=act==='trash-sel'?mailSelIds():[t.dataset.mailid||MAIL.open].filter(Boolean);await mailMoveTrash(ids);return}
+ if(act==='restore'||act==='restore-sel'){const ids=act==='restore-sel'?mailSelIds():[t.dataset.mailid||MAIL.open].filter(Boolean);await mailRestoreIds(ids,false);return}
+ if(act==='purge'||act==='purge-sel'){const ids=act==='purge-sel'?mailSelIds():[t.dataset.mailid||MAIL.open].filter(Boolean);await mailPurgeIds(ids);return}
+ if(act==='empty-trash'){await mailEmptyTrash();return}
  if(act==='unread'){if(!MAIL.open)return;try{await svReq('POST','/mail/read',{ids:[MAIL.open],read:false});const it=MAIL.items.find(x=>x.id===MAIL.open);if(it)it.seen=false;if(typeof draw==='function')draw()}catch(err){say('Yorri',err.message)}return}
  if(act==='flag'){if(!MAIL.open)return;try{await svReq('POST','/mail/label',{ids:[MAIL.open],label:(MAIL.msg&&MAIL.msg.label)||'inbox',urgent:true});if(MAIL.msg)MAIL.msg.urgent=true;say('Yorri','Flagged urgent.')}catch(err){say('Yorri',err.message)}return}
 });
-document.addEventListener('change',e=>{if(e.target&&e.target.id==='mailTone')MAIL.tone=e.target.value});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='mailQ'){e.preventDefault();MAIL.q=e.target.value.trim();mailLoad(true)}});
-window.mailOpenRoom=mailOpenRoom;window.mailLoad=mailLoad;window.mailRender=mailRender;window.mailBind=mailBind;
+document.addEventListener('change',e=>{if(e.target&&e.target.dataset&&e.target.dataset.mailsel){MAIL.sel=MAIL.sel||{};if(e.target.checked)MAIL.sel[e.target.dataset.mailsel]=1;else delete MAIL.sel[e.target.dataset.mailsel];const host=$('#mailBulkHost');if(host)host.innerHTML=mailBulkHTML();return}
+ if(e.target&&e.target.id==='mailNoSig'){MAIL.noSig=!!e.target.checked;mailAttachSig(MAIL.noSig);return}
+ if(e.target&&e.target.id==='sigAuto'){sigSetAuto(e.target.checked);return}
+ if(e.target&&e.target.id==='mailTone')MAIL.tone=e.target.value});
+document.addEventListener('input',e=>{if(!SIG.edit)return;if(e.target&&['sigName','sigPerson','sigTitle','sigEmail','sigWeb','sigTag','sigExtra','sigBrand','sigPromo','sigFeat'].includes(e.target.id)){clearTimeout(SIG._pt);SIG._pt=setTimeout(sigRefreshPreview,250)}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='mailQ'){e.preventDefault();MAIL.q=e.target.value.trim();mailLoad(true)}if(e.key==='Escape'&&MAIL._ask&&MAIL._askDone){e.preventDefault();MAIL._askDone(false)}if(e.key==='Escape'&&(SIG.edit||SIG.listOpen)){e.preventDefault();SIG.edit=null;SIG.open=false;SIG.listOpen=false;sigPaint()}});
+window.mailOpenRoom=mailOpenRoom;window.mailLoad=mailLoad;window.mailRender=mailRender;window.mailBind=mailBind;window.mailAsk=mailAsk;window.mailMoveTrash=mailMoveTrash;
 
 const CMD_ROOMS=['Briefing','Calendar','Finance','KPIs','HR','Payroll','Legal','Support','Mail','Infrastructure','Vault'];
 const CMD_DEFAULT_MULTI=['Finance','HR','Payroll','Legal','Support','Infrastructure','Vault'];
@@ -4157,13 +4314,14 @@ function smRender(){const B=$('#smBox');if(!B)return;const h=SM.st,se=SM.send,wa
  <div class="cx-act" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">${sw('supportmail')}<span class="cx-st">Support mail (store + PC copy)</span>${sw('resend')}<span class="cx-st">Resend (send)</span><button type="button" class="og-b" id="smCheck">Check again</button><span role="status" aria-live="polite">${esc(SM.msg||'')}</span></div>
  ${SM_STEPS.map(([k,h,L])=>`<details class="sh-fix" id="sm_${k}"><summary>${esc(h)}</summary><ol>${L.map(x=>'<li>'+x+'</li>').join('')}</ol></details>`).join('')}
  <p class="cx-st">Gmail forwarding is a <b>Worker</b> setting (<code>FORWARD_TO_GMAIL</code>, default on), not a switch here. Say “turn off gmail forward” and Yorri will walk you through it.</p>
+ <div id="sigBox">${sigBoxHTML()}</div>
  </div></details>`;
  const b=$('#smCheck');if(b)b.onclick=()=>smLoad(true)}
 async function smLoad(force){if(SM.busy||(!force&&Date.now()-SM.at<30e3&&SM.st)){smRender();return}if(!smsServer()){SM.st=null;SM.send=null;SM.at=Date.now();smRender();return}
  SM.busy=true;smRender();
  try{SM.st=await svReq('GET','/mail/health')}catch(e){SM.st=e&&e.off?{off:true,configured:false}:null;SM.msg=e&&e.off?'Off':('Health: '+String(e.message||e).slice(0,80))}
  try{SM.send=await svReq('GET','/mail/send-health')}catch(e){SM.send=e&&e.off?{off:true,configured:false}:SM.send}
- SM.at=Date.now();SM.busy=false;smRender()}
+ SM.at=Date.now();SM.busy=false;smRender();sigLoad(false)}
 window.smLoad=smLoad;window.smRender=smRender;
 
 YC.list.unshift({id:'store.health',group:'Navigation',cov:['set:connH'],ex:['data store health','fix data store','retry data store'],help:'Opens Settings → Connections → Data store health. If Gmail’s copy is paused, the deck still works from Upstash and this browser can re-upload its settings. “fix data store” also runs the Retry now fix script.',
@@ -4194,6 +4352,29 @@ YC.list.unshift({id:'mail.archive',group:'Mail',cov:['room:Mail'],ex:['archive t
  run:async()=>{mailOpenRoom();if(!MAIL.open){await mailLoad(true);if((MAIL.items||[])[0])await mailOpen(MAIL.items[0].id)}if(!MAIL.open)return say('Yorri','No email is open to archive.');
   if(!confirm('Archive this email? It moves to Archived (not deleted). Logged to the Vault.'))return say('Yorri','Okay — left it where it is.');
   try{await svReq('POST','/mail/archive',{ids:[MAIL.open]});audit({decision:'ARCHIVED',tier:'T0',title:(MAIL.msg&&MAIL.msg.subject)||MAIL.open,lane:'Mail'});const id=MAIL.open;MAIL.open=null;MAIL.msg=null;await mailLoad(true);say('Yorri','Archived. Logged to Vault.')}catch(e){say('Yorri','Couldn’t archive: '+esc(e.message))}}});
+YC.list.unshift({id:'mail.delete',group:'Mail',cov:['room:Mail'],ex:['delete this email','delete the last email'],help:'Moves the open Mail message (or the latest, with “delete the last email”) to Trash after you confirm. You can restore it. Logged to the Vault. Nothing is permanently deleted until you empty Trash or Delete forever.',
+ match:(r,l)=>{if(/\bdelete\s+(?:the\s+)?(?:last|latest|newest)\s+(?:e-?mail|message)\b/.test(l))return{last:true};return /\bdelete\s+(?:this|the)?\s*(?:e-?mail|message)\b|^delete this$/.test(l)?{last:false}:null},
+ run:async m=>{mailOpenRoom();if(m.last||!MAIL.open){MAIL.label=MAIL.label==='trash'?'inbox':(MAIL.label||'inbox');MAIL.q='';await mailLoad(true);const it=(MAIL.items||[]).filter(x=>!x.out)[0]||(MAIL.items||[])[0];if(it)await mailOpen(it.id)}if(!MAIL.open)return say('Yorri','No email is open to delete.');
+  const ok=await mailMoveTrash([MAIL.open]);if(!ok)say('Yorri','Okay — left it where it is.')}});
+YC.list.unshift({id:'mail.trash',group:'Mail',cov:['room:Mail'],ex:['show trash'],help:'Opens the Mail room Trash folder (deleted emails you can restore).',
+ match:(r,l)=>/^(?:yorri\s+)?(?:open|show|go to)\s+(?:the\s+)?(?:mail\s+)?trash(?:\s+folder)?$|^show trash$|^open trash$/.test(l),
+ run:async()=>{mailOpenRoom();MAIL.label='trash';MAIL.open=null;MAIL.msg=null;MAIL.q='';await mailLoad(true);const n=(MAIL.folders&&MAIL.folders.trash)||0;say('Yorri',n?`Opened <b>Trash</b> — ${n} ${n===1?'email':'emails'}.`:'Opened <b>Trash</b>. It is empty.')}});
+YC.list.unshift({id:'mail.restore',group:'Mail',cov:['room:Mail'],ex:['restore this email'],help:'Restores the open email from Trash back to the folder it came from. Logged to the Vault.',
+ match:(r,l)=>/\brestore\s+(?:this|the)?\s*(?:e-?mail|message)\b|^restore this$/.test(l),
+ run:async()=>{mailOpenRoom();if(!MAIL.open){MAIL.label='trash';await mailLoad(true);if((MAIL.items||[])[0])await mailOpen(MAIL.items[0].id)}if(!MAIL.open)return say('Yorri','No email is open to restore. Say “show trash” first.');
+  const lab=(MAIL.msg&&MAIL.msg.label)||MAIL.label;if(lab!=='trash')return say('Yorri','That email is not in Trash.');await mailRestoreIds([MAIL.open],false)}});
+YC.list.unshift({id:'mail.empty',group:'Mail',cov:['room:Mail'],ex:['empty trash'],help:'Permanently deletes everything in Trash after you confirm. Mentions any emails the PC has not copied yet. Logged to the Vault. Cannot be undone.',
+ match:(r,l)=>/\bempty\s+(?:the\s+)?trash\b|^empty trash$/.test(l),
+ run:async()=>{mailOpenRoom();MAIL.label='trash';MAIL.open=null;await mailLoad(true);await mailEmptyTrash()}});
+YC.list.unshift({id:'mail.sigedit',group:'Mail',cov:['room:Mail','card:smCard'],ex:['edit signature'],help:'Opens the support email signature editor (Settings → Support mail). Name, title, and the promo block are editable. Changes sync across devices.',
+ match:(r,l)=>/\bedit\s+(?:my\s+|the\s+)?(?:e-?mail\s+)?signatures?\b|^edit signature$/.test(l),
+ run:async()=>{ywSettings(true);setTab('connections');await sigLoad(true);setTimeout(()=>{const c=$('#smCard');if(c){c.open=true}const b=$('#sigBox');if(b)b.scrollIntoView({block:'start'});const d=sigDefault();sigOpenEdit(d&&d.id)},200);say('Yorri','Here’s the signature editor. Your title is editable — it currently reads <b>'+esc((sigDefault()&&sigDefault().title)||'Founder & CEO, Your World Apps')+'</b>.')}});
+YC.list.unshift({id:'mail.siguse',group:'Mail',cov:['room:Mail','card:smCard'],ex:['use signature Your World'],help:'Sets the default support email signature by name and appends it to the open draft (unless “No signature” is on).',
+ match:(r,l)=>{const m=l.match(/\buse\s+(?:the\s+)?signatures?\s+(.+?)[.!?]?$/)||l.match(/\b(?:switch|set)\s+(?:the\s+)?signatures?\s+(?:to\s+)?(.+?)[.!?]?$/);return m?{name:m[1].replace(/^["“']+|["”']+$/g,'').trim()}:null},
+ run:async m=>{await sigLoad(true);const n=m.name.toLowerCase();const hit=(sigSt().signatures||[]).find(x=>x.name.toLowerCase()===n||x.name.toLowerCase().includes(n));if(!hit)return say('Yorri','I couldn’t find a signature called <b>'+esc(m.name)+'</b>. Say “edit signature” to add one.');await sigUse(hit.id)}});
+YC.list.unshift({id:'mail.sigoff',group:'Mail',cov:['room:Mail','card:smCard'],ex:['turn signature off'],help:'Turns off auto-appending your support email signature on new replies. You can still add one with the Signature button. Say “turn signature on” to resume.',
+ match:(r,l)=>{const m=l.match(/\b(?:turn|switch|set)\s+(off|on)\s+(?:the\s+)?(?:e-?mail\s+)?signatures?\b|\b(?:e-?mail\s+)?signatures?\s+(off|on)\b/);return m?{on:(m[1]||m[2])==='on'}:null},
+ run:async m=>{await sigSetAuto(!!m.on)}});
 YC.list.unshift({id:'mail.replysup',group:'Mail',cov:['room:Mail','room:Support'],ex:['reply to support','reply to this email'],help:'Opens Mail (or the open Support ticket) so you can draft a reply. Sending is always Propose send → your Approve, via Resend. Nothing is sent automatically.',
  match:(r,l)=>/\breply\s+to\s+(?:support|this\s+(?:e-?mail|message|ticket)|the\s+(?:e-?mail|message))\b|^reply to support$/.test(l),
  run:()=>{if(SUP.open&&typeof supGo==='function'){try{supGo();const ta=$('#supDraft');if(ta)ta.focus()}catch(e){}say('Yorri','Draft the reply in Support, then tap <b>Propose send</b>. Nothing is sent until you Approve.');return}
