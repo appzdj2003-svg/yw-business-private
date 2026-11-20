@@ -2844,18 +2844,20 @@ document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.c
   HO.msg={ok:true,t:`Saved “${r.name}” — ${r.ready?'on':'off'} for ${r.scope.map(hoInb).join(', ')} (${r.kinds.map(HO_KIND).join(', ')}).`}}
  }catch(er){HO.msg={ok:false,t:'Not saved: '+er.message}}hoRender()});
 /* ==== Compose + drafts (live Support only; approve-then-send via queue or one-tap on a saved draft) ==== */
-const SUP_CMP={open:false,to:'',cc:'',subject:'',body:'',draftId:null,msg:null,busy:false};
+const SUP_CMP={open:false,to:'',cc:'',bcc:'',subject:'',body:'',draftId:null,msg:null,busy:false};
 async function supDraftsLoad(){const src=SupportSource();if(src.name==='stub'||!src.drafts||!supCanSend()){SUP.drafts=[];return[]}try{const r=await src.drafts();SUP.drafts=r.drafts||[];return SUP.drafts}catch(e){SUP.drafts=[];return[]}}
 function supComposeClose(){SUP_CMP.open=false;const m=document.getElementById('supCompose');if(m)m.remove()}
-function supComposeOpen(pre){if(!supCanSend())return say('Yorri','This inbox is read-only — Compose is hidden.');if(SupportSource().name==='stub')return say('Yorri','Connect Support live to compose real email.');pre=pre||{};SUP_CMP.open=true;SUP_CMP.to=pre.to||'';SUP_CMP.cc=pre.cc||'';SUP_CMP.subject=pre.subject||'';SUP_CMP.body=pre.body||'';SUP_CMP.draftId=pre.id||null;SUP_CMP.msg=null;supComposeRender();supDraftsLoad().then(()=>supComposeRender())}
+function supComposeOpen(pre){if(!supCanSend())return say('Yorri','This inbox is read-only — Compose is hidden.');if(SupportSource().name==='stub')return say('Yorri','Connect Support live to compose real email.');pre=pre||{};SUP_CMP.open=true;SUP_CMP.to=pre.to||'';SUP_CMP.cc=pre.cc||'';SUP_CMP.bcc=pre.bcc||'';SUP_CMP.subject=pre.subject||'';SUP_CMP.body=pre.body||'';SUP_CMP.draftId=pre.id||null;SUP_CMP.msg=null;supComposeRender();supDraftsLoad().then(()=>supComposeRender())}
 function supComposeRender(){if(!SUP_CMP.open)return;let m=document.getElementById('supCompose');if(!m){m=document.createElement('div');m.id='supCompose';m.style.cssText='position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px';document.body.appendChild(m)}m.dataset.supiid=SUP.iid;
  const sa=(INB.cfg&&INB.cfg.sendAs)||{name:'Your World Apps Support',address:'support@yourworldapps.si'};
  const drafts=SUP.drafts||[];
  m.innerHTML=`<div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:680px;width:100%;max-height:92vh;overflow:auto;padding:14px;color:var(--txt);font-size:14px">
  <div style="display:flex;justify-content:space-between;gap:8px"><b>Compose</b><button class="btn" data-supcx="1">✕</button></div>
  <p class="cx-st" style="margin:4px 0 8px">From: <b>${esc(sa.name||'')} &lt;${esc(sa.address||'')}&gt;</b> · Reply-To same. Change in Settings → Inbox → Send mail as.</p>
- <label class="cx-st">To <input id="cmpTo" type="email" value="${esc(SUP_CMP.to)}" placeholder="name@example.com" style="width:100%"></label>
- <label class="cx-st">Cc <input id="cmpCc" value="${esc(SUP_CMP.cc)}" placeholder="optional" style="width:100%"></label>
+ <p class="cx-st" style="margin:0 0 8px">Separate addresses with commas · up to 20 total across To, Cc and Bcc. Invalid or duplicate addresses are rejected — never silently dropped.</p>
+ <label class="cx-st">To <input id="cmpTo" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${esc(SUP_CMP.to)}" placeholder="name@example.com, …" style="width:100%"></label>
+ <label class="cx-st">Cc <input id="cmpCc" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${esc(SUP_CMP.cc)}" placeholder="optional, comma-separated" style="width:100%"></label>
+ <label class="cx-st">Bcc <input id="cmpBcc" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${esc(SUP_CMP.bcc)}" placeholder="optional, hidden from other recipients" style="width:100%"></label>
  <label class="cx-st">Subject <input id="cmpSub" value="${esc(SUP_CMP.subject)}" style="width:100%"></label>
  <label class="cx-st">Body <textarea id="cmpBody" rows="10" style="width:100%;box-sizing:border-box;font-size:14px">${esc(SUP_CMP.body)}</textarea></label>
  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
@@ -2867,13 +2869,16 @@ function supComposeRender(){if(!SUP_CMP.open)return;let m=document.getElementByI
  <p class="tip">Propose send puts it in your decision queue (approve → real email + Vault). <b>Send draft now</b> is one-tap for a saved draft (still requires your click). Yorri only saves drafts — never sends.</p>
  ${drafts.length?`<h6 style="margin:14px 0 4px">Saved drafts</h6>${drafts.map(d=>`<div class="row"><span><b>${esc(d.to)}</b> · ${esc(d.subject||'(no subject)')}<br><span class="mono" style="font-weight:400">${esc((d.body||'').slice(0,80))}</span></span><span><button class="btn" data-cmpopen="${esc(d.id)}">Open</button> <button class="btn" data-cmpsendd="${esc(d.id)}">Send</button></span></div>`).join('')}`:''}
  </div>`}
-function cmpRead(){return{to:($('#cmpTo')||{}).value||'',cc:($('#cmpCc')||{}).value||'',subject:($('#cmpSub')||{}).value||'',body:($('#cmpBody')||{}).value||''}}
-async function cmpSave(){const src=SupportSource(),b=cmpRead();if(!b.to.trim()){SUP_CMP.msg={ok:false,t:'To is required'};return supComposeRender()}
+function cmpRead(){return{to:($('#cmpTo')||{}).value||'',cc:($('#cmpCc')||{}).value||'',bcc:($('#cmpBcc')||{}).value||'',subject:($('#cmpSub')||{}).value||'',body:($('#cmpBody')||{}).value||''}}
+async function cmpSave(){const src=SupportSource(),raw=cmpRead();const R=mailRcCheck(raw);if(R.err){SUP_CMP.msg={ok:false,t:R.err};return supComposeRender()}
+ const b={to:R.to.join(', '),cc:R.cc.join(', '),bcc:R.bcc.join(', '),subject:raw.subject,body:raw.body};
  Object.assign(SUP_CMP,b);SUP_CMP.busy=true;supComposeRender();
  try{const r=await src.saveDraft(Object.assign({},b,SUP_CMP.draftId?{id:SUP_CMP.draftId}:{}));SUP_CMP.draftId=r.draft.id;SUP_CMP.msg={ok:true,t:'Draft saved — open it anytime from Compose / Drafts.'};await supDraftsLoad();audit({decision:'DRAFT SAVED',tier:'T0',title:b.subject||b.to,lane:'Support'})}
  catch(e){SUP_CMP.msg={ok:false,t:'Save failed: '+e.message}}SUP_CMP.busy=false;supComposeRender();try{draw()}catch(x){}}
-function cmpPropose(){const b=cmpRead();if(!b.to.trim()||!b.subject.trim()||!b.body.trim()){SUP_CMP.msg={ok:false,t:'To, subject and body are required to propose'};return supComposeRender()}
- Object.assign(SUP_CMP,b);const a={t:['t1','T1'],title:'Send email to '+b.to+': '+b.subject,why:'Compose · to '+b.to+' · "'+b.body.slice(0,60)+'…"',lane:'Support',sup:{kind:'compose',iid:SUP.iid,to:b.to,cc:b.cc,subject:b.subject,body:b.body,draftId:SUP_CMP.draftId||null,src:SupportSource().name}};
+function cmpPropose(){const raw=cmpRead();const R=mailRcCheck(raw);if(R.err){SUP_CMP.msg={ok:false,t:R.err};return supComposeRender()}
+ if(!raw.subject.trim()||!raw.body.trim()){SUP_CMP.msg={ok:false,t:'To, subject and body are required to propose'};return supComposeRender()}
+ const b={to:R.to.join(', '),cc:R.cc.join(', '),bcc:R.bcc.join(', '),subject:raw.subject,body:raw.body};
+ Object.assign(SUP_CMP,b);const a={t:['t1','T1'],title:'Send email to '+b.to+': '+b.subject,why:'Compose · to '+b.to+(b.cc?' · Cc '+b.cc:'')+(b.bcc?' · Bcc '+b.bcc:'')+' · "'+b.body.slice(0,60)+'…"',lane:'Support',sup:{kind:'compose',iid:SUP.iid,to:b.to,cc:b.cc,bcc:b.bcc,subject:b.subject,body:b.body,draftId:SUP_CMP.draftId||null,src:SupportSource().name}};
  if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. Waiting on your decision.`);supComposeClose();draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
 async function cmpSendDraft(id){id=id||SUP_CMP.draftId;const src=SupportSource();if(!id){SUP_CMP.msg={ok:false,t:'Save the draft first, then Send'};return supComposeRender()}
  if(!confirm('Send this draft now as support@yourworldapps.si?'))return;
@@ -2891,7 +2896,7 @@ document.addEventListener('click',async e=>{const el=e.target.closest&&e.target.
  if(el.dataset.cmpsendd!=null)return cmpSendDraft(el.dataset.cmpsendd);
  if(el.dataset.cmpopen!=null){const d=(SUP.drafts||[]).find(x=>x.id===el.dataset.cmpopen);if(d)supComposeOpen(d);return}
  if(el.dataset.cmpdel!=null&&SUP_CMP.draftId){if(!confirm('Delete this draft?'))return;try{await SupportSource().delDraft(SUP_CMP.draftId);SUP_CMP.draftId=null;SUP_CMP.msg={ok:true,t:'Draft deleted'};await supDraftsLoad();supComposeRender();try{draw()}catch(x){}}catch(er){SUP_CMP.msg={ok:false,t:er.message};supComposeRender()}}});
-document.addEventListener('input',e=>{if(['cmpTo','cmpCc','cmpSub','cmpBody'].includes(e.target.id)){const k={cmpTo:'to',cmpCc:'cc',cmpSub:'subject',cmpBody:'body'}[e.target.id];SUP_CMP[k]=e.target.value}});
+document.addEventListener('input',e=>{if(['cmpTo','cmpCc','cmpBcc','cmpSub','cmpBody'].includes(e.target.id)){const k={cmpTo:'to',cmpCc:'cc',cmpBcc:'bcc',cmpSub:'subject',cmpBody:'body'}[e.target.id];SUP_CMP[k]=e.target.value}});
 function supTileHTML(){const all=SUP.tickets,o=supNeed().length;return `<div class="kpi"><div><b>${o}</b><small>need reply</small></div><div><b class="am">${all.filter(t=>t.unread).length}</b><small>unread</small></div><div><b class="dn">${all.filter(supBreach).length}</b><small>SLA breach</small></div></div>${crTileHTML()}<button class="btn" data-supgo="1" style="margin-top:6px">Open Support in Your World Apps →</button> ${supChip()}`}
 function supGo(){const f=roomFind(supRoomPred);if(f){bizStore.activeId=f.b.id;saveBiz()}setPageView('apps');roomView=f?f.r.label:'Business Board';draw()}
 function supTpl(t){const n=(t.fromName||t.from||'there').split(/[ @]/)[0];return `Hi ${n},\n\nThanks for flagging "${t.subject}". We're on it and will follow up shortly with next steps.\n\nBest,\nAaron`}
@@ -2919,7 +2924,7 @@ async function supOnDecide(a,ok){if(!a||!a.sup)return;const S=supState(a.sup.iid
  if(a.sup.src&&a.sup.src!==src.name){const m=`Not sent: this draft was made on ${a.sup.src==='stub'?'a SAMPLE ticket':'the live inbox'}, but Support is now ${src.name==='stub'?'on sample data':'live'}. Re-open and propose again.`;audit({decision:'NOT SENT (source changed)',tier:'T1',title:a.sup.kind==='compose'?(a.sup.subject||a.sup.to):('Reply '+a.sup.id),lane:'Support'});say('Yorri',m);S.sendMsg={id:a.sup.id||a.sup.to,ok:false,msg:m};supWith(S.iid,supRefresh);return}
  if(supWith(S.iid,supCanSend)===false){const m='Not sent: this inbox is read-only.';say('Yorri',m);S.sendMsg={id:a.sup.id||a.sup.to,ok:false,msg:m};return}
  if(a.sup.kind==='compose'){
-  try{let r;if(a.sup.draftId&&src.sendDraft)r=await src.sendDraft(a.sup.draftId);else if(src.compose)r=await src.compose({to:a.sup.to,cc:a.sup.cc,subject:a.sup.subject,body:a.sup.body});else throw new Error('Compose isn’t available on this server yet — redeploy support-server');
+  try{let r;if(a.sup.draftId&&src.sendDraft)r=await src.sendDraft(a.sup.draftId);else if(src.compose)r=await src.compose({to:a.sup.to,cc:a.sup.cc,bcc:a.sup.bcc,subject:a.sup.subject,body:a.sup.body});else throw new Error('Compose isn’t available on this server yet — redeploy support-server');
    if(r&&r.ok&&r.messageId){const via=r.via==='resend'?'Resend':'Gmail',m='Sent · '+via+' '+r.messageId+(r.to?' · to '+r.to:'')+(r.from?' · from '+r.from:'')+(r.warning?' · ⚠ '+r.warning:'');audit({decision:'SENT compose via '+via+' · '+r.messageId+(r.to?' → '+r.to:''),tier:'T1',title:a.sup.subject||a.sup.to,lane:'Support'});say('Yorri',`Email to ${esc(a.sup.to)} sent via ${esc(via)}. ${esc(m)}. Logged to Vault.`);S.sendMsg={id:a.sup.to,ok:true,msg:m}}
    else throw new Error('server did not confirm the send (no message id)')}
   catch(e){const er=String(e.message||e).slice(0,160);audit({decision:'SEND FAILED: '+er,tier:'T1',title:a.sup.subject||a.sup.to,lane:'Support'});say('Yorri',`Send failed: ${esc(er)}`);S.sendMsg={id:a.sup.to,ok:false,msg:'Send failed: '+er}}
@@ -3013,16 +3018,19 @@ function mailRender(board){if(!MAIL.loaded){MAIL.loaded=1;setTimeout(()=>mailLoa
  const tasks=taskList().filter(t=>!t.done).slice(0,8);
  const taskH=tasks.length?`<div class="mail-tasks"><b>Command tasks</b>${tasks.map(t=>`<div class="row"><span>${esc(t.title)}</span><button type="button" class="og-b" data-taskdone="${esc(t.id)}">Done</button></div>`).join('')}</div>`:'';
  return `<div class="mail-room" data-mail="1">${bar}<div id="mailBulkHost">${mailBulkHTML()}</div><div class="mail-split"><div class="mail-list" id="mailList">${rows}</div><div class="mail-thread" id="mailThread">${mailThreadHTML()}</div></div>${taskH}${MAIL.sendMsg?`<p class="${MAIL.sendMsg.ok?'cx-ok':'cx-bad'}">${esc(MAIL.sendMsg.msg)}</p>`:''}${mailAskHTML()}</div>`}
-const MAIL_MAX_RCPT=20,MAIL_SELVES=['support@yourworldapps.si','yourworldappsupport@gmail.com'];
+const MAIL_MAX_RCPT=20,MAIL_MAX_RCPT_CHARS=4000,MAIL_SELVES=['support@yourworldapps.si','yourworldappsupport@gmail.com'];
 const MAIL_ADDR_RE=/^[^\s@<>",;()]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)+$/;
 function mailSplit(v){return (Array.isArray(v)?v:String(v||'').split(/[,;\n]/)).map(x=>String(x||'').trim()).filter(Boolean)}
 function mailAddrOf(x){const m=String(x||'').match(/<([^>]+)>/);return (m?m[1]:String(x||'')).trim()}
 function mailIsSelf(x){return MAIL_SELVES.includes(mailAddrOf(x).toLowerCase())}
-// Validate To/Cc/Bcc like the server does: valid addresses, one To at least, each address once overall, ≤20 total.
-function mailRcCheck(rc){const T=mailSplit(rc.to),C=mailSplit(rc.cc),B=mailSplit(rc.bcc);const bad=[...T,...C,...B].filter(x=>!MAIL_ADDR_RE.test(mailAddrOf(x)));
+// Validate To/Cc/Bcc like the server does: valid addresses, one To at least, each address once overall, ≤20 total, ≤4000 characters combined. Never silently drop or truncate.
+function mailRcCheck(rc){const chars=['to','cc','bcc'].reduce((n,k)=>n+String((Array.isArray(rc[k])?rc[k].join(', '):rc[k])||'').length,0);
+ if(chars>MAIL_MAX_RCPT_CHARS)return {err:'Recipients are too long ('+chars+' characters). The limit is '+MAIL_MAX_RCPT_CHARS+'.'};
+ const T=mailSplit(rc.to),C=mailSplit(rc.cc),B=mailSplit(rc.bcc);const bad=[...T,...C,...B].filter(x=>!MAIL_ADDR_RE.test(mailAddrOf(x)));
  if(bad.length)return {err:'Check '+(bad.length>1?'these addresses':'this address')+': '+bad.join(', '),bad};if(!T.length)return {err:'Add at least one To address.'};
- const seen=new Set(),uniq=L=>L.filter(x=>{const k=mailAddrOf(x).toLowerCase();if(seen.has(k))return false;seen.add(k);return true});const to=uniq(T),cc=uniq(C),bcc=uniq(B);
- const n=to.length+cc.length+bcc.length;if(n>MAIL_MAX_RCPT)return {err:'Too many recipients ('+n+'). Max '+MAIL_MAX_RCPT+' across To, Cc and Bcc.'};return {to,cc,bcc,n}}
+ const seen=new Set(),dups=[];for(const x of [...T,...C,...B]){const k=mailAddrOf(x).toLowerCase();if(seen.has(k))dups.push(x);else seen.add(k)}
+ if(dups.length)return {err:'An address appears more than once: '+dups.join(', '),dups};
+ const n=T.length+C.length+B.length;if(n>MAIL_MAX_RCPT)return {err:'Too many recipients ('+n+'). Max '+MAIL_MAX_RCPT+' across To, Cc and Bcc — split into more than one email.'};return {to:T,cc:C,bcc:B,n}}
 function mailRcLine(L){return (L&&L.length)?L.join(', '):'—'}
 function mailOthers(m){const me=String(m.from||'').toLowerCase();return [...new Set([...mailSplit(m.to),...mailSplit(m.cc)].map(mailAddrOf).filter(a=>a&&!mailIsSelf(a)&&a.toLowerCase()!==me))]}
 function mailRcStart(mode,m,pre){m=m||MAIL.msg||{};const subj=m.subject||'';const re=/^\s*re:/i.test(subj)?subj:'Re: '+subj,fw=/^\s*(fwd?|fw):/i.test(subj)?subj:'Fwd: '+(subj||'(no subject)');
@@ -3039,7 +3047,7 @@ function mailRcHTML(rc){const e=x=>esc(x||'');return `<div class="mail-rc" role=
  <label class="cx-st" for="mailTo">To</label><div class="mail-rc-row"><input id="mailTo" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${e(rc.to)}" placeholder="name@example.com, …" aria-describedby="mailRcHint"><button type="button" class="og-b mail-cc-tog" data-mailact="cc-toggle" aria-expanded="${rc.showCc?'true':'false'}" aria-controls="mailCcBox">Cc/Bcc</button></div>
  <div id="mailCcBox" class="mail-rc"${rc.showCc?'':' hidden'}><label class="cx-st" for="mailCc">Cc</label><input id="mailCc" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${e(rc.cc)}" placeholder="Copy others (visible to all)"><label class="cx-st" for="mailBcc">Bcc</label><input id="mailBcc" type="text" inputmode="email" autocomplete="off" spellcheck="false" value="${e(rc.bcc)}" placeholder="Blind copy (hidden from others)"></div>
  <label class="cx-st" for="mailSubj">Subject</label><input id="mailSubj" type="text" value="${e(rc.subject)}">
- <p class="cx-st" id="mailRcHint">Separate addresses with commas · up to ${MAIL_MAX_RCPT} total · every field stays editable until you Approve.</p><p class="mail-rc-err" id="mailRcErr" role="alert"${rc.err?'':' hidden'}>${e(rc.err)}</p></div>`}
+ <p class="cx-st" id="mailRcHint">Separate addresses with commas · up to ${MAIL_MAX_RCPT} total · invalid or duplicate addresses are rejected, never silently dropped · every field stays editable until you Approve.</p><p class="mail-rc-err" id="mailRcErr" role="alert"${rc.err?'':' hidden'}>${e(rc.err)}</p></div>`}
 function mailFwdHTML(m){const F=MAIL.fwdInfo&&String(MAIL.fwdInfo.id)===String(m.id)?MAIL.fwdInfo:null;const when=m.date?new Date(m.date).toString().replace(/ GMT.*$/,''):'';
  const rows=[['From',m.fromName?m.fromName+' <'+m.from+'>':(m.from||'')],['Date',when],['Subject',m.subject||'(no subject)'],['To',m.to||'support@yourworldapps.si']].concat(m.cc?[['Cc',m.cc]]:[]);
  const orig=String(m.text||m.snippet||'').trim();const atts=m.attachments||[];
@@ -4674,7 +4682,7 @@ YC.list.unshift({id:'mail.siguse',group:'Mail',cov:['room:Mail','card:smCard'],e
 YC.list.unshift({id:'mail.sigoff',group:'Mail',cov:['room:Mail','card:smCard'],ex:['turn signature off'],help:'Turns off auto-appending your support email signature on new replies. You can still add one with the Signature button. Say “turn signature on” to resume.',
  match:(r,l)=>{const m=l.match(/\b(?:turn|switch|set)\s+(off|on)\s+(?:the\s+)?(?:e-?mail\s+)?signatures?\b|\b(?:e-?mail\s+)?signatures?\s+(off|on)\b/);return m?{on:(m[1]||m[2])==='on'}:null},
  run:async m=>{await sigSetAuto(!!m.on)}});
-YC.list.unshift({id:'mail.replysup',group:'Mail',cov:['room:Mail','room:Support'],ex:['reply to support','reply to this email'],help:'Opens Mail (or the open Support ticket) so you can draft a reply. To is prefilled with the sender but editable, and Cc/Bcc are one tap away. Sending is always Propose send → your Approve, via Resend. Nothing is sent automatically.',
+YC.list.unshift({id:'mail.replysup',group:'Mail',cov:['room:Mail','room:Support'],ex:['reply to support','reply to this email'],help:'Opens Mail (or the open Support ticket) so you can draft a reply. To is prefilled with the sender but editable, and Cc/Bcc are one tap away. To, Cc and Bcc each take a comma-separated list (20 addresses total); invalid or duplicate addresses are shown as an error, never silently dropped. Sending is always Propose send → your Approve, via Resend. Nothing is sent automatically.',
  match:(r,l)=>/\breply\s+to\s+(?:support|this\s+(?:e-?mail|message|ticket)|the\s+(?:e-?mail|message))\b|^reply to support$/.test(l),
  run:()=>{if(SUP.open&&typeof supGo==='function'){try{supGo();const ta=$('#supDraft');if(ta)ta.focus()}catch(e){}say('Yorri','Draft the reply in Support, then tap <b>Propose send</b>. Nothing is sent until you Approve.');return}
   mailOpenRoom();MAIL.replying=true;if(MAIL.open){if(typeof draw==='function')draw();setTimeout(()=>{const n=$('#mailDraft');if(n)n.focus()},200)}
@@ -4687,7 +4695,7 @@ YC.list.unshift({id:'mail.forward',group:'Mail',cov:['card:smCard'],ex:['turn of
 function ycAddr(v){let t=String(v||'').trim().replace(/[.!?]+$/,'').replace(/^(?:to\s+)?/i,'');t=t.replace(/\s+at\s+/gi,'@').replace(/\s+dot\s+/gi,'.').replace(/\s+(?:underscore)\s+/gi,'_').replace(/\s+(?:dash|hyphen)\s+/gi,'-');return t.split(/\s*(?:,|;|\band\b)\s*/i).map(x=>x.replace(/\s+/g,'')).filter(Boolean)}
 async function ycMailEnsureOpen(){mailOpenRoom();if(MAIL.open&&MAIL.msg)return MAIL.msg;if(MAIL.label==='trash')MAIL.label='inbox';await mailLoad(true);const it=(MAIL.items||[]).filter(x=>!x.out)[0]||(MAIL.items||[])[0];if(it)await mailOpen(it.id);return MAIL.msg}
 function ycMailEditing(){return !!(MAIL.compose||(MAIL.replying&&MAIL.rc))}
-YC.list.unshift({id:'mail.fwd',group:'Mail',cov:['room:Mail'],ex:['forward this email to jane@example.com','forward this email'],help:'Opens Forward on the open email (or the latest) with To filled in. The original text, From/Date/Subject/To and its attachments go along. To, Cc, Bcc and subject stay editable; nothing sends until you tap Propose forward and Approve.',
+YC.list.unshift({id:'mail.fwd',group:'Mail',cov:['room:Mail'],ex:['forward this email to jane@example.com','forward this email'],help:'Opens Forward on the open email (or the latest) with To filled in. The original text, From/Date/Subject/To and its attachments go along. To, Cc, Bcc and subject stay editable (comma-separated lists, 20 addresses total; errors instead of silently dropping addresses); nothing sends until you tap Propose forward and Approve.',
  match:(r,l)=>{const m=l.match(/^(?:yorri\s+)?forward\s+(?:this|the|that|my)?\s*(?:last\s+|latest\s+)?(?:e-?mail|message)?\s*(?:to\s+(.+))?$/);if(!m||/gmail/.test(l))return null;if(!m[1]&&!/\b(?:e-?mail|message|this|that)\b/.test(l))return null;return {to:m[1]?ycAddr(m[1]):[]}},
  run:async m=>{const msg=await ycMailEnsureOpen();if(!msg)return say('Yorri','There’s no email to forward yet.');const bad=m.to.filter(x=>!MAIL_ADDR_RE.test(x));
   mailStartMode('forward',{to:m.to.filter(x=>MAIL_ADDR_RE.test(x)).join(', ')});
@@ -4698,7 +4706,7 @@ YC.list.unshift({id:'mail.replyall',group:'Mail',cov:['room:Mail'],ex:['reply al
  match:(r,l)=>/^(?:yorri\s+)?reply\s+(?:to\s+)?all(?:\s+to\s+(?:this|the|that)\s+(?:e-?mail|message))?[.!?]?$/.test(l),
  run:async()=>{const msg=await ycMailEnsureOpen();if(!msg)return say('Yorri','There’s no email to reply to yet.');mailStartMode('replyall');const cc=mailSplit(MAIL.rc.cc);
   say('Yorri',`Reply all is open. To: ${esc(MAIL.rc.to||'nobody')}${cc.length?'. Cc: '+esc(cc.join(', ')):'. Nobody else was on that email, so there’s no Cc'}. Write it, then tap <b>Propose send</b>. Nothing sends until you approve.`)}});
-YC.list.unshift({id:'mail.addcc',group:'Mail',cov:['room:Mail'],ex:['add cc jane@example.com','add bcc boss@example.com'],help:'Adds an address to Cc or Bcc on the email you’re writing (Reply, Reply all, Forward or Compose). If nothing is open for writing, it starts a Reply on the open email. Nothing sends until you Approve.',
+YC.list.unshift({id:'mail.addcc',group:'Mail',cov:['room:Mail'],ex:['add cc jane@example.com','add bcc boss@example.com'],help:'Adds an address to Cc or Bcc on the email you’re writing (Reply, Reply all, Forward or Compose). If nothing is open for writing, it starts a Reply on the open email. The 20-recipient cap still applies, and a duplicate or invalid address is reported instead of silently dropped. Nothing sends until you Approve.',
  match:(r,l)=>{const m=l.match(/^(?:yorri\s+)?add\s+(?:a\s+)?(b\.?\s?c\.?\s?c\.?|blind\s+copy|c\.?\s?c\.?|copy)\s+(?:to\s+)?(.+)$/);if(!m)return null;return {bcc:/^b|blind/.test(m[1]),to:ycAddr(m[2])}},
  run:async m=>{if(!ycMailEditing()){const msg=await ycMailEnsureOpen();if(!msg)return say('Yorri','Open an email or tap Compose first.');mailStartMode('reply')}
   const ok=m.to.filter(x=>MAIL_ADDR_RE.test(x)),bad=m.to.filter(x=>!MAIL_ADDR_RE.test(x)),f=m.bcc?'bcc':'cc',lab=m.bcc?'Bcc':'Cc';
