@@ -3155,14 +3155,28 @@ async function mailAi(kind){const c=llmCfg(),m=MAIL.msg;if(!m)return say('Yorri'
   MAIL.ai=html;say('Yorri',kind==='draft'?'Draft reply is in the editor. Propose send when it looks right.':html)}
  catch(e){MAIL.ai='AI failed: '+esc(String(e.message||e).slice(0,120));say('Yorri',MAIL.ai)}
  if(typeof draw==='function')draw();setTimeout(()=>{mailBind();if(kind==='draft')mailAttachSig()},0)}
-async function mailOnDecide(a,ok){if(!a||!a.mail)return;if(!ok)return
+// Yorri-drafted outgoing mail saved on the server (Support drafts with by:'yorri') → approval cards (Mail lane, Awaiting decision). Nothing is sent until Aaron approves;
+// approve sends through /mail/compose (To/Cc/Bcc as on the card), then the draft is removed; decline removes the draft (nothing sent); Edit opens it in the editor.
+const MDR={hide:new Set(),busy:false};const mdLS=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}};
+function mdDone(id){if(!id)return;MDR.hide.add(id);const d=mdLS('ywMailDraftDone');if(!d.includes(id)){d.push(id);try{localStorage.setItem('ywMailDraftDone',JSON.stringify(d.slice(-200)))}catch(e){}}svReq('DELETE','/tickets/drafts/'+encodeURIComponent(id)).catch(()=>{})}
+function mdCard(d){const to=mailSplit(d.to),cc=mailSplit(d.cc),bcc=mailSplit(d.bcc),rcl='To: '+mailRcLine(to)+(cc.length?' · Cc: '+mailRcLine(cc):'')+(bcc.length?' · Bcc ('+bcc.length+'): '+mailRcLine(bcc):'');
+ return {t:['t1','T1'],title:'Send email'+(d.label?' ('+d.label+')':'')+' to '+to.join(', ')+': '+d.subject,why:'Mail · drafted by Yorri · from support@yourworldapps.si via Resend · '+rcl+' · "'+String(d.body||'').replace(/\s+/g,' ').slice(0,60)+'…"'+(d.note?' · Note: '+d.note:''),lane:'Mail',room:'Mail',
+  mail:{kind:'compose',mode:'compose',to,cc,bcc,subject:d.subject,body:d.body,html:mailHtmlBody(d.body),draftId:d.id,note:d.note||'',label:d.label||''}}}
+async function mdSync(){if(MDR.busy||!smsServer())return;MDR.busy=true;try{const j=await svReq('GET','/tickets/drafts'),done=mdLS('ywMailDraftDone');const L=(j.drafts||[]).filter(d=>d.by==='yorri'&&!done.includes(d.id)),ids=new Set(L.map(d=>d.id));
+ const before=queue.length;queue=queue.filter(q=>!(q.mail&&q.mail.draftId&&!ids.has(q.mail.draftId)&&!MDR.hide.has(q.mail.draftId)));let n=0;const lg=mdLS('ywMailDraftLogged');
+ for(const d of L.slice().reverse()){if(MDR.hide.has(d.id)||queue.some(q=>q.mail&&q.mail.draftId===d.id))continue;const a=mdCard(d);if(pushQ(a)){n++;if(!lg.includes(d.id)){lg.push(d.id);audit({decision:'DRAFTED by Yorri · waiting for your approval (not sent)',tier:'T1',title:a.title,lane:'Mail',to:a.mail.to.join(', '),bcc:a.mail.bcc.join(', '),subject:d.subject,summary:String(d.body||'').slice(0,400)+(d.note?' — Note: '+d.note:''),draftId:d.id,mode:'LIVE'})}}}
+ try{localStorage.setItem('ywMailDraftLogged',JSON.stringify(lg.slice(-200)))}catch(e){}
+ if(n)say('Yorri',`${n} email draft${n>1?'s':''} from Yorri waiting for your approval in <b>Awaiting decision</b>. Tap Edit to change To, Cc or Bcc. Nothing is sent until you approve.`);
+ if(n||queue.length!==before){draw();broadcast(snapshot())}}catch(e){}MDR.busy=false}
+setTimeout(mdSync,2500);setInterval(()=>{if(!document.hidden)mdSync()},120e3);
+async function mailOnDecide(a,ok){if(!a||!a.mail)return;if(!ok){if(a.mail.draftId){mdDone(a.mail.draftId);audit({decision:'DECLINED draft — deleted, nothing sent',tier:'T1',title:a.title,lane:'Mail'})}return}
  const x=a.mail,k=x.kind||'reply',base={approved:true,to:x.to,cc:x.cc||[],bcc:x.bcc||[],subject:x.subject,body:x.body,html:x.html};
   try{const r=k==='compose'?await svReq('POST','/mail/compose',base):k==='forward'?await svReq('POST','/mail/forward',Object.assign(base,{id:x.id,attachments:x.attachments!==false})):await svReq('POST','/mail/reply',Object.assign(base,{id:x.id}));
   if(!(r&&r.ok&&r.messageId))throw new Error('server did not confirm the send');
   const cc=[].concat(r.cc||[]),bcc=[].concat(r.bcc||[]),rcl=(r.to?' · To '+r.to:'')+(cc.length?' · Cc '+cc.join(', '):'')+(bcc.length?' · Bcc '+bcc.join(', '):'');
   const via=r.via==='resend'?'Resend':'mail',msg=(k==='forward'?'Forwarded':'Sent')+' via '+via+' · '+r.messageId+rcl+(k==='forward'&&r.attachments?' · '+r.attachments+' attachment'+(r.attachments===1?'':'s'):'');
   audit({decision:(k==='forward'?'FORWARDED':'SENT')+' via '+via+' · '+r.messageId+rcl,tier:'T1',title:a.title,lane:'Mail',to:r.to||'',cc:cc.join(', '),bcc:bcc.join(', '),subject:x.subject||'',messageId:r.messageId,mailId:x.id||'',kind:k,summary:String(x.body||'').slice(0,400)});
-  say('Yorri',`${k==='forward'?'Forwarded':'Sent'} via ${esc(via)}. ${esc(msg)}. Logged to Vault.`);MAIL.sendMsg={ok:true,msg};MAIL.draft='';MAIL.compose=false;MAIL.replying=false;MAIL.rc=null;await mailLoad(true)}
+  if(x.draftId)mdDone(x.draftId);say('Yorri',`${k==='forward'?'Forwarded':'Sent'} via ${esc(via)}. ${esc(msg)}. Logged to Vault.`);MAIL.sendMsg={ok:true,msg};MAIL.draft='';MAIL.compose=false;MAIL.replying=false;MAIL.rc=null;await mailLoad(true)}
  catch(e){const er=String(e.message||e).slice(0,160);audit({decision:'SEND FAILED: '+er,tier:'T1',title:a.title,lane:'Mail'});say('Yorri','Send failed: '+esc(er));MAIL.sendMsg={ok:false,msg:'Send failed: '+er};if(typeof draw==='function')draw()}}
 function mailRcErr(msg){const rc=MAIL.rc;if(rc)rc.err=msg||'';const n=$('#mailRcErr');if(n){n.textContent=msg||'';n.hidden=!msg}['mailTo','mailCc','mailBcc'].forEach(id=>{const el=$('#'+id);if(!el)return;const bad=!!msg&&mailSplit(el.value).some(x=>!MAIL_ADDR_RE.test(mailAddrOf(x)));el.setAttribute('aria-invalid',bad?'true':'false')});if(msg)say('Yorri',esc(msg))}
 // One proposal shape for every send (Reply, Reply all, Forward, Compose, and anything Yorri drafts): To/Cc/Bcc/Subject always editable here and via Edit on the approval card.
@@ -3175,10 +3189,11 @@ function mailPropose(kind){const rc=mailRcSync();const mode=kind==='compose'?'co
  const att=mode==='forward'?(rc.att!==false):undefined,nAtt=mode==='forward'&&MAIL.fwdInfo&&MAIL.fwdInfo.ok?(MAIL.fwdInfo.attachments||[]).length:0;
  const rcl='To: '+mailRcLine(R.to)+(R.cc.length?' · Cc: '+mailRcLine(R.cc):'')+(R.bcc.length?' · Bcc: '+mailRcLine(R.bcc):'');
  const a={t:['t1','T1'],title:verb+' to '+R.to.join(', ')+': '+subject,why:'Mail · from support@yourworldapps.si via Resend · '+rcl+(mode==='forward'?' · '+(att&&nAtt?nAtt+' attachment'+(nAtt===1?'':'s'):'no attachments'):'')+' · "'+body.slice(0,60)+(body.length>60?'…':'')+'"',lane:'Mail',
-  mail:{kind:mode==='compose'?'compose':mode==='forward'?'forward':'reply',mode,id:m&&mode!=='compose'?m.id:undefined,to:R.to,cc:R.cc,bcc:R.bcc,subject,body,html:mailHtmlBody(body),attachments:att}};
- if(pushQ(a)){say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. ${esc(rcl)}. Waiting on your decision — tap Edit on the card to change anything.`);if(mode==='compose')MAIL.compose=false;else MAIL.replying=false;MAIL.rc=null;MAIL.draft='';MAIL._fp='';draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
+  mail:Object.assign({kind:mode==='compose'?'compose':mode==='forward'?'forward':'reply',mode,id:m&&mode!=='compose'?m.id:undefined,to:R.to,cc:R.cc,bcc:R.bcc,subject,body,html:mailHtmlBody(body),attachments:att},mode==='compose'&&MAIL.editDraft?{draftId:MAIL.editDraft.id,label:MAIL.editDraft.label,note:MAIL.editDraft.note}:{})};
+ if(mode==='compose'&&MAIL.editDraft&&MAIL.editDraft.label)a.title=a.title.replace(/^Send email/,'Send email ('+MAIL.editDraft.label+')');
+ if(pushQ(a)){MAIL.editDraft=null;say('Yorri',`Plan ready → <span class="tier t1">T1</span>${esc(a.title)}. ${esc(rcl)}. Waiting on your decision — tap Edit on the card to change anything.`);if(mode==='compose')MAIL.compose=false;else MAIL.replying=false;MAIL.rc=null;MAIL.draft='';MAIL._fp='';draw();broadcast(snapshot())}else say('Yorri',esc(a.title)+' is already in your queue.')}
 // Edit a queued (not yet approved) mail: take it off the queue and reopen every field in the editor.
-async function mailEditQueued(i){const a=queue[i];if(!a||!a.mail)return;queue.splice(i,1);audit({decision:'EDITING (back to editor, not sent)',tier:a.t[1],title:a.title,lane:'Mail'});
+async function mailEditQueued(i){const a=queue[i];if(!a||!a.mail)return;queue.splice(i,1);if(a.mail.draftId){MDR.hide.add(a.mail.draftId);MAIL.editDraft={id:a.mail.draftId,label:a.mail.label||'',note:a.mail.note||''}}audit({decision:'EDITING (back to editor, not sent)',tier:a.t[1],title:a.title,lane:'Mail'});
  const x=a.mail,mode=x.mode||(x.kind==='compose'?'compose':x.kind==='forward'?'forward':'reply');const pre={to:mailSplit(x.to).join(', '),cc:mailSplit(x.cc).join(', '),bcc:mailSplit(x.bcc).join(', '),subject:x.subject||'',body:x.body||'',att:x.attachments!==false};
  mailOpenRoom();if(mode!=='compose'&&x.id){await mailOpen(x.id);if(!MAIL.msg){say('Yorri','That email is no longer in Mail — I couldn’t reopen it.');draw();broadcast(snapshot());return}}
  mailStartMode(mode,pre);say('Yorri','Back in the editor — To, Cc, Bcc, subject and text are all editable. Propose again when ready.');broadcast(snapshot())}
